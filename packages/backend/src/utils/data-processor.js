@@ -96,9 +96,8 @@ class DataProcessor {
       ).length,
       hotTopics: data.filter((item) => item.keyword_type === "hotTopics")
         .length,
-      relatedKeywords: data.filter(
-        (item) => item.keyword_type === "relatedKeywords"
-      ).length,
+      relatedKeywords: data.filter((item) => item.keyword_type === "relatedKeywords")
+        .length,
       duration: parseFloat(duration),
     };
 
