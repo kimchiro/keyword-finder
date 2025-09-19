@@ -222,10 +222,10 @@ export default function StatsPage() {
             title="키워드 속성 분석"
           />
 
-          {/* 연관 키워드 테이블 */}
+          {/* 연관검색어 테이블 */}
           <RelatedKeywordsTable 
             data={sampleRelatedKeywords}
-            title="연관 키워드 분석"
+            title="연관검색어 분석"
           />
 
           <div style={{ textAlign: 'center', marginTop: '3rem' }}>

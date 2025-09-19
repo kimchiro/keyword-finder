@@ -1,40 +1,103 @@
-export interface KeywordStats {
-  totalKeywords: number;
-  keywordsByType: {
-    autosuggest: number;
-    togetherSearched: number;
-    hotTopics: number;
-  };
-  recentQueries: string[];
-  topKeywords: Array<{
-    text: string;
-    count: number;
-  }>;
-}
+// Dashboard feature types
+import { KeywordData, DashboardData, KeywordStats, IntegratedKeywordData } from '../../../shared/types';
 
-export interface KeywordData {
-  id: number;
+// Keyword Modal Types
+export interface KeywordModalProps {
+  isOpen: boolean;
+  onClose: () => void;
   query: string;
-  keyword_type: 'autosuggest' | 'togetherSearched' | 'hotTopics';
-  text: string;
-  href?: string;
-  imageAlt?: string;
-  rank: number;
-  grp: number;
-  created_at: string;
+  keywords: KeywordData[];
+  onCopy: () => void;
 }
 
-export interface DashboardData {
+// Naver Search Types
+export interface NaverSearchItem {
+  title: string;
+  link: string;
+  description: string;
+  bloggername: string;
+  bloggerlink: string;
+  postdate: string;
+}
+
+export interface NaverSearchData {
+  lastBuildDate?: string;
+  total: number;
+  start?: number;
+  display?: number;
+  items: NaverSearchItem[];
+}
+
+export interface NaverSearchCardProps {
+  searchData: NaverSearchData | null;
+  query?: string;
+}
+
+// Naver Trend Types
+export interface NaverTrendData {
+  period: string;
+  ratio: number;
+}
+
+export interface NaverTrendResult {
+  title: string;
+  keywords: string[];
+  data: NaverTrendData[];
+}
+
+export interface NaverTrendResponse {
+  startDate: string;
+  endDate: string;
+  timeUnit: string;
+  results: NaverTrendResult[];
+}
+
+export interface NaverTrendChartProps {
+  trendData: NaverTrendResponse | NaverTrendResult[] | null;
+  query?: string;
+}
+
+// Recent Searches Types
+export interface RecentSearchesProps {
+  recentSearches: DashboardData['recentSearches'];
+  onQueryClick: (query: string) => void;
+}
+
+// Stats Cards Types
+export interface StatsCardsProps {
   stats: KeywordStats;
-  recentSearches: Array<{
-    query: string;
-    timestamp: string;
-    totalKeywords: number;
-  }>;
 }
 
-// 네이버 API 확장 타입들을 re-export
-export * from '../../keyword-search/types/naver-api';
+// Toast Types
+export interface ToastProps {
+  message: string;
+  isVisible: boolean;
+  onClose: () => void;
+  duration?: number;
+}
 
-// 공유 차트 타입들을 re-export
-export * from '@/shared/types';
+// Top Keywords Types
+export interface TopKeywordsProps {
+  topKeywords: KeywordStats['topKeywords'];
+}
+
+// Dashboard Page Types
+export interface DashboardHeaderProps {
+  searchQuery: string;
+  onSearchQueryChange: (value: string) => void;
+  onKeyPress: (e: React.KeyboardEvent) => void;
+  onNaverSearch: () => void;
+  onRefresh: () => void;
+  naverLoading: boolean;
+  loading: boolean;
+}
+
+export interface NaverResultsDisplayProps {
+  searchData: NaverSearchData | null;
+  trendData: NaverTrendResponse | NaverTrendResult[] | null;
+  currentQuery?: string;
+}
+
+export interface IntegratedDataDisplayProps {
+  data: IntegratedKeywordData;
+}

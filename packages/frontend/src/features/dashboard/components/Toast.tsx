@@ -1,7 +1,7 @@
 import React from 'react';
-import { useToastTimer } from './hooks/useToastTimer';
+import { useToastTimer } from '../hooks/useToastTimer';
 import { ToastContainer, ToastMessage, ToastIcon } from '../styles/ToastStyles';
-import { ToastProps } from './types/ToastTypes';
+import { ToastProps } from '../types';
 
 export const Toast: React.FC<ToastProps> = ({ 
   message, 

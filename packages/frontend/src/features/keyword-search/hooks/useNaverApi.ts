@@ -5,7 +5,7 @@ import {
   NaverDatalabApiResponse, 
   NaverSearchOptions, 
   NaverDatalabOptions 
-} from '../types';
+} from '../../../shared/types';
 
 interface NaverApiState {
   loading: boolean;

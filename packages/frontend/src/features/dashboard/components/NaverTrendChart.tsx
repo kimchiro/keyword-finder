@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import { useNaverTrendChart } from './hooks/useNaverTrendChart';
+import { useNaverTrendChart } from '../hooks/useNaverTrendChart';
 import { 
   NaverTrendContainer,
   NaverTrendTitle,
@@ -11,8 +11,9 @@ import {
   NaverTrendEmpty,
   NaverTrendQueryBadge,
   NaverTrendSummary
-} from './styles/NaverTrendChartStyles';
-import { NaverTrendChartProps } from './types/NaverTrendChartTypes';
+} from '../styles/NaverTrendChartStyles';
+import { NaverTrendChartProps } from '../types';
+import { DatalabResult } from '../../../shared/types';
 
 const KeywordBadge = styled.span`
   display: inline-block;
@@ -60,14 +61,14 @@ export const NaverTrendChart: React.FC<NaverTrendChartProps> = ({ trendData, que
         </NaverTrendSummary>
       )}
 
-      {results.map((result, index) => (
+      {results.map((result: DatalabResult, index: number) => (
         <div key={index}>
           <div style={{ marginBottom: '1rem' }}>
             <h4 style={{ color: '#374151', marginBottom: '0.5rem' }}>
               {result.title}
             </h4>
             <div>
-              {result.keywords.map((keyword, keywordIndex) => (
+              {result.keywords.map((keyword: string, keywordIndex: number) => (
                 <KeywordBadge key={keywordIndex}>
                   {keyword}
                 </KeywordBadge>
@@ -75,7 +76,7 @@ export const NaverTrendChart: React.FC<NaverTrendChartProps> = ({ trendData, que
             </div>
           </div>
           <NaverTrendGrid>
-            {result.data.map((dataPoint, dataIndex) => (
+            {result.data.map((dataPoint, dataIndex: number) => (
               <NaverTrendCard key={dataIndex}>
                 <NaverTrendPeriod>{formatPeriod(dataPoint.period)}</NaverTrendPeriod>
                 <NaverTrendValue>{dataPoint.ratio}%</NaverTrendValue>

@@ -18,6 +18,7 @@ class ScrapingService {
       }
 
       console.log(`🚀 네이버 키워드 스크래핑 시작: ${query}`);
+      console.log(`📋 옵션:`, options);
 
       // 스크래퍼 초기화
       const scraper = new NaverKeywordScraper({
@@ -26,19 +27,27 @@ class ScrapingService {
         ...options,
       });
 
+      console.log(`🔧 스크래퍼 초기화 완료`);
+
       // 스크래핑 실행
+      console.log(`🕷️ 스크래핑 실행 중...`);
       const scrapedData = await scraper.scrape(query);
+      console.log(
+        `✅ 스크래핑 완료:`,
+        scrapedData ? "데이터 있음" : "데이터 없음"
+      );
 
       if (
         !scrapedData ||
-        !scrapedData.keywords ||
-        scrapedData.keywords.length === 0
+        !scrapedData.success ||
+        !scrapedData.data ||
+        scrapedData.data.length === 0
       ) {
         throw new Error("스크래핑된 데이터가 없습니다.");
       }
 
       // 데이터 정제 및 가공
-      const processedData = this.dataProcessor.cleanData(scrapedData.keywords);
+      const processedData = this.dataProcessor.cleanData(scrapedData.data);
 
       // 기존 데이터 삭제 (최신 데이터로 교체)
       await this.scrapingDao.deleteExistingKeywords(query);
@@ -59,14 +68,20 @@ class ScrapingService {
         success: true,
         query,
         totalKeywords: processedData.length,
+        keywords: processedData,
         keywordsByType: this._groupKeywordsByType(processedData),
         scrapedAt: new Date().toISOString(),
         savedToDb: true,
         savedToFile: options.saveToFile !== false,
+        stats: scrapedData.stats,
+        filepath: scrapedData.filepath,
       };
     } catch (error) {
-      console.error("❌ ScrapingService.scrapeNaverKeywords 오류:", error);
-      throw error;
+      console.error("❌ ScrapingService.scrapeNaverKeywords 오류:");
+      console.error("📄 에러 메시지:", error.message);
+      console.error("📚 에러 스택:", error.stack);
+      console.error("🔍 에러 타입:", error.constructor.name);
+      throw new Error(`스크래핑 실행 중 오류 발생: ${error.message}`);
     }
   }
 

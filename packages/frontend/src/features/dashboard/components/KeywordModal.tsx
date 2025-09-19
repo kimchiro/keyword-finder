@@ -1,5 +1,5 @@
 import React from 'react';
-import { useKeywordModal } from './hooks/useKeywordModal';
+import { useKeywordModalLogic } from '../hooks/useKeywordModalLogic';
 import { 
   ModalOverlay, 
   ModalContent, 
@@ -14,7 +14,8 @@ import {
   KeywordType,
   KeywordRank
 } from '../styles/ModalStyles';
-import { KeywordModalProps } from './types/KeywordModalTypes';
+import { KeywordModalProps } from '../types';
+import { KeywordData } from '../../../shared/types';
 
 export const KeywordModal: React.FC<KeywordModalProps> = ({ 
   isOpen, 
@@ -23,7 +24,7 @@ export const KeywordModal: React.FC<KeywordModalProps> = ({
   keywords, 
   onCopy 
 }) => {
-  const { handleOverlayClick, handleCopy, groupedKeywords, getTypeLabel } = useKeywordModal({
+  const { handleOverlayClick, handleCopy, groupedKeywords, getTypeLabel } = useKeywordModalLogic({
     keywords,
     onCopy,
     onClose,
@@ -44,13 +45,13 @@ export const KeywordModal: React.FC<KeywordModalProps> = ({
             전체 복사
           </CopyButton>
           
-          {Object.entries(groupedKeywords).map(([type, typeKeywords]) => (
+          {Object.entries(groupedKeywords).map(([type, typeKeywords]: [string, KeywordData[]]) => (
             <KeywordSection key={type}>
               <KeywordType>{getTypeLabel(type)} ({typeKeywords.length}개)</KeywordType>
               {typeKeywords
-                .sort((a, b) => a.rank - b.rank)
-                .map((keyword, index) => (
-                  <KeywordItem key={`${keyword.id}-${index}`}>
+                .sort((a: KeywordData, b: KeywordData) => a.rank - b.rank)
+                .map((keyword: KeywordData, index: number) => (
+                  <KeywordItem key={`${keyword.text}-${index}`}>
                     <KeywordText>{keyword.text}</KeywordText>
                     <KeywordRank>#{keyword.rank}</KeywordRank>
                   </KeywordItem>

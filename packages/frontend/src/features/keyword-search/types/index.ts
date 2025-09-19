@@ -1,24 +1,26 @@
-// 기본 키워드 타입
-export type KeywordType = 'autosuggest' | 'togetherSearched' | 'hotTopics';
-
-// 키워드 데이터 인터페이스
-export interface KeywordData {
-  text: string;
-  keyword_type: KeywordType;
-  rank: number;
-}
+// Re-export shared types
+export type { KeywordType, KeywordData } from '../../../shared/types';
+import type { KeywordData } from '../../../shared/types';
 
 // 스크래핑 결과 인터페이스
 export interface ScrapingResult {
   success: boolean;
-  data: KeywordData[];
+  query: string;
+  totalKeywords: number;
+  keywords: KeywordData[];
+  keywordsByType: Record<string, KeywordData[]>;
+  scrapedAt: string;
+  savedToDb: boolean;
+  savedToFile: boolean;
   stats: {
     autosuggest: number;
     togetherSearched: number;
     hotTopics: number;
+    relatedKeywords: number;
     total: number;
     duration: number;
   };
+  filepath?: string;
   error?: string;
 }
 
@@ -57,4 +59,4 @@ export interface SearchResultsProps {
 }
 
 // 네이버 API 관련 타입들을 re-export
-export * from './naver-api';
+export * from '../../../shared/types/naver-api';

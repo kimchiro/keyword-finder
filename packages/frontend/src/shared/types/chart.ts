@@ -38,7 +38,7 @@ export interface KeywordAttributes {
   commercial: number;  // 상업성 (0-100)
 }
 
-// 연관 키워드
+// 연관검색어
 export interface RelatedKeyword {
   relKeyword: string;
   monthlyPcQcCnt: number;

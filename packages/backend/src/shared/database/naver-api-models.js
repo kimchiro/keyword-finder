@@ -315,10 +315,10 @@ const getIntegratedKeywordData = async (query) => {
     // 1. 크롤링 데이터 조회
     const [crawlingRows] = await connection.execute(
       `
-      SELECT keyword_type, text, rank, \`grp\`, created_at
+      SELECT keyword_type, text, \`rank\`, \`grp\`, created_at
       FROM naver_keywords 
       WHERE query = ? 
-      ORDER BY keyword_type, rank ASC
+      ORDER BY keyword_type, \`rank\` ASC
     `,
       [query]
     );

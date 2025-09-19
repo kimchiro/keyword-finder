@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import { useNaverSearchCard } from './hooks/useNaverSearchCard';
+import { useNaverSearchCard } from '../hooks/useNaverSearchCard';
 import { 
   NaverSearchCard as SearchCard,
   NaverCardTitle,
@@ -12,8 +12,9 @@ import {
   NaverResultBlogger,
   NaverResultDate,
   NaverSearchEmpty
-} from './styles/NaverSearchCardStyles';
-import { NaverSearchCardProps } from './types/NaverSearchCardTypes';
+} from '../styles/NaverSearchCardStyles';
+import { NaverSearchCardProps } from '../types';
+import { NaverSearchItem } from '../../../shared/types';
 
 const QueryBadge = styled.span`
   display: inline-block;
@@ -48,7 +49,7 @@ export const NaverSearchCard: React.FC<NaverSearchCardProps> = ({ searchData, qu
       </div>
       
       <NaverSearchResultsList>
-        {searchData.items.map((item, index) => (
+        {searchData.items.map((item: NaverSearchItem, index: number) => (
           <NaverSearchResultItem key={index}>
             <NaverResultTitle>
               <a href={item.link} target="_blank" rel="noopener noreferrer">

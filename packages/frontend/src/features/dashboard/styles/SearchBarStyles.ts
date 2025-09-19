@@ -37,9 +37,11 @@ export const SearchInput = styled.input`
   }
 `;
 
-export const SearchButton = styled.button<{ loading?: boolean }>`
+export const SearchButton = styled('button', {
+  shouldForwardProp: (prop: string) => prop !== 'loading',
+})<{ loading?: boolean }>`
   padding: 0.5rem 1rem;
-  background: ${props => 
+  background: ${(props: { loading?: boolean }) => 
     props.loading 
       ? '#94a3b8' 
       : 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)'
@@ -49,7 +51,7 @@ export const SearchButton = styled.button<{ loading?: boolean }>`
   border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 600;
-  cursor: ${props => props.loading ? 'not-allowed' : 'pointer'};
+  cursor: ${(props: { loading?: boolean }) => props.loading ? 'not-allowed' : 'pointer'};
   transition: all 0.2s ease;
   white-space: nowrap;
 

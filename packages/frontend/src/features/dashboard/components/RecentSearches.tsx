@@ -1,5 +1,5 @@
 import React from 'react';
-import { useRecentSearches } from './hooks/useRecentSearches';
+import { useRecentSearches } from '../hooks/useRecentSearches';
 import { 
   RecentSearchesSection, 
   RecentSearchesList,
@@ -9,8 +9,8 @@ import {
   RecentSearchMeta, 
   RecentSearchBadge, 
   RecentSearchesEmpty 
-} from './styles/RecentSearchesStyles';
-import { RecentSearchesProps } from './types/RecentSearchesTypes';
+} from '../styles/RecentSearchesStyles';
+import { RecentSearchesProps } from '../types';
 
 export const RecentSearches: React.FC<RecentSearchesProps> = ({ recentSearches, onQueryClick }) => {
   const { formatDate } = useRecentSearches();
@@ -20,7 +20,7 @@ export const RecentSearches: React.FC<RecentSearchesProps> = ({ recentSearches, 
       <RecentSearchesTitle>최근 검색 ({recentSearches.length}개)</RecentSearchesTitle>
       <RecentSearchesList>
         {recentSearches.length > 0 ? (
-          recentSearches.map((search, index) => (
+          recentSearches.map((search, index: number) => (
             <RecentSearchItem key={index} onClick={() => onQueryClick(search.query)}>
               <div>
                 <RecentSearchText>{search.query}</RecentSearchText>
@@ -28,7 +28,7 @@ export const RecentSearches: React.FC<RecentSearchesProps> = ({ recentSearches, 
                   {formatDate(search.timestamp)}
                 </RecentSearchMeta>
               </div>
-              <RecentSearchBadge>{search.totalKeywords}개</RecentSearchBadge>
+              <RecentSearchBadge>{search.keywordCount}개</RecentSearchBadge>
             </RecentSearchItem>
           ))
         ) : (

@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import axios from 'axios';
-import { ComprehensiveKeywordAnalysis } from '../../keyword-search/types/naver-api';
+import { ComprehensiveKeywordAnalysis } from '../../../shared/types';
 
 interface ComprehensiveAnalysisState {
   loading: boolean;

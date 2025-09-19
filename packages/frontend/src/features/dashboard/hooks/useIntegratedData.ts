@@ -1,58 +1,7 @@
 import { useState, useCallback } from 'react';
 import axios from 'axios';
-import { ComprehensiveKeywordAnalysis } from '../types';
+import { IntegratedKeywordData } from '../../../shared/types';
 
-interface CrawlingKeyword {
-  keyword_type: string;
-  text: string;
-  rank: number;
-  grp: number;
-  created_at: string;
-}
-
-interface NaverSearchResult {
-  id: number;
-  title: string;
-  link: string;
-  description: string;
-  bloggername: string;
-  bloggerlink: string;
-  postdate: string;
-  created_at: string;
-}
-
-interface NaverTrendData {
-  id: number;
-  period: string;
-  ratio: number;
-  device?: string;
-  gender?: string;
-  age_group?: string;
-  created_at: string;
-}
-
-interface NaverRelatedKeyword {
-  id: number;
-  related_keyword: string;
-  monthly_pc_qc_cnt: number;
-  monthly_mobile_qc_cnt: number;
-  monthly_ave_pc_ctr: number;
-  monthly_ave_mobile_ctr: number;
-  comp_idx: string;
-  created_at: string;
-}
-
-interface IntegratedKeywordData {
-  query: string;
-  crawlingData: CrawlingKeyword[];
-  naverApiData: {
-    searchResults: NaverSearchResult[];
-    trendData: NaverTrendData[];
-    relatedKeywords: NaverRelatedKeyword[];
-    comprehensiveAnalysis: ComprehensiveKeywordAnalysis | null;
-  };
-  lastUpdated: string;
-}
 
 interface IntegratedDataState {
   loading: boolean;

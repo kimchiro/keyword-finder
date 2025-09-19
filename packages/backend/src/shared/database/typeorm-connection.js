@@ -79,10 +79,13 @@ class KeywordService {
         await this.initialize();
       }
 
+      console.log("🔍 키워드 조회 시작:", { filters, limit, offset });
+
       const queryBuilder = this.repository.createQueryBuilder("keyword");
 
       // 필터 조건 추가
       if (filters.query) {
+        console.log("📝 쿼리 필터 적용:", filters.query);
         queryBuilder.andWhere("keyword.query = :query", {
           query: filters.query,
         });
@@ -116,13 +119,47 @@ class KeywordService {
       queryBuilder
         .orderBy("keyword.createdAt", "DESC")
         .addOrderBy("keyword.rank", "ASC")
-        .limit(limit)
-        .offset(offset);
+        .limit(parseInt(limit) || 100)
+        .offset(parseInt(offset) || 0);
+
+      console.log("🔍 실행할 SQL:", queryBuilder.getSql());
+      console.log("🔍 SQL 파라미터:", queryBuilder.getParameters());
 
       const keywords = await queryBuilder.getMany();
-      return keywords;
+      console.log("📦 조회된 키워드 수:", keywords.length);
+
+      if (keywords.length > 0) {
+        console.log("📦 첫 번째 키워드 샘플:", keywords[0]);
+      }
+
+      // undefined 값들을 필터링하고 정리
+      const filteredKeywords = keywords
+        .filter((keyword) => {
+          const isValid =
+            keyword &&
+            keyword.text &&
+            typeof keyword.text === "string" &&
+            keyword.keywordType &&
+            typeof keyword.keywordType === "string";
+
+          if (!isValid) {
+            console.log("⚠️ 유효하지 않은 키워드 데이터:", keyword);
+          }
+
+          return isValid;
+        })
+        .map((keyword) => ({
+          ...keyword,
+          keyword_type: keyword.keywordType, // 프론트엔드 호환성을 위해 추가
+        }));
+
+      console.log("✅ 필터링된 키워드 수:", filteredKeywords.length);
+
+      return filteredKeywords;
     } catch (error) {
       console.error("❌ 키워드 조회 중 오류 발생:", error);
+      console.error("❌ 에러 스택:", error.stack);
+      console.error("❌ 에러 타입:", error.constructor.name);
       throw error;
     }
   }

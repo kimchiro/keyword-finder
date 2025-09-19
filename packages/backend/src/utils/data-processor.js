@@ -19,6 +19,13 @@ class DataProcessor {
     console.log("🧹 데이터 정제 및 중복 제거 중...");
 
     const cleaned = data
+      .filter((item) => {
+        // undefined나 null 체크
+        if (!item || !item.text || typeof item.text !== "string") return false;
+        if (!item.keyword_type || typeof item.keyword_type !== "string")
+          return false;
+        return true;
+      })
       .map((item) => ({
         ...item,
         text: item.text

@@ -48,7 +48,7 @@ class KeywordDao {
    */
   async saveKeywords(keywordData) {
     try {
-      return await this.keywordService.saveKeywords(keywordData);
+      return await this.keywordService.insertKeywords(keywordData);
     } catch (error) {
       console.error("❌ KeywordDao.saveKeywords 오류:", error);
       throw error;

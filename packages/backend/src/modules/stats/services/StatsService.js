@@ -1,5 +1,6 @@
 const KeywordService = require("../../keywords/services/KeywordService");
 const NaverApiDao = require("../../naver-api/dao/NaverApiDao");
+const { pool } = require("../../../shared/database/naver-api-dao");
 
 class StatsService {
   constructor() {
@@ -36,8 +37,7 @@ class StatsService {
    */
   async _getRecentSearchQueries() {
     try {
-      const connection =
-        await this.naverApiDao.naverApiModels.pool.getConnection();
+      const connection = await pool.getConnection();
       try {
         const [recentSearchRows] = await connection.execute(`
           SELECT DISTINCT query, MAX(created_at) as last_search 
@@ -112,8 +112,7 @@ class StatsService {
       const keywordStats = await this.keywordService.getKeywordStatistics();
 
       // 추가 시스템 통계
-      const connection =
-        await this.naverApiDao.naverApiModels.pool.getConnection();
+      const connection = await pool.getConnection();
       try {
         // 네이버 API 데이터 통계
         const [searchResultsCount] = await connection.execute(

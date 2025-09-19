@@ -64,7 +64,7 @@ class NaverApiDao {
         ORDER BY created_at DESC 
         LIMIT ?
       `,
-        [query, limit]
+        [query, parseInt(limit) || 10]
       );
       return rows;
     } catch (error) {
@@ -204,7 +204,7 @@ class NaverApiDao {
         ORDER BY monthly_pc_qc_cnt DESC 
         LIMIT ?
       `,
-        [query, limit]
+        [query, parseInt(limit) || 20]
       );
       return rows;
     } catch (error) {
@@ -233,10 +233,10 @@ class NaverApiDao {
       await connection.execute(
         `
         INSERT INTO naver_comprehensive_analysis 
-        (query, analysis_data, generated_at)
-        VALUES (?, ?, ?)
+        (query, analysis_data)
+        VALUES (?, ?)
       `,
-        [query, JSON.stringify(analysisData), new Date()]
+        [query, JSON.stringify(analysisData)]
       );
 
       console.log(`✅ 네이버 종합 분석 저장 완료: ${query}`);
@@ -289,10 +289,10 @@ class NaverApiDao {
       // 크롤링된 키워드 데이터
       const [crawlingRows] = await connection.execute(
         `
-        SELECT keyword_type, text, rank, \`grp\`, created_at
+        SELECT keyword_type, text, \`rank\`, \`grp\`, created_at
         FROM naver_keywords
         WHERE query = ?
-        ORDER BY keyword_type, rank ASC
+        ORDER BY keyword_type, \`rank\` ASC
       `,
         [query]
       );
@@ -377,3 +377,4 @@ class NaverApiDao {
 }
 
 module.exports = new NaverApiDao();
+module.exports.pool = pool;

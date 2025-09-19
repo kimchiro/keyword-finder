@@ -62,49 +62,6 @@ export interface RelatedKeywordsResponse {
   }>;
 }
 
-// 통합 키워드 분석 결과 (shared 타입들을 import)
-export interface ComprehensiveKeywordAnalysis {
-  keyword: string;
-  relatedKeywords: Array<{
-    relKeyword: string;
-    monthlyPcQcCnt: number;
-    monthlyMobileQcCnt: number;
-    monthlyAvePcClkCnt: number;
-    monthlyAveMobileClkCnt: number;
-    monthlyAvePcCtr: number;
-    monthlyAveMobileCtr: number;
-    plAvgDepth: number;
-    compIdx: string;
-  }>;
-  monthlyRatio: Array<{
-    month: string;
-    ratio: number;
-  }>;
-  weeklyRatio: Array<{
-    dayOfWeek: string;
-    ratio: number;
-  }>;
-  ageRatio: Array<{
-    age: string;
-    ratio: number;
-  }>;
-  genderRatio: Array<{
-    gender: string;
-    ratio: number;
-  }>;
-  deviceRatio: Array<{
-    device: string;
-    ratio: number;
-  }>;
-  attributes: {
-    keyword: string;
-    issue: number;
-    information: number;
-    commercial: number;
-  };
-  searchTrend: DatalabResult[];
-}
-
 export interface NaverDatalabApiResponse {
   success: boolean;
   data: NaverDatalabResponse;

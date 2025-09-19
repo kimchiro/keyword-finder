@@ -19,7 +19,7 @@ import { RelatedKeywordsTableProps } from './types';
 
 export const RelatedKeywordsTable: React.FC<RelatedKeywordsTableProps> = ({
   data,
-  title = "연관 키워드"
+  title = "연관검색어"
 }) => {
   const {
     sortedData,
@@ -36,7 +36,7 @@ export const RelatedKeywordsTable: React.FC<RelatedKeywordsTableProps> = ({
       <TableContainer>
         <TableTitle>{title}</TableTitle>
         <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
-          연관 키워드 데이터가 없습니다.
+          연관검색어 데이터가 없습니다.
         </div>
       </TableContainer>
     );

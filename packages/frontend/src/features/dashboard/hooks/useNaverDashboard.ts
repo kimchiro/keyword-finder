@@ -98,10 +98,10 @@ export const useNaverDashboard = () => {
         trendData = [{
           title: query,
           keywords: [query],
-          data: dbTrends.map((trend: DbTrendData) => ({
+          data: Array.isArray(dbTrends) ? dbTrends.map((trend: DbTrendData) => ({
             period: trend.period,
             ratio: trend.ratio,
-          })),
+          })) : [],
         }];
       }
 

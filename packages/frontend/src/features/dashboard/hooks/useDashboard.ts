@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { DashboardData, KeywordStats } from '../types';
+import { DashboardData, KeywordStats } from '../../../shared/types';
 
 export const useDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -21,16 +21,28 @@ export const useDashboard = () => {
       if (statsResponse.data.success && keywordsResponse.data.success) {
         const stats: KeywordStats = statsResponse.data.data;
         
-        // 최근 검색어별로 그룹화 (모든 검색 기록 표시)
+        // 최근 키워드 데이터에서 검색어별로 그룹화
         const recentKeywords = keywordsResponse.data.data;
-        const recentSearches = stats.recentQueries.map(query => {
-          const queryKeywords = recentKeywords.filter((k: { query: string; created_at?: string }) => k.query === query);
-          return {
-            query,
-            timestamp: queryKeywords[0]?.created_at || new Date().toISOString(),
-            totalKeywords: queryKeywords.length,
-          };
+        
+        // 검색어별로 그룹화하여 최근 검색 목록 생성
+        const queryGroups: Record<string, Array<{ query: string; created_at?: string }>> = {};
+        
+        recentKeywords.forEach((keyword: { query: string; created_at?: string }) => {
+          if (!queryGroups[keyword.query]) {
+            queryGroups[keyword.query] = [];
+          }
+          queryGroups[keyword.query].push(keyword);
         });
+        
+        // 최근 검색어 목록 생성 (최신순으로 정렬)
+        const recentSearches = Object.entries(queryGroups)
+          .map(([query, keywords]) => ({
+            query,
+            timestamp: keywords[0]?.created_at || new Date().toISOString(),
+            keywordCount: keywords.length,
+          }))
+          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+          .slice(0, 10); // 최근 10개만
 
         setData({
           stats,

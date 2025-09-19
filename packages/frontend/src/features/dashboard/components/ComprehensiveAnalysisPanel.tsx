@@ -131,7 +131,7 @@ export const ComprehensiveAnalysisPanel: React.FC<ComprehensiveAnalysisPanelProp
     <PanelContainer>
       <PanelHeader>
         <PanelTitle>키워드 종합 분석</PanelTitle>
-        <KeywordBadge>{data.keyword}</KeywordBadge>
+        <KeywordBadge>{data.query}</KeywordBadge>
       </PanelHeader>
 
       {/* 검색량 트렌드 */}
@@ -139,26 +139,30 @@ export const ComprehensiveAnalysisPanel: React.FC<ComprehensiveAnalysisPanelProp
         <TrendLineChart 
           data={data.monthlyRatio}
           title="월별 검색량 트렌드"
-          keyword={data.keyword}
+          keyword={data.query}
         />
       )}
 
       {/* 키워드 속성 분석 */}
-      <KeywordAttributesChart data={data.attributes} />
+      {data.attributes && (
+        <KeywordAttributesChart data={data.attributes} />
+      )}
 
       {/* 인구통계학적 분석 */}
-      <DemographicCharts
-        genderData={data.genderRatio}
-        ageData={data.ageRatio}
-        deviceData={data.deviceRatio}
-        weeklyData={data.weeklyRatio}
-      />
+      {(data.genderRatio || data.ageRatio || data.deviceRatio || data.weeklyRatio) && (
+        <DemographicCharts
+          genderData={data.genderRatio || []}
+          ageData={data.ageRatio || []}
+          deviceData={data.deviceRatio || []}
+          weeklyData={data.weeklyRatio || []}
+        />
+      )}
 
-      {/* 연관 키워드 테이블 */}
+      {/* 연관검색어 테이블 */}
       {data.relatedKeywords && data.relatedKeywords.length > 0 && (
-        <RelatedKeywordsTable 
+        <RelatedKeywordsTable
           data={data.relatedKeywords}
-          title={`"${data.keyword}" 연관 키워드 분석`}
+          title={`"${data.query}" 연관검색어 분석`}
         />
       )}
     </PanelContainer>

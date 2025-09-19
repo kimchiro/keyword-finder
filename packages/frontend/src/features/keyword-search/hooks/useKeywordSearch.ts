@@ -20,7 +20,7 @@ export const useKeywordSearch = () => {
     }));
 
     try {
-      const response = await axios.post('http://localhost:3001/api/scrape', {
+      const response = await axios.post('http://localhost:3001/api/scraping/scrape', {
         query,
         options: {
           headless: options.headless ?? true,
@@ -29,12 +29,15 @@ export const useKeywordSearch = () => {
         },
       });
 
+      console.log('🔍 스크래핑 응답 데이터:', response.data);
+      
       if (response.data.success) {
         setState(prev => ({
           ...prev,
           loading: false,
           results: response.data,
         }));
+        console.log('✅ 결과 상태 업데이트 완료:', response.data);
       } else {
         throw new Error(response.data.error || '스크래핑에 실패했습니다.');
       }
