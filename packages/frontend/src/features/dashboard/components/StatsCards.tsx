@@ -1,33 +1,29 @@
 import React from 'react';
-import { KeywordStats } from '../types';
-import { StatsGrid, StatCard, StatValue, StatLabel } from '../styles/DashboardStyles';
-
-interface StatsCardsProps {
-  stats: KeywordStats;
-}
+import { StatsCardsGrid, StatsCard, StatsValue, StatsLabel } from './styles/StatsCardsStyles';
+import { StatsCardsProps } from './types/StatsCardsTypes';
 
 export const StatsCards: React.FC<StatsCardsProps> = ({ stats }) => {
   return (
-    <StatsGrid>
-      <StatCard>
-        <StatValue>{stats.totalKeywords.toLocaleString()}</StatValue>
-        <StatLabel>총 키워드 수</StatLabel>
-      </StatCard>
+    <StatsCardsGrid>
+      <StatsCard>
+        <StatsValue>{stats.totalKeywords.toLocaleString()}</StatsValue>
+        <StatsLabel>총 키워드 수</StatsLabel>
+      </StatsCard>
       
-      <StatCard>
-        <StatValue>{stats.keywordsByType.autosuggest}</StatValue>
-        <StatLabel>자동완성 키워드</StatLabel>
-      </StatCard>
+      <StatsCard>
+        <StatsValue>{stats.keywordsByType.autosuggest}</StatsValue>
+        <StatsLabel>자동완성 키워드</StatsLabel>
+      </StatsCard>
       
-      <StatCard>
-        <StatValue>{stats.keywordsByType.togetherSearched}</StatValue>
-        <StatLabel>함께 많이 찾는</StatLabel>
-      </StatCard>
+      <StatsCard>
+        <StatsValue>{stats.keywordsByType.togetherSearched}</StatsValue>
+        <StatsLabel>함께 많이 찾는</StatsLabel>
+      </StatsCard>
       
-      <StatCard>
-        <StatValue>{stats.keywordsByType.hotTopics}</StatValue>
-        <StatLabel>인기주제</StatLabel>
-      </StatCard>
-    </StatsGrid>
+      <StatsCard>
+        <StatsValue>{stats.keywordsByType.hotTopics}</StatsValue>
+        <StatsLabel>인기주제</StatsLabel>
+      </StatsCard>
+    </StatsCardsGrid>
   );
 };

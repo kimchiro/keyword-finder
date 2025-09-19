@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const NaverKeywordScraper = require("./scraper/naver-scraper");
-const { insertKeywords, getDbConnection } = require("./database/connection");
+const { pool } = require("./shared/database/connection");
 require("dotenv").config();
 
 /**

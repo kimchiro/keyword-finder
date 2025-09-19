@@ -1,13 +1,29 @@
-# 네이버 키워드 파인더 (모노레포)
+# 네이버 키워드 파인더 v2.0 (모노레포)
 
 네이버 검색에서 자동완성, 함께 많이 찾는, 인기주제 키워드를 수집하는 모노레포 프로젝트입니다.
+
+## 🎉 v2.0 주요 업데이트
+
+- ✅ **레이어드 패턴 아키텍처**: Router → Controller → Service → DAO
+- ✅ **모듈별 구조 분리**: 키워드, 네이버API, 스크래핑, 통계
+- ✅ **통합 데이터베이스 관리**: 중복 제거 및 성능 최적화
+- ✅ **환경변수 통일**: `DB_*` 형식으로 일관성 확보
+- ✅ **코드 품질 개선**: ESLint, Prettier 적용
 
 ## 🏗️ 프로젝트 구조
 
 ```
 keyword-finder/
 ├── packages/
-│   ├── backend/          # Node.js 백엔드 (Playwright 스크래퍼 + Express API)
+│   ├── backend/          # Node.js 백엔드 v2.0 (레이어드 패턴 + 모듈화)
+│   │   ├── src/
+│   │   │   ├── app.js           # 메인 서버
+│   │   │   ├── modules/         # 기능별 모듈
+│   │   │   │   ├── keywords/    # 키워드 관리
+│   │   │   │   ├── naver-api/   # 네이버 API
+│   │   │   │   ├── scraping/    # 스크래핑
+│   │   │   │   └── stats/       # 통계
+│   │   │   └── shared/          # 공통 기능
 │   ├── frontend/         # Next.js 프론트엔드 (TypeScript + Emotion)
 │   └── shared/           # 공통 타입 정의
 ├── package.json          # 모노레포 루트 설정
@@ -21,13 +37,16 @@ keyword-finder/
 npm install
 ```
 
-### 2. 환경 변수 설정
+### 2. 환경 변수 설정 (v2.0 업데이트)
 백엔드 폴더에 `.env` 파일을 생성하고 다음 내용을 추가하세요:
 
 ```env
-# 데이터베이스 설정 (MySQL 또는 PostgreSQL)
-DB_TYPE=mysql
-MYSQL_HOST=localhost
+# 데이터베이스 설정 (통일된 환경변수)
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_password
+DB_NAME=keyword_finder
+DB_PORT=3306
 MYSQL_PORT=3306
 MYSQL_USER=root
 MYSQL_PASSWORD=your_password

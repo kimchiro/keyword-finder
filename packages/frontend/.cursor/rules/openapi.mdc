@@ -1,0 +1,21 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+핵심요구사항)프론트엔드 @commons.mdc  의 커서룰 공통요구사항을 지킬것
+
+참고자료)https://developers.naver.com/docs/serviceapi/datalab/search/search.md#%ED%86%B5%ED%95%A9-%EA%B2%80%EC%83%89%EC%96%B4-%ED%8A%B8%EB%A0%8C%EB%93%9C 링크의 접속하여 api로 받을수있는 데이터를 수집할것.
+
+핵심요구사항)naver-open-api를 사용할것.
+핵심요구사항)open-api의 검색 api를 사용할것.
+핵심요구사항)open-api의 통합검색어트랜드api 를 사용할것.
+핵심요구사항)2가지 api를 모두사용할것
+
+
+파일경로)src/features/keyword-search/components
+        - 안에 있는 <StyledSearchForm> 필드에 키워드를 입력하면 open-api의 입력한키워드로 api요청을 할것.
+        - 불러온데이터를 파일경로)src/features/dashboard에 할당할것.
+        -키워드의 데이터 검색량, 불러온데이터를 모두 dashboard에 할당할것.
+        -만약 데이터를 할당할수 있는 컴포넌트가 없다면 새로 구현할것.
+

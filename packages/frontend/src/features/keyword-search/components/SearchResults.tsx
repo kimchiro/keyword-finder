@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import React from 'react';
-import { ScrapingResult, KeywordData } from '../types';
+import { SearchResultsProps, KeywordData } from '../types';
 import { 
   ResultsContainer, 
   ResultSection, 
@@ -10,13 +10,21 @@ import {
 } from '../styles/ResultStyles';
 import { statsContainerStyles, statsTimeStyles } from '../styles/SearchStyles';
 
-interface SearchResultsProps {
-  results: ScrapingResult;
-}
-
 export const SearchResults: React.FC<SearchResultsProps> = ({ results }) => {
   const groupKeywordsByType = (keywords: KeywordData[]) => {
-    return keywords.reduce((acc, keyword) => {
+    // "추가" 텍스트가 포함된 키워드 필터링 및 중복 제거
+    const filteredKeywords = keywords
+      .filter(keyword => !keyword.text.includes('추가'))
+      .reduce((acc, keyword) => {
+        // 중복 제거 (text 기준)
+        const existingIndex = acc.findIndex(item => item.text === keyword.text);
+        if (existingIndex === -1) {
+          acc.push(keyword);
+        }
+        return acc;
+      }, [] as KeywordData[]);
+
+    return filteredKeywords.reduce((acc, keyword) => {
       if (!acc[keyword.keyword_type]) {
         acc[keyword.keyword_type] = [];
       }
@@ -30,6 +38,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ results }) => {
       case 'autosuggest': return '자동완성 키워드';
       case 'togetherSearched': return '함께 많이 찾는 키워드';
       case 'hotTopics': return '인기주제 키워드';
+      case 'relatedKeywords': return '연관검색어';
       default: return type;
     }
   };

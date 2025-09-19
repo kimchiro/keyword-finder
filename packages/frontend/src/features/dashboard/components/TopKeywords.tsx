@@ -1,25 +1,28 @@
 import React from 'react';
-import { KeywordStats } from '../types';
-import { Section, SectionTitle, ListItem, ItemText, ItemBadge, EmptyState } from '../styles/DashboardStyles';
-
-interface TopKeywordsProps {
-  topKeywords: KeywordStats['topKeywords'];
-}
+import { 
+  TopKeywordsSection, 
+  TopKeywordsTitle, 
+  TopKeywordItem, 
+  TopKeywordText, 
+  TopKeywordBadge, 
+  TopKeywordsEmpty 
+} from './styles/TopKeywordsStyles';
+import { TopKeywordsProps } from './types/TopKeywordsTypes';
 
 export const TopKeywords: React.FC<TopKeywordsProps> = ({ topKeywords }) => {
   return (
-    <Section>
-      <SectionTitle>인기 키워드</SectionTitle>
+    <TopKeywordsSection>
+      <TopKeywordsTitle>인기 키워드</TopKeywordsTitle>
       {topKeywords.length > 0 ? (
         topKeywords.slice(0, 10).map((keyword, index) => (
-          <ListItem key={index}>
-            <ItemText>{keyword.text}</ItemText>
-            <ItemBadge>{keyword.count}회</ItemBadge>
-          </ListItem>
+          <TopKeywordItem key={index}>
+            <TopKeywordText>{keyword.text}</TopKeywordText>
+            <TopKeywordBadge>{keyword.count}회</TopKeywordBadge>
+          </TopKeywordItem>
         ))
       ) : (
-        <EmptyState>인기 키워드 데이터가 없습니다</EmptyState>
+        <TopKeywordsEmpty>인기 키워드 데이터가 없습니다</TopKeywordsEmpty>
       )}
-    </Section>
+    </TopKeywordsSection>
   );
 };

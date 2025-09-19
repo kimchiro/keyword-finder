@@ -1,39 +1,40 @@
 import React from 'react';
-import { DashboardData } from '../types';
-import { Section, SectionTitle, ListItem, ItemText, ItemBadge, EmptyState } from '../styles/DashboardStyles';
+import { useRecentSearches } from './hooks/useRecentSearches';
+import { 
+  RecentSearchesSection, 
+  RecentSearchesList,
+  RecentSearchesTitle, 
+  RecentSearchItem, 
+  RecentSearchText, 
+  RecentSearchMeta, 
+  RecentSearchBadge, 
+  RecentSearchesEmpty 
+} from './styles/RecentSearchesStyles';
+import { RecentSearchesProps } from './types/RecentSearchesTypes';
 
-interface RecentSearchesProps {
-  recentSearches: DashboardData['recentSearches'];
-}
-
-export const RecentSearches: React.FC<RecentSearchesProps> = ({ recentSearches }) => {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ko-KR', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+export const RecentSearches: React.FC<RecentSearchesProps> = ({ recentSearches, onQueryClick }) => {
+  const { formatDate } = useRecentSearches();
 
   return (
-    <Section>
-      <SectionTitle>최근 검색</SectionTitle>
-      {recentSearches.length > 0 ? (
-        recentSearches.map((search, index) => (
-          <ListItem key={index}>
-            <div>
-              <ItemText>{search.query}</ItemText>
-              <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.25rem' }}>
-                {formatDate(search.timestamp)}
+    <RecentSearchesSection>
+      <RecentSearchesTitle>최근 검색 ({recentSearches.length}개)</RecentSearchesTitle>
+      <RecentSearchesList>
+        {recentSearches.length > 0 ? (
+          recentSearches.map((search, index) => (
+            <RecentSearchItem key={index} onClick={() => onQueryClick(search.query)}>
+              <div>
+                <RecentSearchText>{search.query}</RecentSearchText>
+                <RecentSearchMeta>
+                  {formatDate(search.timestamp)}
+                </RecentSearchMeta>
               </div>
-            </div>
-            <ItemBadge>{search.totalKeywords}개</ItemBadge>
-          </ListItem>
-        ))
-      ) : (
-        <EmptyState>최근 검색 기록이 없습니다</EmptyState>
-      )}
-    </Section>
+              <RecentSearchBadge>{search.totalKeywords}개</RecentSearchBadge>
+            </RecentSearchItem>
+          ))
+        ) : (
+          <RecentSearchesEmpty>최근 검색 기록이 없습니다</RecentSearchesEmpty>
+        )}
+      </RecentSearchesList>
+    </RecentSearchesSection>
   );
 };

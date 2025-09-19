@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const NaverKeywordScraper = require("./scraper/naver-scraper");
-const { insertKeywords } = require("./database/connection");
+const { keywordService } = require("./database/typeorm-connection");
 require("dotenv").config();
 
 /**
@@ -109,7 +109,7 @@ async function main() {
     if (saveToDb && result.data.length > 0) {
       try {
         console.log("\n💾 데이터베이스에 저장 중...");
-        await insertKeywords(result.data);
+        await keywordService.insertKeywords(result.data);
         console.log("✅ 데이터베이스 저장 완료");
       } catch (dbError) {
         console.error("❌ 데이터베이스 저장 실패:", dbError.message);

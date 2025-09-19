@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
-import { SearchForm as StyledSearchForm, SearchInput, SearchButton, LoadingSpinner } from '../styles/SearchStyles';
+import { SearchFormProps } from '../types';
+import { SearchForm as StyledSearchForm, SearchInput, SearchButton, LoadingSpinner, ButtonGroup } from '../styles/SearchStyles';
 
-interface SearchFormProps {
-  onSubmit: (query: string) => void;
-  loading: boolean;
-}
-
-export const SearchForm: React.FC<SearchFormProps> = ({ onSubmit, loading }) => {
+export const SearchForm: React.FC<SearchFormProps> = ({ onSubmit, onNaverSearch, loading }) => {
   const [query, setQuery] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
     onSubmit(query);
+  };
+
+  const handleNaverSearch = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (query.trim() && onNaverSearch) {
+      onNaverSearch(query.trim());
+    }
   };
 
   return (
@@ -24,9 +27,21 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSubmit, loading }) => 
         onChange={(e) => setQuery(e.target.value)}
         disabled={loading}
       />
-      <SearchButton type="submit" disabled={loading || !query.trim()}>
-        {loading ? <LoadingSpinner /> : '키워드 수집'}
-      </SearchButton>
+      <ButtonGroup>
+        <SearchButton type="submit" disabled={loading || !query.trim()}>
+          {loading ? <LoadingSpinner /> : '키워드 수집'}
+        </SearchButton>
+        {onNaverSearch && (
+          <SearchButton 
+            type="button" 
+            onClick={handleNaverSearch}
+            disabled={loading || !query.trim()}
+            variant="secondary"
+          >
+            {loading ? <LoadingSpinner /> : '네이버 검색'}
+          </SearchButton>
+        )}
+      </ButtonGroup>
     </StyledSearchForm>
   );
 };

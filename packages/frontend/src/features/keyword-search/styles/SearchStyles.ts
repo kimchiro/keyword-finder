@@ -29,27 +29,47 @@ export const Title = styled.h1`
 
 export const SearchForm = styled.form`
   display: flex;
+  flex-direction: column;
   gap: 1rem;
   margin-bottom: 2rem;
 `;
 
 export const SearchInput = styled.input`
-  flex: 1;
   padding: 1rem;
   border: 2px solid #e5e7eb;
   border-radius: 8px;
   font-size: 1rem;
   transition: border-color 0.2s;
+  color: #000;
 
   &:focus {
     outline: none;
     border-color: #667eea;
   }
+
+  &:disabled {
+    background-color: #f7fafc;
+    cursor: not-allowed;
+  }
 `;
 
-export const SearchButton = styled.button`
+export const ButtonGroup = styled.div`
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+`;
+
+export const SearchButton = styled.button<{ variant?: 'primary' | 'secondary' }>`
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: ${props => 
+    props.variant === 'secondary' 
+      ? 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)'
+      : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+  };
   color: white;
   border: none;
   border-radius: 8px;
@@ -57,8 +77,13 @@ export const SearchButton = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex: 1;
 
-  &:hover {
+  &:hover:not(:disabled) {
     transform: translateY(-2px);
   }
 
@@ -66,6 +91,10 @@ export const SearchButton = styled.button`
     opacity: 0.5;
     cursor: not-allowed;
     transform: none;
+  }
+
+  @media (max-width: 768px) {
+    flex: none;
   }
 `;
 

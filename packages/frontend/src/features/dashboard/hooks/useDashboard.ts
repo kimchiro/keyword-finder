@@ -21,9 +21,9 @@ export const useDashboard = () => {
       if (statsResponse.data.success && keywordsResponse.data.success) {
         const stats: KeywordStats = statsResponse.data.data;
         
-        // 최근 검색어별로 그룹화
+        // 최근 검색어별로 그룹화 (모든 검색 기록 표시)
         const recentKeywords = keywordsResponse.data.data;
-        const recentSearches = stats.recentQueries.slice(0, 5).map(query => {
+        const recentSearches = stats.recentQueries.map(query => {
           const queryKeywords = recentKeywords.filter((k: { query: string; created_at?: string }) => k.query === query);
           return {
             query,
