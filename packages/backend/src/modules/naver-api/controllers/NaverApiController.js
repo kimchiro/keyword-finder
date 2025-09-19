@@ -88,33 +88,6 @@ class NaverApiController {
     }
   }
 
-  // ========== 종합 분석 API ==========
-
-  /**
-   * 키워드 종합 분석 API
-   */
-  async comprehensiveAnalysis(req, res) {
-    try {
-      const { keyword } = req.body;
-
-      if (!keyword || typeof keyword !== "string") {
-        return res.status(400).json({
-          success: false,
-          error: "keyword 파라미터가 필요합니다.",
-        });
-      }
-
-      const result = await this.naverApiService.comprehensiveAnalysis(keyword);
-      res.json(result);
-    } catch (error) {
-      console.error("❌ NaverApiController.comprehensiveAnalysis 오류:", error);
-      res.status(500).json({
-        success: false,
-        error: error.message || "키워드 종합 분석 중 오류가 발생했습니다.",
-      });
-    }
-  }
-
   // ========== DB 조회 API ==========
 
   /**

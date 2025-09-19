@@ -223,6 +223,9 @@ class NaverApiDao {
   async saveNaverComprehensiveAnalysis(query, analysisData) {
     const connection = await pool.getConnection();
     try {
+      const cacheKey = `analysis_${query.toLowerCase().trim()}`;
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1시간 후 만료
+
       // 기존 데이터 삭제
       await connection.execute(
         "DELETE FROM naver_comprehensive_analysis WHERE query = ?",
@@ -233,10 +236,17 @@ class NaverApiDao {
       await connection.execute(
         `
         INSERT INTO naver_comprehensive_analysis 
-        (query, analysis_data)
-        VALUES (?, ?)
+        (query, analysis_data, cache_key, expires_at)
+        VALUES (?, ?, ?, ?)
       `,
-        [query, JSON.stringify(analysisData)]
+        [
+          query,
+          typeof analysisData === "object"
+            ? JSON.stringify(analysisData)
+            : analysisData,
+          cacheKey,
+          expiresAt,
+        ]
       );
 
       console.log(`✅ 네이버 종합 분석 저장 완료: ${query}`);
@@ -267,11 +277,54 @@ class NaverApiDao {
       );
 
       if (rows.length > 0) {
-        return JSON.parse(rows[0].analysis_data);
+        try {
+          const analysisData = rows[0].analysis_data;
+          if (typeof analysisData === "string") {
+            return JSON.parse(analysisData);
+          } else if (typeof analysisData === "object") {
+            return analysisData;
+          }
+          return null;
+        } catch (parseError) {
+          console.error(
+            "❌ JSON 파싱 오류:",
+            parseError,
+            "데이터:",
+            rows[0].analysis_data
+          );
+          return null;
+        }
       }
       return null;
     } catch (error) {
       console.error("❌ 네이버 종합 분석 조회 오류:", error);
+      throw error;
+    } finally {
+      connection.release();
+    }
+  }
+
+  // ========== 스크래핑 데이터 관련 ==========
+
+  /**
+   * 스크래핑된 키워드 데이터 조회
+   */
+  async getScrapedKeywords(query) {
+    const connection = await pool.getConnection();
+    try {
+      const [rows] = await connection.execute(
+        `
+        SELECT keyword_type, text, \`rank\`, \`grp\`, category, created_at
+        FROM naver_keywords 
+        WHERE query = ? 
+        ORDER BY keyword_type, \`rank\` ASC
+      `,
+        [query]
+      );
+
+      return rows;
+    } catch (error) {
+      console.error("❌ 스크래핑 키워드 데이터 조회 오류:", error);
       throw error;
     } finally {
       connection.release();

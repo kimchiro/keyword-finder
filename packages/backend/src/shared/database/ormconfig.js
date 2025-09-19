@@ -6,7 +6,7 @@ const config = {
   port: parseInt(process.env.MYSQL_PORT) || 3306,
   username: process.env.MYSQL_USER || "root",
   password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DATABASE || "naver_keywords",
+  database: process.env.MYSQL_DATABASE || "keyword_finder",
   charset: "utf8mb4",
   synchronize: process.env.NODE_ENV !== "production", // 개발 환경에서만 자동 스키마 동기화
   logging: process.env.NODE_ENV === "development",

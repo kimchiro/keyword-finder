@@ -13,7 +13,7 @@ const AppDataSource = new DataSource({
   port: parseInt(process.env.MYSQL_PORT) || 3306,
   username: process.env.MYSQL_USER || "root",
   password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DATABASE || "naver_keywords",
+  database: process.env.MYSQL_DATABASE || "keyword_finder",
   charset: "utf8mb4",
   synchronize: false, // 수동 스키마 관리로 변경
   logging: process.env.NODE_ENV === "development",

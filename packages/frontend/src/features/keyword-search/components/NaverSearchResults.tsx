@@ -57,49 +57,6 @@ const BlogMeta = styled.div`
   color: #718096;
 `;
 
-const TrendContainer = styled.div`
-  margin-top: 2rem;
-  padding: 1rem;
-  background: #f0f8ff;
-  border-radius: 8px;
-  border: 1px solid #bee3f8;
-`;
-
-const TrendItem = styled.div`
-  margin-bottom: 1rem;
-`;
-
-const TrendTitle = styled.h4`
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #2d3748;
-  margin-bottom: 0.5rem;
-`;
-
-const TrendData = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-`;
-
-const TrendDataPoint = styled.div`
-  padding: 0.5rem;
-  background: white;
-  border-radius: 4px;
-  border: 1px solid #e2e8f0;
-  text-align: center;
-`;
-
-const TrendPeriod = styled.div`
-  font-size: 0.875rem;
-  color: #718096;
-`;
-
-const TrendRatio = styled.div`
-  font-weight: 600;
-  color: #2d3748;
-`;
 
 interface NaverSearchResultsProps {
   searchResults: NaverSearchApiResponse | null;
@@ -108,7 +65,6 @@ interface NaverSearchResultsProps {
 
 export const NaverSearchResults: React.FC<NaverSearchResultsProps> = ({
   searchResults,
-  datalabResults,
 }) => {
   // HTML 태그 제거 함수
   const stripHtml = (html: string) => {
@@ -143,26 +99,6 @@ export const NaverSearchResults: React.FC<NaverSearchResultsProps> = ({
         </>
       )}
 
-      {datalabResults && datalabResults.data && (
-        <TrendContainer>
-          <SectionTitle>검색 트렌드 분석</SectionTitle>
-          {datalabResults.data.results.map((result, index) => (
-            <TrendItem key={index}>
-              <TrendTitle>
-                {result.title} ({result.keywords.join(', ')})
-              </TrendTitle>
-              <TrendData>
-                {result.data.map((dataPoint, dataIndex) => (
-                  <TrendDataPoint key={dataIndex}>
-                    <TrendPeriod>{dataPoint.period}</TrendPeriod>
-                    <TrendRatio>{dataPoint.ratio}%</TrendRatio>
-                  </TrendDataPoint>
-                ))}
-              </TrendData>
-            </TrendItem>
-          ))}
-        </TrendContainer>
-      )}
     </ResultsContainer>
   );
 };

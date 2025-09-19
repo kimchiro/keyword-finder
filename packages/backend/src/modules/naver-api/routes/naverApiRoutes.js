@@ -11,11 +11,6 @@ router.post("/datalab", (req, res) =>
   NaverApiController.getDatalabTrends(req, res)
 );
 
-// ========== 종합 분석 API ==========
-router.post("/comprehensive-analysis", (req, res) =>
-  NaverApiController.comprehensiveAnalysis(req, res)
-);
-
 // ========== DB 조회 API ==========
 router.get("/search-results/:query", (req, res) =>
   NaverApiController.getStoredSearchResults(req, res)

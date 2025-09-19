@@ -29,16 +29,16 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSubmit, onNaverSearch,
       />
       <ButtonGroup>
         <SearchButton type="submit" disabled={loading || !query.trim()}>
-          {loading ? <LoadingSpinner /> : '키워드 수집'}
+          {loading ? <LoadingSpinner /> : '키워드 수집 (스크래핑)'}
         </SearchButton>
         {onNaverSearch && (
           <SearchButton 
             type="button" 
             onClick={handleNaverSearch}
             disabled={loading || !query.trim()}
-            variant="secondary"
+            variant="primary"
           >
-            {loading ? <LoadingSpinner /> : '네이버 검색'}
+            {loading ? <LoadingSpinner /> : '🔍 검색하기'}
           </SearchButton>
         )}
       </ButtonGroup>
