@@ -1,8 +1,29 @@
-# 네이버 키워드 파인더 v2.0 (모노레포)
+# 네이버 키워드 파인더 v2.1 (모노레포)
 
-네이버 검색에서 자동완성, 함께 많이 찾는, 인기주제 키워드를 수집하는 모노레포 프로젝트입니다.
+네이버 검색에서 자동완성, 함께 많이 찾는, 인기주제 키워드를 수집하고 네이버 Open API를 활용한 검색 트렌드 분석을 제공하는 모노레포 프로젝트입니다.
 
-## 🎉 v2.0 주요 업데이트
+## 🎉 v2.1 주요 업데이트 (2025-09-19)
+
+### 🚀 새로운 기능
+- ✅ **네이버 Open API 통합**: 검색 API + 데이터랩 트렌드 API
+- ✅ **RelatedKeywordsTable UI**: 정렬 가능한 전문 키워드 분석 테이블
+- ✅ **실시간 키워드 통계**: 네이버 API 데이터 기반 통계 생성
+- ✅ **통합 검색 인터페이스**: 스크래핑과 API 데이터 분리된 UI
+- ✅ **컴포넌트 재렌더링**: 새 검색 시 이전 결과 즉시 초기화
+
+### 🔧 아키텍처 개선
+- ✅ **종합분석 API 제거**: 복잡한 의존성 제거로 성능 향상
+- ✅ **검색 트렌드 차트 숨김**: 핵심 데이터에 집중
+- ✅ **타입 안전성 강화**: TypeScript 타입 매핑 완전 구현
+- ✅ **데이터 플로우 최적화**: 네이버 API → 통계 생성 → UI 표시
+
+### 🎨 UI/UX 개선
+- ✅ **키워드 분석 테이블**: PC/모바일 검색량, 클릭수, CTR, 경쟁도 표시
+- ✅ **정렬 기능**: 모든 컬럼 클릭으로 오름차순/내림차순 정렬
+- ✅ **시각적 경쟁도**: 색상 배지로 경쟁도 레벨 표시
+- ✅ **숫자 포맷팅**: 천 단위 구분자 및 소수점 표시
+
+## 🎉 v2.0 기본 기능
 
 - ✅ **레이어드 패턴 아키텍처**: Router → Controller → Service → DAO
 - ✅ **모듈별 구조 분리**: 키워드, 네이버API, 스크래핑, 통계
@@ -98,10 +119,19 @@ npm run scrape "검색어"
 
 ## 📱 사용법
 
-### 웹 인터페이스
-1. 브라우저에서 `http://localhost:3000` 접속
-2. 검색어 입력 후 "키워드 수집" 버튼 클릭
-3. 수집된 키워드 결과 확인
+### 웹 인터페이스 (v2.1 업데이트)
+1. 브라우저에서 `http://localhost:3002` 접속 (Next.js 15)
+2. 검색어 입력 후 **"🔍 검색하기"** 버튼 클릭
+3. 네이버 API 기반 실시간 분석 결과 확인:
+   - **네이버 검색 결과**: 블로그 포스트 목록
+   - **키워드 분석 통계**: PC/모바일 검색량, 클릭수, CTR, 경쟁도
+   - **연관 키워드 테이블**: 정렬 가능한 상세 분석 데이터
+   - **스크래핑된 키워드**: DB에 저장된 수집 데이터
+
+### 키워드 수집 (스크래핑)
+- **"키워드 수집 (스크래핑)"** 버튼으로 별도 실행
+- 네이버 자동완성, 함께 많이 찾는, 인기주제 키워드 수집
+- 수집된 데이터는 데이터베이스에 저장
 
 ### CLI 사용
 ```bash
@@ -113,9 +143,22 @@ node src/index.js "맛집"
 node src/index.js "카페" --headless=false --max-pages=2 --no-db
 ```
 
-### API 사용
+### API 사용 (v2.1 업데이트)
 ```bash
-# 키워드 스크래핑
+# 네이버 검색 API (새로운 기능)
+curl -X POST http://localhost:3001/api/naver/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "맛집", "display": 10, "sort": "sim"}'
+
+# 네이버 데이터랩 트렌드 API (새로운 기능)
+curl -X POST http://localhost:3001/api/naver/datalab \
+  -H "Content-Type: application/json" \
+  -d '{"startDate": "2024-01-01", "endDate": "2024-12-31", "timeUnit": "month", "keywordGroups": [{"groupName": "맛집", "keywords": ["맛집"]}]}'
+
+# 통합 데이터 조회 (새로운 기능)
+curl "http://localhost:3001/api/naver/integrated-data/맛집"
+
+# 키워드 스크래핑 (기존 기능)
 curl -X POST http://localhost:3001/api/scrape \
   -H "Content-Type: application/json" \
   -d '{"query": "맛집", "options": {"headless": true, "maxPagesPerModule": 2}}'
@@ -173,6 +216,8 @@ npm run start:frontend  # 프론트엔드 서버
 - **hotTopics**: 인기주제 키워드
 
 ### 데이터 구조
+
+#### 기존 스크래핑 데이터
 ```typescript
 interface KeywordData {
   id?: number;
@@ -187,19 +232,78 @@ interface KeywordData {
 }
 ```
 
+#### 새로운 네이버 API 데이터 (v2.1)
+```typescript
+// 연관 키워드 분석 데이터
+interface RelatedKeyword {
+  relKeyword: string;           // 키워드명
+  monthlyPcQcCnt: number;       // PC 월간 검색량
+  monthlyMobileQcCnt: number;   // 모바일 월간 검색량
+  monthlyAvePcClkCnt: number;   // PC 월간 평균 클릭수
+  monthlyAveMobileClkCnt: number; // 모바일 월간 평균 클릭수
+  monthlyAvePcCtr: number;      // PC 월간 평균 CTR
+  monthlyAveMobileCtr: number;  // 모바일 월간 평균 CTR
+  plAvgDepth: number;           // 평균 페이지 깊이
+  compIdx: string;              // 경쟁도 지수
+}
+
+// 키워드 통계 데이터
+interface KeywordStatistics {
+  searchVolume: {
+    pc: StatisticsData;
+    mobile: StatisticsData;
+    total: StatisticsData;
+  };
+  clickCount: {
+    pc: StatisticsData;
+    mobile: StatisticsData;
+  };
+  ctr: {
+    pc: StatisticsData;
+    mobile: StatisticsData;
+  };
+  competition: CompetitionAnalysis;
+}
+
+// 통계 세부 데이터
+interface StatisticsData {
+  label: string;
+  unit: string;
+  count: number;
+  min: number | string;
+  max: number | string;
+  average: number | string;
+  median: number | string;
+  q1: number | string;
+  q3: number | string;
+  standardDeviation: number | string;
+}
+```
+
 ## 🔧 기술 스택
 
-### 백엔드
+### 백엔드 (v2.1 업데이트)
 - **Node.js** - 런타임
-- **Playwright** - 웹 스크래핑
 - **Express** - API 서버
+- **Playwright** - 웹 스크래핑
 - **MySQL/PostgreSQL** - 데이터베이스
+- **TypeORM** - ORM 및 데이터베이스 관리
+- **네이버 Open API** - 검색 API + 데이터랩 트렌드 API
+- **Axios** - HTTP 클라이언트
 
-### 프론트엔드
-- **Next.js 15** - React 프레임워크
+### 프론트엔드 (v2.1 업데이트)
+- **Next.js 15** - React 프레임워크 (Turbopack)
 - **TypeScript** - 타입 안전성
 - **Emotion** - CSS-in-JS 스타일링
 - **Axios** - HTTP 클라이언트
+- **React Hooks** - 상태 관리 (useState, useMemo, useCallback)
+- **Custom Hooks** - 재사용 가능한 로직
+
+### 새로운 컴포넌트 (v2.1)
+- **RelatedKeywordsTable** - 정렬 가능한 키워드 분석 테이블
+- **SearchAnalytics** - 통합 분석 결과 표시
+- **SearchContainer** - 검색 로직 통합 관리
+- **TrendLineChart** - 검색 트렌드 시각화 (숨김 처리)
 
 ### 모노레포
 - **npm workspaces** - 패키지 관리
