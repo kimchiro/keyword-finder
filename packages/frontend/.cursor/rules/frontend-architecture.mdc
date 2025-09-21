@@ -1,0 +1,234 @@
+# Frontend Architecture Rules - 새로운 기능 추가 지침
+
+## 📁 프로젝트 구조 개요
+
+```
+src/
+├── app/                    # Next.js App Router 페이지
+├── commons/                # 전역 공통 리소스
+│   ├── apis/              # API 통신 함수들
+│   ├── components/        # 재사용 가능한 공통 컴포넌트
+│   ├── enums/             # 전역 상수/열거형
+│   ├── hooks/             # 전역 상태 관리 훅
+│   └── types/             # 전역 타입 정의
+└── components/            # 기능별 컴포넌트
+    └── [FeatureName]/     # 기능명 폴더
+        ├── apis/          # 기능별 API (선택적)
+        ├── hooks/         # 기능별 훅 (선택적)
+        ├── types/         # 기능별 타입
+        ├── utils/         # 기능별 유틸리티
+        ├── index.tsx      # 메인 컴포넌트
+        └── styles.ts      # 스타일 정의
+```
+
+## 🎯 새로운 기능 추가 시 판단 기준
+
+### 1. API 함수 배치 결정
+**🔗 `commons/apis/`에 배치하는 경우:**
+- 여러 기능에서 재사용되는 API
+- 백엔드와의 핵심 데이터 통신
+- 예: `scrapeKeywords`, `searchNaverBlogs`, `getIntegratedKeywordData`
+
+**📁 `components/[Feature]/apis/`에 배치하는 경우:**
+- 특정 기능에서만 사용되는 API
+- 기능별 전용 데이터 처리
+- 예: 특정 컴포넌트의 필터링, 정렬 API
+
+### 2. 훅(Hook) 배치 결정
+**⚡ `commons/hooks/`에 배치하는 경우:**
+- API 통신 없이 순수한 상태 관리만 하는 훅
+- 여러 기능에서 재사용되는 상태 로직
+- 예: `useKeywordScraping`, `useNaverSearch`, `useKeywordAnalysis`
+
+**🎪 `components/[Feature]/hooks/`에 배치하는 경우:**
+- 특정 기능에서만 사용되는 상태 로직
+- 컴포넌트별 전용 비즈니스 로직
+- 예: 특정 컴포넌트의 폼 상태, UI 상태 관리
+
+### 3. 타입 배치 결정
+**📝 `commons/types/`에 배치하는 경우:**
+- API 응답/요청 타입
+- 여러 기능에서 공유되는 데이터 타입
+- 예: `ScrapingResult`, `NaverSearchApiResponse`, `ScrapedKeyword`
+
+**🏷️ `components/[Feature]/types/`에 배치하는 경우:**
+- 컴포넌트 Props 타입
+- 기능별 전용 인터페이스
+- 예: `SearchResultsProps`, `UnifiedKeywordTableProps`
+
+### 4. 컴포넌트 배치 결정
+**🌐 `commons/components/`에 배치하는 경우:**
+- 프로젝트 전체에서 재사용되는 컴포넌트
+- UI 라이브러리 성격의 컴포넌트
+- 예: `SearchForm`, `Button`, `Modal`
+
+**🎨 `components/[Feature]/`에 배치하는 경우:**
+- 특정 도메인/기능에 특화된 컴포넌트
+- 비즈니스 로직이 포함된 컴포넌트
+- 예: `SearchResults`, `BlogSearchResults`, `UnifiedKeywordTable`
+
+## 📋 새로운 기능 추가 단계별 가이드
+
+### Step 1: 기능 분석 및 설계
+1. **기능의 도메인 식별** (예: user-management, product-catalog)
+2. **재사용성 분석** (전역 vs 기능별)
+3. **API 통신 여부 확인**
+4. **상태 관리 복잡도 평가**
+
+### Step 2: 폴더 구조 생성
+```bash
+# 새로운 기능 폴더 생성
+components/[FeatureName]/
+├── index.tsx              # 메인 컴포넌트 (필수)
+├── styles.ts              # 스타일 정의 (필수)
+├── types/                 # 타입 정의 (필수)
+│   └── index.ts
+├── utils/                 # 유틸리티 함수 (선택적)
+├── hooks/                 # 기능별 훅 (선택적)
+├── apis/                  # 기능별 API (선택적)
+└── components/            # 하위 컴포넌트 (선택적)
+```
+
+### Step 3: 타입 정의 우선 작성
+```typescript
+// components/[Feature]/types/index.ts
+export interface [Feature]Props {
+  // 컴포넌트 Props 타입
+}
+
+export interface [Feature]State {
+  // 상태 타입
+}
+
+// commons/types에서 필요한 타입 re-export
+export type { SharedType } from '@/commons/types';
+```
+
+### Step 4: API 함수 작성 (필요시)
+```typescript
+// commons/apis/[feature].ts (전역 재사용)
+export const [apiFunction] = async (): Promise<ResponseType> => {
+  // API 로직
+};
+
+// 또는 components/[Feature]/apis/index.ts (기능별 전용)
+export const [featureSpecificApi] = async () => {
+  // 기능별 API 로직
+};
+```
+
+### Step 5: 훅 작성 (필요시)
+```typescript
+// commons/hooks/use[Feature].ts (전역 상태 관리)
+export const use[Feature] = () => {
+  // 순수 상태 관리 로직
+};
+
+// 또는 components/[Feature]/hooks/use[Feature]Logic.ts
+export const use[Feature]Logic = () => {
+  // 기능별 비즈니스 로직
+};
+```
+
+### Step 6: 컴포넌트 작성
+```typescript
+// components/[Feature]/index.tsx
+import type { [Feature]Props } from './types';
+import { [Feature]Container } from './styles';
+
+export const [Feature]: React.FC<[Feature]Props> = (props) => {
+  // 컴포넌트 로직
+};
+
+// 타입과 하위 컴포넌트 export
+export type { [Feature]Props } from './types';
+```
+
+### Step 7: 스타일 정의
+```typescript
+// components/[Feature]/styles.ts
+import styled from '@emotion/styled';
+
+export const [Feature]Container = styled.div`
+  // 스타일 정의
+`;
+```
+
+## 🚫 금지사항
+
+1. **`any` 타입 사용 금지** - 모든 타입을 명시적으로 정의
+2. **직접적인 axios 사용 금지** - commons/apis를 통한 API 호출
+3. **인라인 스타일 사용 금지** - styles.ts 파일 사용
+4. **절대 경로 없는 상대 경로 금지** - `@/` alias 사용
+5. **기능별 폴더 외부에 스타일 정의 금지** - 각 기능 폴더 내 styles.ts 사용
+
+## ✅ 베스트 프랙티스
+
+1. **단일 책임 원칙** - 각 파일/함수는 하나의 책임만
+2. **타입 우선 개발** - 타입 정의 후 구현
+3. **재사용성 고려** - commons vs components 적절한 배치
+4. **명확한 네이밍** - 기능과 역할이 명확한 이름 사용
+5. **일관된 export 패턴** - index.ts를 통한 통합 export
+
+## 📝 실제 적용 예시
+
+### 현재 프로젝트 구조 (올바른 예시)
+```typescript
+// ✅ 전역 API (commons/apis/keywordScraping.ts)
+export const scrapeKeywords = async (query: string, options: ScrapingOptions) => {
+  // API 통신 로직
+};
+
+// ✅ 전역 훅 (commons/hooks/useKeywordScraping.ts)
+export const useKeywordScraping = () => {
+  // 순수 상태 관리 로직
+  const scrapeKeywords = async (query: string, options: ScrapingOptions) => {
+    const result = await apiScrapeKeywords(query, options);
+    setState(result);
+  };
+};
+
+// ✅ 기능별 컴포넌트 (components/SearchResults/index.tsx)
+export const SearchResults: React.FC<SearchResultsProps> = ({ results }) => {
+  // 컴포넌트 로직
+};
+
+// ✅ 기능별 타입 (components/SearchResults/types/index.ts)
+export interface SearchResultsProps {
+  results: ScrapingResult;
+}
+```
+
+### 새로운 기능 추가 시 (예: UserProfile)
+```typescript
+// 1. 타입 정의 (components/UserProfile/types/index.ts)
+export interface UserProfileProps {
+  userId: string;
+}
+
+// 2. API 함수 (commons/apis/user.ts) - 재사용 가능
+export const getUserProfile = async (userId: string): Promise<UserProfile> => {
+  // API 로직
+};
+
+// 3. 훅 (commons/hooks/useUserProfile.ts) - 재사용 가능
+export const useUserProfile = () => {
+  // 상태 관리 로직
+};
+
+// 4. 컴포넌트 (components/UserProfile/index.tsx)
+export const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
+  const { user, loading, error } = useUserProfile();
+  // 컴포넌트 로직
+};
+```
+
+## 🔄 리팩토링 가이드
+
+기존 코드를 이 구조에 맞게 리팩토링할 때:
+
+1. **API 함수 분리** - 컴포넌트에서 axios 직접 호출 → commons/apis로 이동
+2. **상태 로직 분리** - 컴포넌트 내 상태 관리 → 적절한 훅으로 분리
+3. **타입 중앙화** - 중복된 타입 정의 → commons/types로 통합
+4. **스타일 분리** - 인라인 스타일 → styles.ts 파일로 분리
+5. **유틸리티 분리** - 컴포넌트 내 헬퍼 함수 → utils 폴더로 분리

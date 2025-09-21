@@ -4,36 +4,34 @@ import React from 'react';
 import { 
   SearchForm,
   SearchResults,
-  useKeywordSearch,
-  useNaverApi,
-  useIntegratedData,
   BlogSearchResults,
   UnifiedKeywordTable
 } from '@/components/keyword-search';
+import { useKeywordScraping, useNaverSearch, useKeywordAnalysis } from '@/commons/hooks';
 import { 
   Container, 
   Card, 
   Title, 
   ErrorMessage 
-} from '@/components/keyword-search/styles/SearchStyles';
+} from '@/components/keyword-search/styles';
 import Loading, { EmptyState } from './loading';
 
 export default function SearchPage() {
-  const { loading: keywordLoading, results, error, searchKeywords } = useKeywordSearch();
+  const { loading: keywordLoading, results, error, scrapeKeywords } = useKeywordScraping();
   const { 
     loading: naverLoading, 
     searchResults, 
     datalabResults, 
     error: naverError, 
     searchAll
-  } = useNaverApi();
+  } = useNaverSearch();
   const {
     loading: integratedLoading,
     data: integratedData,
     error: integratedError,
     getIntegratedData,
     reset: resetIntegratedData
-  } = useIntegratedData();
+  } = useKeywordAnalysis();
 
 
 
@@ -45,12 +43,12 @@ export default function SearchPage() {
         <Title>네이버 키워드 파인더</Title>
         
         <SearchForm 
-          onSubmit={(query) => searchKeywords(query, {
+          onSubmit={(query: string) => scrapeKeywords(query, {
             headless: true,
             maxPagesPerModule: 2,
             saveToDb: true,
           })} 
-          onNaverSearch={async (query) => {
+          onNaverSearch={async (query: string) => {
             resetIntegratedData();
             await searchAll(query);
             try {
