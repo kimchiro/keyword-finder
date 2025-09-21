@@ -62,25 +62,6 @@ const PrimaryButton = styled(Link)`
   }
 `;
 
-const SecondaryButton = styled(Link)`
-  display: inline-block;
-  padding: 1rem 2rem;
-  background: transparent;
-  color: #667eea;
-  text-decoration: none;
-  border: 2px solid #667eea;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 1.1rem;
-  transition: all 0.2s;
-
-  &:hover {
-    background: #667eea;
-    color: white;
-    transform: translateY(-2px);
-  }
-`;
-
 const FeatureGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -126,9 +107,6 @@ export default function Home() {
           <PrimaryButton href="/search">
             키워드 검색 시작
           </PrimaryButton>
-          <SecondaryButton href="/dashboard">
-            대시보드 보기
-          </SecondaryButton>
         </ButtonGroup>
 
         <FeatureGrid>

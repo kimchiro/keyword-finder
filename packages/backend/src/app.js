@@ -9,7 +9,6 @@ require("dotenv").config();
 const keywordModule = require("./modules/keywords");
 const naverApiModule = require("./modules/naver-api");
 const scrapingModule = require("./modules/scraping");
-const statsModule = require("./modules/stats");
 
 // 데이터베이스 초기화
 const { keywordService } = require("./shared/database/typeorm-connection");
@@ -57,9 +56,6 @@ app.use("/api/naver", naverApiModule.routes);
 
 // 스크래핑 관련 API
 app.use("/api/scraping", scrapingModule.routes);
-
-// 통계 관련 API
-app.use("/api/stats", statsModule.routes);
 
 // ========== 레거시 API 호환성 유지 ==========
 
@@ -111,7 +107,6 @@ async function startServer() {
       console.log("  🔍 키워드: /api/keywords");
       console.log("  🌐 네이버 API: /api/naver");
       console.log("  🕷️  스크래핑: /api/scraping");
-      console.log("  📊 통계: /api/stats");
       console.log("  ❤️  헬스체크: /health\n");
     });
   } catch (error) {
