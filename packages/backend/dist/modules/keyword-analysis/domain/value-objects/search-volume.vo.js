@@ -4,8 +4,8 @@ exports.SearchVolume = void 0;
 class SearchVolume {
     constructor(pc, mobile) {
         this.validate(pc, mobile);
-        this._pc = pc;
-        this._mobile = mobile;
+        this._pc = Math.round(pc);
+        this._mobile = Math.round(mobile);
     }
     get pc() {
         return this._pc;
@@ -30,11 +30,11 @@ class SearchVolume {
         if (typeof pc !== 'number' || typeof mobile !== 'number') {
             throw new Error('검색량은 숫자여야 합니다.');
         }
+        if (isNaN(pc) || isNaN(mobile)) {
+            throw new Error('검색량은 유효한 숫자여야 합니다.');
+        }
         if (pc < 0 || mobile < 0) {
             throw new Error('검색량은 0 이상이어야 합니다.');
-        }
-        if (!Number.isInteger(pc) || !Number.isInteger(mobile)) {
-            throw new Error('검색량은 정수여야 합니다.');
         }
         if (pc > 100 || mobile > 100) {
             throw new Error('검색량 비율은 100을 초과할 수 없습니다.');

@@ -53,14 +53,14 @@ export class EnvironmentVariables {
   @Transform(({ value }) => parseInt(value, 10))
   @IsNumber()
   @Min(1)
-  @Max(1000)
+  @Max(60000)
   API_TIMEOUT_MS?: number = 10000;
 
   @IsOptional()
   @Transform(({ value }) => parseInt(value, 10))
   @IsNumber()
   @Min(1)
-  @Max(1000)
+  @Max(60000)
   API_EXTENDED_TIMEOUT_MS?: number = 15000;
 
   @IsOptional()

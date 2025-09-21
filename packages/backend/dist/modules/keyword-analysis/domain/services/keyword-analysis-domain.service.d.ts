@@ -12,5 +12,6 @@ export declare class KeywordAnalysisDomainService {
     }>;
     getAnalyzedKeywords(): Promise<any[]>;
     private extractSearchVolume;
+    private safeParseNumber;
     private getExistingAnalysis;
 }

@@ -5,8 +5,9 @@ export class SearchVolume {
 
   constructor(pc: number, mobile: number) {
     this.validate(pc, mobile);
-    this._pc = pc;
-    this._mobile = mobile;
+    // 소수점 값을 정수로 반올림하여 저장
+    this._pc = Math.round(pc);
+    this._mobile = Math.round(mobile);
   }
 
   get pc(): number {
@@ -36,12 +37,12 @@ export class SearchVolume {
       throw new Error('검색량은 숫자여야 합니다.');
     }
 
-    if (pc < 0 || mobile < 0) {
-      throw new Error('검색량은 0 이상이어야 합니다.');
+    if (isNaN(pc) || isNaN(mobile)) {
+      throw new Error('검색량은 유효한 숫자여야 합니다.');
     }
 
-    if (!Number.isInteger(pc) || !Number.isInteger(mobile)) {
-      throw new Error('검색량은 정수여야 합니다.');
+    if (pc < 0 || mobile < 0) {
+      throw new Error('검색량은 0 이상이어야 합니다.');
     }
 
     // 네이버 데이터랩의 최대 비율은 100

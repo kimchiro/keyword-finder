@@ -70,19 +70,34 @@ let KeywordAnalysisDomainService = class KeywordAnalysisDomainService {
     }
     extractSearchVolume(naverApiData) {
         if (!naverApiData?.datalab?.results?.[0]?.data) {
+            console.log('⚠️ 네이버 데이터랩 응답 데이터가 없습니다. 기본값 반환');
             return value_objects_1.SearchVolume.zero();
         }
         const datalabData = naverApiData.datalab.results[0].data;
         if (datalabData.length >= 2) {
-            const pcRatio = datalabData[0]?.ratio || 0;
-            const mobileRatio = datalabData[1]?.ratio || 0;
+            const pcRatio = this.safeParseNumber(datalabData[0]?.ratio, 0);
+            const mobileRatio = this.safeParseNumber(datalabData[1]?.ratio, 0);
+            console.log(`📊 PC/모바일 분리 데이터: PC=${pcRatio}, Mobile=${mobileRatio}`);
             return new value_objects_1.SearchVolume(pcRatio, mobileRatio);
         }
         if (datalabData.length === 1) {
-            const totalRatio = datalabData[0]?.ratio || 0;
+            const totalRatio = this.safeParseNumber(datalabData[0]?.ratio, 0);
+            console.log(`📊 통합 데이터: Total=${totalRatio}`);
             return value_objects_1.SearchVolume.fromTotal(totalRatio, 50);
         }
+        console.log('⚠️ 유효한 데이터랩 데이터가 없습니다. 기본값 반환');
         return value_objects_1.SearchVolume.zero();
+    }
+    safeParseNumber(value, defaultValue = 0) {
+        if (value === null || value === undefined) {
+            return defaultValue;
+        }
+        const parsed = typeof value === 'number' ? value : parseFloat(value);
+        if (isNaN(parsed) || !isFinite(parsed)) {
+            console.warn(`⚠️ 유효하지 않은 숫자 값: ${value}, 기본값 ${defaultValue} 사용`);
+            return defaultValue;
+        }
+        return parsed;
     }
     async getExistingAnalysis(keyword, analysisDate) {
         const [analytics, relatedKeywords, chartData] = await Promise.all([
