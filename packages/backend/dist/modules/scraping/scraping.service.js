@@ -17,15 +17,17 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const keyword_collection_logs_entity_1 = require("../../database/entities/keyword-collection-logs.entity");
+const browser_pool_service_1 = require("../../common/services/browser-pool.service");
 let ScrapingService = class ScrapingService {
-    constructor(keywordCollectionLogsRepository) {
+    constructor(keywordCollectionLogsRepository, browserPoolService) {
         this.keywordCollectionLogsRepository = keywordCollectionLogsRepository;
+        this.browserPoolService = browserPoolService;
     }
     async scrapeKeywords(scrapeDto) {
         const startTime = Date.now();
         console.log(`🕷️ 키워드 스크래핑 시작: ${scrapeDto.query}`);
         try {
-            const { query, types = ['trending', 'smartblock'], maxResults = 50 } = scrapeDto;
+            const { query, types = ['related_search'], maxResults = 50 } = scrapeDto;
             const scrapedKeywords = await this.performRealScraping(query, types, maxResults);
             await this.saveCollectionLogs(query, scrapedKeywords);
             const executionTime = (Date.now() - startTime) / 1000;
@@ -115,7 +117,7 @@ let ScrapingService = class ScrapingService {
     }
     async performRealScraping(query, types, maxResults) {
         const { NaverScraper } = await Promise.resolve().then(() => require('./scraper/naver-scraper'));
-        const scraper = new NaverScraper();
+        const scraper = new NaverScraper(this.browserPoolService);
         try {
             await scraper.initialize();
             const scrapedKeywords = await scraper.scrapeAllKeywords(query, types);
@@ -134,6 +136,9 @@ let ScrapingService = class ScrapingService {
         finally {
             await scraper.close();
         }
+    }
+    async getBrowserPoolStatus() {
+        return this.browserPoolService.getPoolStatus();
     }
     async saveCollectionLogs(baseQuery, keywords) {
         try {
@@ -158,6 +163,7 @@ exports.ScrapingService = ScrapingService;
 exports.ScrapingService = ScrapingService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(keyword_collection_logs_entity_1.KeywordCollectionLogs)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        browser_pool_service_1.BrowserPoolService])
 ], ScrapingService);
 //# sourceMappingURL=scraping.service.js.map

@@ -42,7 +42,7 @@ export class WorkflowService {
         this.naverApiService.getIntegratedData(query),
         this.scrapingService.scrapeKeywords({
           query,
-          types: ['trending', 'smartblock'],
+          types: ['related_search'],
           maxResults: 50,
         }),
       ]);
@@ -62,12 +62,75 @@ export class WorkflowService {
         console.warn('⚠️ 스크래핑 실패:', scrapingResult.reason);
       }
 
-      // Phase 2: 키워드 분석 데이터 생성 및 저장
-      console.log(`📊 Phase 2: 키워드 분석 데이터 생성`);
+      // Phase 2: 네이버 API에서 연관 키워드 생성 및 키워드 분석 데이터 생성
+      console.log(`📊 Phase 2: 연관 키워드 및 분석 데이터 생성`);
       let analysisData = null;
+      
       try {
-        const analysisResult = await this.keywordAnalysisService.analyzeKeyword(query);
-        analysisData = analysisResult.data;
+        // 2-1: 스크래핑된 연관검색어로 네이버 데이터랩 트렌드 조회
+        let relatedKeywordsData = [];
+        
+        if (scrapingData?.keywords) {
+          // 스크래핑된 연관검색어 필터링
+          const relatedSearchKeywords = scrapingData.keywords
+            .filter(k => k.category === 'related_search')
+            .slice(0, 10)
+            .map(k => k.keyword);
+          
+          if (relatedSearchKeywords.length > 0) {
+            try {
+              console.log(`🔗 연관검색어 트렌드 조회: ${relatedSearchKeywords.join(', ')}`);
+              
+              // 네이버 데이터랩으로 연관검색어 트렌드 조회
+              const keywordGroups = [
+                {
+                  groupName: query,
+                  keywords: [query],
+                },
+                ...relatedSearchKeywords.slice(0, 4).map((keyword, index) => ({
+                  groupName: `연관키워드${index + 1}`,
+                  keywords: [keyword],
+                })),
+              ];
+
+              const datalabResult = await this.naverApiService.getDatalab({
+                startDate: '2024-01-01',
+                endDate: '2024-12-31',
+                timeUnit: 'month',
+                keywordGroups,
+              });
+
+              // 연관 키워드와 트렌드 데이터를 조합
+              relatedKeywordsData = relatedSearchKeywords.map((keyword, index) => {
+                const trendData = datalabResult.data?.results?.find(
+                  (result: any) => result.title === `연관키워드${index + 1}`
+                );
+                
+                const latestRatio = trendData?.data?.[trendData.data.length - 1]?.ratio || 0;
+
+                return {
+                  keyword,
+                  monthlySearchVolume: latestRatio,
+                  rankPosition: index + 1,
+                  trendData: trendData?.data || []
+                };
+              });
+              
+              console.log(`✅ 연관검색어 트렌드 조회 완료: ${relatedKeywordsData.length}개`);
+            } catch (relatedError) {
+              console.warn('⚠️ 연관검색어 트렌드 조회 실패:', relatedError);
+            }
+          }
+        }
+
+        // 2-2: 키워드 분석 서비스에서 데이터 저장
+        const analysisResult = await this.keywordAnalysisService.analyzeKeyword(
+          query, 
+          undefined, 
+          naverApiData, 
+          relatedKeywordsData
+        );
+        analysisData = analysisResult;
       } catch (analysisError) {
         console.warn('⚠️ 키워드 분석 실패:', analysisError);
       }
@@ -115,18 +178,8 @@ export class WorkflowService {
     console.log(`⚡ 빠른 분석 시작: ${query}`);
 
     try {
-      // 네이버 API 호출과 기존 분석 데이터 조회를 병렬로 실행
-      const [naverApiResult, existingAnalysisResult] = await Promise.allSettled([
-        this.naverApiService.getIntegratedData(query),
-        this.keywordAnalysisService.getKeywordAnalysis(query),
-      ]);
-
-      const naverApiData = naverApiResult.status === 'fulfilled' 
-        ? naverApiResult.value.data 
-        : null;
-      const existingAnalysis = existingAnalysisResult.status === 'fulfilled' 
-        ? existingAnalysisResult.value.data 
-        : null;
+      // 네이버 API 호출
+      const naverApiResult = await this.naverApiService.getIntegratedData(query);
 
       const executionTime = (Date.now() - startTime) / 1000;
       
@@ -136,9 +189,9 @@ export class WorkflowService {
         success: true,
         data: {
           query,
-          naverApiData,
+          naverApiData: naverApiResult.data,
           scrapingData: null,
-          analysisData: existingAnalysis,
+          analysisData: null,
           executionTime,
           timestamp: new Date().toISOString(),
         },

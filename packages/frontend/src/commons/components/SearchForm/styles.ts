@@ -19,6 +19,7 @@ export const SearchInput = styled.input`
   border-radius: 8px;
   font-size: 1rem;
   transition: all 0.2s ease;
+  color: black;
 
   &:focus {
     outline: none;

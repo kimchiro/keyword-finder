@@ -64,3 +64,27 @@ export interface NaverSearchState {
   datalabResults: NaverDatalabApiResponse | null;
   error: string | null;
 }
+
+// 백엔드에서 반환하는 네이버 블로그 검색 결과 타입
+export interface NaverBlogSearchResult {
+  lastBuildDate: string;
+  total: number;
+  start: number;
+  display: number;
+  items: NaverSearchItem[];
+}
+
+// 백엔드에서 반환하는 네이버 데이터랩 결과 타입
+export interface NaverDatalabResult {
+  startDate: string;
+  endDate: string;
+  timeUnit: string;
+  results: Array<{
+    title: string;
+    keywords: string[];
+    data: Array<{
+      period: string;
+      ratio: number;
+    }>;
+  }>;
+}

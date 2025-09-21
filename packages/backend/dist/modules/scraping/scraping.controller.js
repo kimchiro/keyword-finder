@@ -78,6 +78,25 @@ let ScrapingController = class ScrapingController {
             }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    async getBrowserPoolStatus() {
+        try {
+            console.log('🏊‍♂️ 브라우저 풀 상태 조회');
+            const result = await this.scrapingService.getBrowserPoolStatus();
+            return {
+                success: true,
+                message: '브라우저 풀 상태를 성공적으로 조회했습니다.',
+                data: result,
+            };
+        }
+        catch (error) {
+            console.error('❌ 브라우저 풀 상태 조회 실패:', error);
+            throw new common_1.HttpException({
+                success: false,
+                message: '브라우저 풀 상태 조회 중 오류가 발생했습니다.',
+                error: error.message,
+            }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 };
 exports.ScrapingController = ScrapingController;
 __decorate([
@@ -161,6 +180,20 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], ScrapingController.prototype, "getScrapingStats", null);
+__decorate([
+    (0, common_1.Get)('browser-pool/status'),
+    (0, swagger_1.ApiOperation)({
+        summary: '브라우저 풀 상태 조회',
+        description: '브라우저 풀의 현재 상태를 조회합니다.'
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: '브라우저 풀 상태 조회 성공',
+    }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ScrapingController.prototype, "getBrowserPoolStatus", null);
 exports.ScrapingController = ScrapingController = __decorate([
     (0, swagger_1.ApiTags)('scraping'),
     (0, common_1.Controller)('scraping'),

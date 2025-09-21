@@ -29,7 +29,7 @@ let WorkflowService = class WorkflowService {
                 this.naverApiService.getIntegratedData(query),
                 this.scrapingService.scrapeKeywords({
                     query,
-                    types: ['trending', 'smartblock'],
+                    types: ['related_search'],
                     maxResults: 50,
                 }),
             ]);
@@ -45,11 +45,53 @@ let WorkflowService = class WorkflowService {
             if (scrapingResult.status === 'rejected') {
                 console.warn('⚠️ 스크래핑 실패:', scrapingResult.reason);
             }
-            console.log(`📊 Phase 2: 키워드 분석 데이터 생성`);
+            console.log(`📊 Phase 2: 연관 키워드 및 분석 데이터 생성`);
             let analysisData = null;
             try {
-                const analysisResult = await this.keywordAnalysisService.analyzeKeyword(query);
-                analysisData = analysisResult.data;
+                let relatedKeywordsData = [];
+                if (scrapingData?.keywords) {
+                    const relatedSearchKeywords = scrapingData.keywords
+                        .filter(k => k.category === 'related_search')
+                        .slice(0, 10)
+                        .map(k => k.keyword);
+                    if (relatedSearchKeywords.length > 0) {
+                        try {
+                            console.log(`🔗 연관검색어 트렌드 조회: ${relatedSearchKeywords.join(', ')}`);
+                            const keywordGroups = [
+                                {
+                                    groupName: query,
+                                    keywords: [query],
+                                },
+                                ...relatedSearchKeywords.slice(0, 4).map((keyword, index) => ({
+                                    groupName: `연관키워드${index + 1}`,
+                                    keywords: [keyword],
+                                })),
+                            ];
+                            const datalabResult = await this.naverApiService.getDatalab({
+                                startDate: '2024-01-01',
+                                endDate: '2024-12-31',
+                                timeUnit: 'month',
+                                keywordGroups,
+                            });
+                            relatedKeywordsData = relatedSearchKeywords.map((keyword, index) => {
+                                const trendData = datalabResult.data?.results?.find((result) => result.title === `연관키워드${index + 1}`);
+                                const latestRatio = trendData?.data?.[trendData.data.length - 1]?.ratio || 0;
+                                return {
+                                    keyword,
+                                    monthlySearchVolume: latestRatio,
+                                    rankPosition: index + 1,
+                                    trendData: trendData?.data || []
+                                };
+                            });
+                            console.log(`✅ 연관검색어 트렌드 조회 완료: ${relatedKeywordsData.length}개`);
+                        }
+                        catch (relatedError) {
+                            console.warn('⚠️ 연관검색어 트렌드 조회 실패:', relatedError);
+                        }
+                    }
+                }
+                const analysisResult = await this.keywordAnalysisService.analyzeKeyword(query, undefined, naverApiData, relatedKeywordsData);
+                analysisData = analysisResult;
             }
             catch (analysisError) {
                 console.warn('⚠️ 키워드 분석 실패:', analysisError);
@@ -90,25 +132,16 @@ let WorkflowService = class WorkflowService {
         const startTime = Date.now();
         console.log(`⚡ 빠른 분석 시작: ${query}`);
         try {
-            const [naverApiResult, existingAnalysisResult] = await Promise.allSettled([
-                this.naverApiService.getIntegratedData(query),
-                this.keywordAnalysisService.getKeywordAnalysis(query),
-            ]);
-            const naverApiData = naverApiResult.status === 'fulfilled'
-                ? naverApiResult.value.data
-                : null;
-            const existingAnalysis = existingAnalysisResult.status === 'fulfilled'
-                ? existingAnalysisResult.value.data
-                : null;
+            const naverApiResult = await this.naverApiService.getIntegratedData(query);
             const executionTime = (Date.now() - startTime) / 1000;
             console.log(`✅ 빠른 분석 완료: ${query} (${executionTime}초)`);
             return {
                 success: true,
                 data: {
                     query,
-                    naverApiData,
+                    naverApiData: naverApiResult.data,
                     scrapingData: null,
-                    analysisData: existingAnalysis,
+                    analysisData: null,
                     executionTime,
                     timestamp: new Date().toISOString(),
                 },

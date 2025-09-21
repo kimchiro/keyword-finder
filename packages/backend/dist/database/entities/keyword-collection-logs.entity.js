@@ -16,6 +16,7 @@ var CollectionType;
 (function (CollectionType) {
     CollectionType["TRENDING"] = "trending";
     CollectionType["SMARTBLOCK"] = "smartblock";
+    CollectionType["RELATED_SEARCH"] = "related_search";
 })(CollectionType || (exports.CollectionType = CollectionType = {}));
 let KeywordCollectionLogs = class KeywordCollectionLogs {
 };

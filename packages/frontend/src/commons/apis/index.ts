@@ -6,3 +6,11 @@ export { searchNaverBlogs, getNaverTrend } from './naverSearch';
 
 // 키워드 분석 API
 export { getIntegratedKeywordData } from './keywordAnalysis';
+
+// 워크플로우 API
+export { 
+  runCompleteWorkflow, 
+  runQuickWorkflow, 
+  runScrapingWorkflow, 
+  getWorkflowHealth 
+} from './workflow';

@@ -162,4 +162,37 @@ export class ScrapingController {
       );
     }
   }
+
+  @Get('browser-pool/status')
+  @ApiOperation({ 
+    summary: '브라우저 풀 상태 조회',
+    description: '브라우저 풀의 현재 상태를 조회합니다.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: '브라우저 풀 상태 조회 성공',
+  })
+  async getBrowserPoolStatus() {
+    try {
+      console.log('🏊‍♂️ 브라우저 풀 상태 조회');
+      
+      const result = await this.scrapingService.getBrowserPoolStatus();
+
+      return {
+        success: true,
+        message: '브라우저 풀 상태를 성공적으로 조회했습니다.',
+        data: result,
+      };
+    } catch (error) {
+      console.error('❌ 브라우저 풀 상태 조회 실패:', error);
+      throw new HttpException(
+        {
+          success: false,
+          message: '브라우저 풀 상태 조회 중 오류가 발생했습니다.',
+          error: error.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

@@ -121,10 +121,9 @@ describe('KeywordAnalysisService', () => {
       const result = await service.analyzeKeyword(keyword, analysisDate);
 
       // Then
-      expect(result.success).toBe(true);
-      expect(result.data.analytics).toBeDefined();
-      expect(result.data.relatedKeywords).toBeDefined();
-      expect(result.data.chartData).toBeDefined();
+      expect(result.analytics).toBeDefined();
+      expect(result.relatedKeywords).toBeDefined();
+      expect(result.chartData).toBeDefined();
       expect(mockKeywordAnalyticsRepository.findOne).toHaveBeenCalledWith({
         where: { keyword, analysisDate: expect.any(Date) },
       });
@@ -169,7 +168,7 @@ describe('KeywordAnalysisService', () => {
       const result = await service.analyzeKeyword(keyword, analysisDate);
 
       // Then
-      expect(result.success).toBe(true);
+      expect(result).toBeDefined();
       expect(service.getKeywordAnalysis).toHaveBeenCalledWith(keyword);
     });
   });

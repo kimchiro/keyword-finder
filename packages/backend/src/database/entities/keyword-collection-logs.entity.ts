@@ -10,6 +10,7 @@ import { ApiProperty } from '@nestjs/swagger';
 export enum CollectionType {
   TRENDING = 'trending',
   SMARTBLOCK = 'smartblock',
+  RELATED_SEARCH = 'related_search',
 }
 
 @Entity('keyword_collection_logs')

@@ -1,9 +1,11 @@
 import { Repository } from 'typeorm';
 import { KeywordCollectionLogs } from '../../database/entities/keyword-collection-logs.entity';
 import { ScrapeKeywordsDto } from './dto/scraping.dto';
+import { BrowserPoolService } from '../../common/services/browser-pool.service';
 export declare class ScrapingService {
     private keywordCollectionLogsRepository;
-    constructor(keywordCollectionLogsRepository: Repository<KeywordCollectionLogs>);
+    private browserPoolService;
+    constructor(keywordCollectionLogsRepository: Repository<KeywordCollectionLogs>, browserPoolService: BrowserPoolService);
     scrapeKeywords(scrapeDto: ScrapeKeywordsDto): Promise<{
         query: string;
         totalKeywords: number;
@@ -13,7 +15,7 @@ export declare class ScrapingService {
         };
         keywords: {
             keyword: string;
-            category: "autosuggest" | "related" | "trending" | "smartblock";
+            category: "autosuggest" | "related" | "trending" | "smartblock" | "related_search";
             rank: number;
             source: string;
             searchVolume: number;
@@ -34,5 +36,18 @@ export declare class ScrapingService {
         totalKeywords: unknown;
     }>;
     private performRealScraping;
+    getBrowserPoolStatus(): Promise<{
+        totalInstances: number;
+        activeInstances: number;
+        inactiveInstances: number;
+        maxPoolSize: number;
+        instances: {
+            id: string;
+            isActive: boolean;
+            lastUsed: Date;
+            createdAt: Date;
+            age: number;
+        }[];
+    }>;
     private saveCollectionLogs;
 }

@@ -35,7 +35,7 @@ let KeywordAnalysisService = class KeywordAnalysisService {
         this.issueAnalysisRepository = issueAnalysisRepository;
         this.intentAnalysisRepository = intentAnalysisRepository;
     }
-    async analyzeKeyword(keyword, analysisDate) {
+    async analyzeKeyword(keyword, analysisDate, naverApiData, relatedKeywordsData) {
         console.log(`📊 키워드 분석 시작: ${keyword}`);
         try {
             const targetDateString = analysisDate || new Date().toISOString().split('T')[0];
@@ -45,20 +45,20 @@ let KeywordAnalysisService = class KeywordAnalysisService {
             });
             if (existingAnalytics) {
                 console.log(`⚠️ 키워드 '${keyword}'에 대한 분석 데이터가 이미 존재합니다. 기존 데이터를 반환합니다.`);
-                return this.getKeywordAnalysis(keyword);
+                const existingData = await this.getKeywordAnalysis(keyword);
+                return existingData.data;
             }
             const currentDate = analysisDate ? new Date(analysisDate) : new Date();
-            const analyticsData = await this.generateAndSaveKeywordAnalytics(keyword, currentDate);
-            const relatedKeywordsData = await this.generateAndSaveRelatedKeywords(keyword, currentDate);
-            const chartData = await this.generateAndSaveChartData(keyword, currentDate);
+            const analyticsData = await this.generateAndSaveKeywordAnalytics(keyword, currentDate, naverApiData);
+            const relatedKeywords = relatedKeywordsData && relatedKeywordsData.length > 0
+                ? await this.saveRelatedKeywords(keyword, relatedKeywordsData, currentDate)
+                : [];
+            const chartData = await this.generateAndSaveChartData(keyword, currentDate, naverApiData);
             console.log(`✅ 키워드 분석 완료: ${keyword}`);
             return {
-                success: true,
-                data: {
-                    analytics: analyticsData,
-                    relatedKeywords: relatedKeywordsData,
-                    chartData: chartData,
-                },
+                analytics: analyticsData,
+                relatedKeywords: relatedKeywords,
+                chartData: chartData,
             };
         }
         catch (error) {
@@ -113,114 +113,130 @@ let KeywordAnalysisService = class KeywordAnalysisService {
             throw error;
         }
     }
-    async generateAndSaveKeywordAnalytics(keyword, analysisDate) {
-        const baseSearchVolume = Math.floor(Math.random() * 100000) + 10000;
-        const analyticsData = this.keywordAnalyticsRepository.create({
+    async generateAndSaveKeywordAnalytics(keyword, analysisDate, naverApiData) {
+        const analyticsData = {
             keyword,
-            monthlySearchPc: Math.floor(baseSearchVolume * 0.4),
-            monthlySearchMobile: Math.floor(baseSearchVolume * 0.6),
-            monthlySearchTotal: baseSearchVolume,
-            monthlyContentBlog: Math.floor(Math.random() * 5000) + 500,
-            monthlyContentCafe: Math.floor(Math.random() * 1000) + 100,
-            monthlyContentAll: Math.floor(Math.random() * 6000) + 600,
-            estimatedSearchYesterday: Math.floor(baseSearchVolume * 0.8),
-            estimatedSearchEndMonth: Math.floor(baseSearchVolume * 1.2),
-            saturationIndexBlog: Math.floor(Math.random() * 100),
-            saturationIndexCafe: Math.floor(Math.random() * 100),
-            saturationIndexAll: Math.floor(Math.random() * 100),
+            monthlySearchPc: naverApiData?.datalab?.results?.[0]?.data?.[0]?.ratio || 0,
+            monthlySearchMobile: naverApiData?.datalab?.results?.[0]?.data?.[1]?.ratio || 0,
+            monthlySearchTotal: naverApiData?.datalab?.results?.[0]?.data?.reduce((sum, item) => sum + item.ratio, 0) || 0,
+            monthlyContentBlog: naverApiData?.blogSearch?.total || 0,
+            monthlyContentCafe: 0,
+            monthlyContentAll: naverApiData?.blogSearch?.total || 0,
+            estimatedSearchYesterday: 0,
+            estimatedSearchEndMonth: 0,
+            saturationIndexBlog: 0,
+            saturationIndexCafe: 0,
+            saturationIndexAll: 0,
             analysisDate,
-        });
-        return await this.keywordAnalyticsRepository.save(analyticsData);
-    }
-    async generateAndSaveRelatedKeywords(keyword, analysisDate) {
-        const relatedKeywords = [];
-        const similarityOptions = [related_keywords_entity_1.SimilarityScore.LOW, related_keywords_entity_1.SimilarityScore.MEDIUM, related_keywords_entity_1.SimilarityScore.HIGH];
-        for (let i = 0; i < 10; i++) {
-            const relatedKeyword = this.relatedKeywordsRepository.create({
-                baseKeyword: keyword,
-                relatedKeyword: `${keyword} 연관키워드${i + 1}`,
-                monthlySearchVolume: Math.floor(Math.random() * 50000) + 1000,
-                blogCumulativePosts: Math.floor(Math.random() * 10000) + 100,
-                similarityScore: similarityOptions[Math.floor(Math.random() * similarityOptions.length)],
-                rankPosition: i + 1,
-                analysisDate,
-            });
-            relatedKeywords.push(relatedKeyword);
-        }
-        return await this.relatedKeywordsRepository.save(relatedKeywords);
-    }
-    async generateAndSaveChartData(keyword, analysisDate) {
-        const currentYear = new Date().getFullYear();
-        const searchTrends = [];
-        for (let i = 1; i <= 12; i++) {
-            const trend = this.searchTrendsRepository.create({
-                keyword,
-                periodType: search_trends_entity_1.PeriodType.MONTHLY,
-                periodValue: `${currentYear}-${String(i).padStart(2, '0')}`,
-                searchVolume: Math.floor(Math.random() * 100000) + 10000,
-                searchRatio: Math.floor(Math.random() * 100),
-            });
-            searchTrends.push(trend);
-        }
-        await this.searchTrendsRepository.save(searchTrends);
-        const monthlyRatios = [];
-        for (let i = 1; i <= 12; i++) {
-            const ratio = this.monthlySearchRatiosRepository.create({
-                keyword,
-                monthNumber: i,
-                searchRatio: Math.floor(Math.random() * 20) + 5,
-                analysisYear: currentYear,
-            });
-            monthlyRatios.push(ratio);
-        }
-        await this.monthlySearchRatiosRepository.save(monthlyRatios);
-        const weekdayRatios = [];
-        for (let i = 1; i <= 7; i++) {
-            const ratio = this.weekdaySearchRatiosRepository.create({
-                keyword,
-                weekdayNumber: i,
-                searchRatio: Math.floor(Math.random() * 20) + 10,
-                analysisDate,
-            });
-            weekdayRatios.push(ratio);
-        }
-        await this.weekdaySearchRatiosRepository.save(weekdayRatios);
-        const genderRatio = this.genderSearchRatiosRepository.create({
-            keyword,
-            maleRatio: Math.floor(Math.random() * 40) + 30,
-            femaleRatio: Math.floor(Math.random() * 40) + 30,
-            analysisDate,
-        });
-        await this.genderSearchRatiosRepository.save(genderRatio);
-        const issueTypes = [issue_analysis_entity_1.IssueType.RISING, issue_analysis_entity_1.IssueType.STABLE, issue_analysis_entity_1.IssueType.FALLING, issue_analysis_entity_1.IssueType.NEW];
-        const trendDirections = [issue_analysis_entity_1.TrendDirection.UP, issue_analysis_entity_1.TrendDirection.DOWN, issue_analysis_entity_1.TrendDirection.MAINTAIN];
-        const issueAnalysis = this.issueAnalysisRepository.create({
-            keyword,
-            issueType: issueTypes[Math.floor(Math.random() * issueTypes.length)],
-            issueScore: Math.floor(Math.random() * 100),
-            trendDirection: trendDirections[Math.floor(Math.random() * trendDirections.length)],
-            volatilityScore: Math.floor(Math.random() * 100),
-            analysisDate,
-        });
-        await this.issueAnalysisRepository.save(issueAnalysis);
-        const primaryIntents = [intent_analysis_entity_1.PrimaryIntent.INFORMATIONAL, intent_analysis_entity_1.PrimaryIntent.COMMERCIAL, intent_analysis_entity_1.PrimaryIntent.MIXED];
-        const intentAnalysis = this.intentAnalysisRepository.create({
-            keyword,
-            informationalRatio: Math.floor(Math.random() * 60) + 20,
-            commercialRatio: Math.floor(Math.random() * 60) + 20,
-            primaryIntent: primaryIntents[Math.floor(Math.random() * primaryIntents.length)],
-            confidenceScore: Math.floor(Math.random() * 40) + 60,
-            analysisDate,
-        });
-        await this.intentAnalysisRepository.save(intentAnalysis);
-        return {
-            searchTrends,
-            monthlyRatios,
-            weekdayRatios,
-            genderRatios: genderRatio,
-            issueAnalysis,
-            intentAnalysis,
         };
+        try {
+            const result = await this.keywordAnalyticsRepository
+                .createQueryBuilder()
+                .insert()
+                .into(keyword_analytics_entity_1.KeywordAnalytics)
+                .values(analyticsData)
+                .orUpdate(['monthly_search_pc', 'monthly_search_mobile', 'monthly_search_total',
+                'monthly_content_blog', 'monthly_content_cafe', 'monthly_content_all',
+                'estimated_search_yesterday', 'estimated_search_end_month',
+                'saturation_index_blog', 'saturation_index_cafe', 'saturation_index_all',
+                'updated_at'], ['keyword', 'analysis_date'])
+                .execute();
+            return await this.keywordAnalyticsRepository.findOne({
+                where: { keyword, analysisDate }
+            });
+        }
+        catch (error) {
+            console.error('❌ generateAndSaveKeywordAnalytics 오류:', error);
+            if (error.code === 'ER_DUP_ENTRY') {
+                console.log(`⚠️ 중복 키 에러 발생, 기존 데이터 조회: ${keyword}`);
+                return await this.keywordAnalyticsRepository.findOne({
+                    where: { keyword, analysisDate }
+                });
+            }
+            throw error;
+        }
+    }
+    async saveRelatedKeywords(keyword, relatedKeywordsData, analysisDate) {
+        try {
+            await this.relatedKeywordsRepository.delete({
+                baseKeyword: keyword,
+                analysisDate,
+            });
+            const relatedKeywords = relatedKeywordsData.map((item, index) => ({
+                baseKeyword: keyword,
+                relatedKeyword: item.keyword,
+                monthlySearchVolume: item.monthlySearchVolume || 0,
+                blogCumulativePosts: 0,
+                similarityScore: related_keywords_entity_1.SimilarityScore.MEDIUM,
+                rankPosition: index + 1,
+                analysisDate,
+            }));
+            return await this.relatedKeywordsRepository.save(relatedKeywords);
+        }
+        catch (error) {
+            console.error('❌ saveRelatedKeywords 오류:', error);
+            throw error;
+        }
+    }
+    async generateAndSaveChartData(keyword, analysisDate, naverApiData) {
+        const currentYear = new Date().getFullYear();
+        try {
+            await Promise.all([
+                this.searchTrendsRepository.delete({ keyword }),
+                this.monthlySearchRatiosRepository.delete({ keyword, analysisYear: currentYear }),
+                this.weekdaySearchRatiosRepository.delete({ keyword, analysisDate }),
+                this.genderSearchRatiosRepository.delete({ keyword, analysisDate }),
+                this.issueAnalysisRepository.delete({ keyword, analysisDate }),
+                this.intentAnalysisRepository.delete({ keyword, analysisDate }),
+            ]);
+            const searchTrends = [];
+            if (naverApiData?.datalab?.results?.[0]?.data) {
+                const datalabData = naverApiData.datalab.results[0].data;
+                for (const dataPoint of datalabData) {
+                    const trend = this.searchTrendsRepository.create({
+                        keyword,
+                        periodType: search_trends_entity_1.PeriodType.MONTHLY,
+                        periodValue: dataPoint.period,
+                        searchVolume: dataPoint.ratio,
+                        searchRatio: dataPoint.ratio,
+                    });
+                    searchTrends.push(trend);
+                }
+                await this.searchTrendsRepository.save(searchTrends);
+            }
+            const monthlyRatios = [];
+            if (naverApiData?.datalab?.results?.[0]?.data) {
+                const datalabData = naverApiData.datalab.results[0].data;
+                datalabData.forEach((dataPoint, index) => {
+                    const monthMatch = dataPoint.period.match(/-(\d{2})-/);
+                    const monthNumber = monthMatch ? parseInt(monthMatch[1]) : index + 1;
+                    const ratio = this.monthlySearchRatiosRepository.create({
+                        keyword,
+                        monthNumber,
+                        searchRatio: dataPoint.ratio,
+                        analysisYear: currentYear,
+                    });
+                    monthlyRatios.push(ratio);
+                });
+                await this.monthlySearchRatiosRepository.save(monthlyRatios);
+            }
+            const weekdayRatios = [];
+            let genderRatio = null;
+            let issueAnalysis = null;
+            let intentAnalysis = null;
+            return {
+                searchTrends,
+                monthlyRatios,
+                weekdayRatios,
+                genderRatios: genderRatio,
+                issueAnalysis,
+                intentAnalysis,
+            };
+        }
+        catch (error) {
+            console.error('❌ generateAndSaveChartData 오류:', error);
+            throw error;
+        }
     }
     async getAllChartData(keyword, analysisDate) {
         const [searchTrends, monthlyRatios, weekdayRatios, genderRatios, issueAnalysis, intentAnalysis,] = await Promise.all([

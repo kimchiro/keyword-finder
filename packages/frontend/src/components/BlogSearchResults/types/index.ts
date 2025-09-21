@@ -17,5 +17,14 @@ export interface NaverSearchApiResponse {
 
 // BlogSearchResults 컴포넌트 Props 타입
 export interface BlogSearchResultsProps {
-  searchResults: NaverSearchApiResponse | null;
+  searchResults: NaverSearchApiResponse | NaverBlogSearchResult | null;
+}
+
+// 백엔드에서 반환하는 네이버 블로그 검색 결과 타입
+export interface NaverBlogSearchResult {
+  lastBuildDate: string;
+  total: number;
+  start: number;
+  display: number;
+  items: NaverSearchItem[];
 }

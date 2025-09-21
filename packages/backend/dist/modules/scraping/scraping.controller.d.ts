@@ -15,4 +15,21 @@ export declare class ScrapingController {
             totalKeywords: unknown;
         };
     }>;
+    getBrowserPoolStatus(): Promise<{
+        success: boolean;
+        message: string;
+        data: {
+            totalInstances: number;
+            activeInstances: number;
+            inactiveInstances: number;
+            maxPoolSize: number;
+            instances: {
+                id: string;
+                isActive: boolean;
+                lastUsed: Date;
+                createdAt: Date;
+                age: number;
+            }[];
+        };
+    }>;
 }

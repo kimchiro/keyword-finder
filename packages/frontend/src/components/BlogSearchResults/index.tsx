@@ -17,14 +17,22 @@ export type * from './types';
 export const BlogSearchResults: React.FC<BlogSearchResultsProps> = ({
   searchResults,
 }) => {
-  if (!searchResults?.data?.items?.length) {
+  if (!searchResults) {
+    return null;
+  }
+
+  // 백엔드 워크플로우에서 온 데이터인지 확인
+  const isWorkflowData = 'items' in searchResults;
+  const items = isWorkflowData ? searchResults.items : searchResults.data?.items;
+
+  if (!items?.length) {
     return null;
   }
 
   return (
     <ResultsContainer>
       <SectionTitle>📝 네이버 블로그 검색 결과</SectionTitle>
-      {searchResults.data.items.map((item, index) => (
+      {items.map((item, index) => (
         <SearchResultItem key={index}>
           <BlogTitle>
             <a href={item.link} target="_blank" rel="noopener noreferrer">

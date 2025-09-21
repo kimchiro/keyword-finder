@@ -8,7 +8,7 @@ import {
 } from './styles';
 
 export interface SearchFormProps {
-  onSubmit: (query: string) => void;
+  onSubmit?: (query: string) => void;
   onNaverSearch?: (query: string) => void;
   loading?: boolean;
   placeholder?: string;
@@ -28,7 +28,7 @@ export const SearchForm: React.FC<SearchFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!query.trim()) return;
+    if (!query.trim() || !onSubmit) return;
     onSubmit(query);
   };
 
@@ -49,9 +49,11 @@ export const SearchForm: React.FC<SearchFormProps> = ({
         disabled={loading}
       />
       <ButtonGroup>
-        <SearchButton type="submit" disabled={loading || !query.trim()}>
-          {loading ? <LoadingSpinner /> : submitButtonText}
-        </SearchButton>
+        {onSubmit && (
+          <SearchButton type="submit" disabled={loading || !query.trim()}>
+            {loading ? <LoadingSpinner /> : submitButtonText}
+          </SearchButton>
+        )}
         {onNaverSearch && (
           <SearchButton 
             type="button" 

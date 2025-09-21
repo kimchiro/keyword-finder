@@ -3,12 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { KeywordCollectionLogs, CollectionType } from '../../database/entities/keyword-collection-logs.entity';
 import { ScrapeKeywordsDto } from './dto/scraping.dto';
+import { BrowserPoolService } from '../../common/services/browser-pool.service';
 
 @Injectable()
 export class ScrapingService {
   constructor(
     @InjectRepository(KeywordCollectionLogs)
     private keywordCollectionLogsRepository: Repository<KeywordCollectionLogs>,
+    private browserPoolService: BrowserPoolService,
   ) {}
 
   async scrapeKeywords(scrapeDto: ScrapeKeywordsDto) {
@@ -16,7 +18,7 @@ export class ScrapingService {
     console.log(`🕷️ 키워드 스크래핑 시작: ${scrapeDto.query}`);
 
     try {
-      const { query, types = ['trending', 'smartblock'], maxResults = 50 } = scrapeDto;
+      const { query, types = ['related_search'], maxResults = 50 } = scrapeDto;
       
       // 실제 Playwright 기반 스크래핑 수행
       const scrapedKeywords = await this.performRealScraping(query, types, maxResults);
@@ -124,7 +126,7 @@ export class ScrapingService {
 
   private async performRealScraping(query: string, types: string[], maxResults: number) {
     const { NaverScraper } = await import('./scraper/naver-scraper');
-    const scraper = new NaverScraper();
+    const scraper = new NaverScraper(this.browserPoolService);
     
     try {
       await scraper.initialize();
@@ -150,6 +152,13 @@ export class ScrapingService {
     } finally {
       await scraper.close();
     }
+  }
+
+  /**
+   * 브라우저 풀 상태 조회
+   */
+  async getBrowserPoolStatus() {
+    return this.browserPoolService.getPoolStatus();
   }
 
   private async saveCollectionLogs(baseQuery: string, keywords: any[]) {

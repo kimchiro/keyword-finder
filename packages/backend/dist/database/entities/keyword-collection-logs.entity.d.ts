@@ -1,6 +1,7 @@
 export declare enum CollectionType {
     TRENDING = "trending",
-    SMARTBLOCK = "smartblock"
+    SMARTBLOCK = "smartblock",
+    RELATED_SEARCH = "related_search"
 }
 export declare class KeywordCollectionLogs {
     id: number;

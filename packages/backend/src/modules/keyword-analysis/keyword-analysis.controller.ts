@@ -62,7 +62,7 @@ export class KeywordAnalysisController {
       return {
         success: true,
         message: '키워드 분석이 완료되었습니다.',
-        data: result.data,
+        data: result,
       };
     } catch (error) {
       console.error('❌ 키워드 분석 실패:', error);

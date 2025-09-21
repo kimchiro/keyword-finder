@@ -10,6 +10,7 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const typeorm_1 = require("@nestjs/typeorm");
+const common_module_1 = require("./common/common.module");
 const keyword_analysis_module_1 = require("./modules/keyword-analysis/keyword-analysis.module");
 const naver_api_module_1 = require("./modules/naver-api/naver-api.module");
 const scraping_module_1 = require("./modules/scraping/scraping.module");
@@ -29,6 +30,7 @@ exports.AppModule = AppModule = __decorate([
             typeorm_1.TypeOrmModule.forRootAsync({
                 useClass: database_config_1.DatabaseConfig,
             }),
+            common_module_1.CommonModule,
             keyword_analysis_module_1.KeywordAnalysisModule,
             naver_api_module_1.NaverApiModule,
             scraping_module_1.ScrapingModule,

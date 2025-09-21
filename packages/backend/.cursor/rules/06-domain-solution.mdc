@@ -1,0 +1,29 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+현재 서비스 클래스들이 너무 많은 책임을 가지고 있어 단일 책임 원칙을 위반하고 있습니다.
+
+KeywordAnalysisService를 도메인 주도 설계 원칙에 따라 리팩토링해주세요:
+
+**현재 문제:**
+- KeywordAnalysisService가 8개의 Repository를 의존
+- 비즈니스 로직과 데이터 접근 로직이 혼재
+- 337줄의 거대한 서비스 클래스
+
+**리팩토링 방향:**
+1. **도메인 서비스 분리:**
+   - `KeywordAnalysisDomainService` (순수 비즈니스 로직)
+   - `KeywordDataService` (데이터 접근 로직)
+   - `ChartDataService` (차트 데이터 전용)
+
+2. **Value Object 도입:**
+   - `Keyword` (키워드 값 객체)
+   - `AnalysisDate` (분석 날짜 값 객체)
+   - `SearchVolume` (검색량 값 객체)
+
+3. **Aggregate 패턴:**
+   - `KeywordAnalysisAggregate` (키워드 분석 집합체)
+
+**파일 구조:**

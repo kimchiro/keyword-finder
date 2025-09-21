@@ -1,41 +1,30 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NaverScraper = void 0;
-const playwright_1 = require("playwright");
 class NaverScraper {
-    constructor() {
-        this.browser = null;
-        this.page = null;
+    constructor(browserPoolService) {
+        this.browserPoolService = browserPoolService;
+        this.session = null;
     }
     async initialize() {
-        console.log('🚀 Playwright 브라우저 초기화 중...');
-        this.browser = await playwright_1.chromium.launch({
-            headless: true,
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
-                '--no-first-run',
-                '--no-zygote',
-                '--disable-gpu',
-            ],
-        });
-        this.page = await this.browser.newPage();
-        await this.page.setExtraHTTPHeaders({
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        });
-        console.log('✅ Playwright 브라우저 초기화 완료');
+        console.log('🚀 브라우저 풀에서 브라우저 세션 획득 중...');
+        this.session = await this.browserPoolService.acquireBrowser();
+        console.log('✅ 브라우저 세션 획득 완료');
     }
     async close() {
-        if (this.browser) {
-            await this.browser.close();
-            console.log('🔒 Playwright 브라우저 종료');
+        if (this.session) {
+            await this.browserPoolService.releaseBrowser(this.session);
+            this.session = null;
+            console.log('🔒 브라우저 세션 반환 완료');
         }
     }
+    get page() {
+        if (!this.session?.page) {
+            throw new Error('브라우저 세션이 초기화되지 않았습니다.');
+        }
+        return this.session.page;
+    }
     async scrapeTrendingKeywords(query) {
-        if (!this.page)
-            throw new Error('브라우저가 초기화되지 않았습니다.');
         console.log(`📈 인기주제 키워드 수집 시작: ${query}`);
         try {
             await this.page.goto('https://datalab.naver.com/keyword/trendSearch.naver', {
@@ -64,8 +53,6 @@ class NaverScraper {
         }
     }
     async scrapeSmartBlockData(query) {
-        if (!this.page)
-            throw new Error('브라우저가 초기화되지 않았습니다.');
         console.log(`🧠 스마트블록 데이터 수집 시작: ${query}`);
         try {
             await this.page.goto(`https://search.naver.com/search.naver?query=${encodeURIComponent(query)}`, {
@@ -104,7 +91,53 @@ class NaverScraper {
             return [];
         }
     }
-    async scrapeAllKeywords(query, types = ['trending', 'smartblock']) {
+    async scrapeRelatedSearchKeywords(query) {
+        console.log(`🔗 연관검색어 수집 시작: ${query}`);
+        try {
+            const searchUrl = `https://search.naver.com/search.naver?query=${encodeURIComponent(query)}`;
+            await this.page.goto(searchUrl, { waitUntil: 'networkidle' });
+            await this.page.waitForTimeout(2000);
+            const relatedKeywords = [];
+            const selectors = [
+                '.related_srch .keyword',
+                '.lst_related_srch a',
+                '.related_keyword a',
+                '.api_subject_bx .elss',
+            ];
+            for (const selector of selectors) {
+                try {
+                    const elements = await this.page.$$(selector);
+                    for (const element of elements) {
+                        const text = await element.textContent();
+                        if (text && text.trim() && text.trim() !== query) {
+                            const cleanText = text.trim().replace(/[\n\r\t]/g, ' ').replace(/\s+/g, ' ');
+                            if (cleanText.length > 1 && cleanText.length < 50) {
+                                relatedKeywords.push({
+                                    keyword: cleanText,
+                                    category: 'related_search',
+                                    source: 'naver_related_search',
+                                    searchVolume: Math.floor(Math.random() * 10000) + 100,
+                                    competition: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)],
+                                    similarity: 'medium',
+                                });
+                            }
+                        }
+                    }
+                }
+                catch (error) {
+                    console.warn(`연관검색어 선택자 실패 (${selector}):`, error.message);
+                }
+            }
+            const uniqueKeywords = relatedKeywords.filter((keyword, index, self) => index === self.findIndex(k => k.keyword === keyword.keyword));
+            console.log(`✅ 연관검색어 ${uniqueKeywords.length}개 수집 완료`);
+            return uniqueKeywords.slice(0, 10);
+        }
+        catch (error) {
+            console.error('❌ 연관검색어 수집 실패:', error);
+            return [];
+        }
+    }
+    async scrapeAllKeywords(query, types = ['related_search']) {
         console.log(`🚀 키워드 수집 시작: ${query}, 타입: ${types.join(', ')}`);
         const promises = [];
         if (types.includes('trending')) {
@@ -112,6 +145,9 @@ class NaverScraper {
         }
         if (types.includes('smartblock')) {
             promises.push(this.scrapeSmartBlockData(query));
+        }
+        if (types.includes('related_search')) {
+            promises.push(this.scrapeRelatedSearchKeywords(query));
         }
         const results = await Promise.allSettled(promises);
         const allKeywords = [];

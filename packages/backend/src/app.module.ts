@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CommonModule } from './common/common.module';
 import { KeywordAnalysisModule } from './modules/keyword-analysis/keyword-analysis.module';
 import { NaverApiModule } from './modules/naver-api/naver-api.module';
 import { ScrapingModule } from './modules/scraping/scraping.module';
@@ -20,6 +21,9 @@ import { DatabaseConfig } from './config/database.config';
     TypeOrmModule.forRootAsync({
       useClass: DatabaseConfig,
     }),
+
+    // 공통 모듈
+    CommonModule,
 
     // 기능별 모듈
     KeywordAnalysisModule,

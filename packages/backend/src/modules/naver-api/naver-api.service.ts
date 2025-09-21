@@ -86,6 +86,7 @@ export class NaverApiService {
     }
   }
 
+
   async getIntegratedData(query: string) {
     try {
       console.log(`🔄 통합 데이터 조회 시작: ${query}`);

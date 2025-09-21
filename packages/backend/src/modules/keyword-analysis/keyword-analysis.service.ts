@@ -31,7 +31,18 @@ export class KeywordAnalysisService {
     private intentAnalysisRepository: Repository<IntentAnalysis>,
   ) {}
 
-  async analyzeKeyword(keyword: string, analysisDate?: string) {
+  async analyzeKeyword(keyword: string, analysisDate?: string, naverApiData?: any, relatedKeywordsData?: any[]): Promise<{
+    analytics: KeywordAnalytics;
+    relatedKeywords: RelatedKeywords[];
+    chartData: {
+      searchTrends: SearchTrends[];
+      monthlyRatios: MonthlySearchRatios[];
+      weekdayRatios: WeekdaySearchRatios[];
+      genderRatios: GenderSearchRatios;
+      issueAnalysis: IssueAnalysis;
+      intentAnalysis: IntentAnalysis;
+    };
+  }> {
     console.log(`📊 키워드 분석 시작: ${keyword}`);
 
     try {
@@ -44,29 +55,29 @@ export class KeywordAnalysisService {
 
       if (existingAnalytics) {
         console.log(`⚠️ 키워드 '${keyword}'에 대한 분석 데이터가 이미 존재합니다. 기존 데이터를 반환합니다.`);
-        return this.getKeywordAnalysis(keyword);
+        const existingData = await this.getKeywordAnalysis(keyword);
+        return existingData.data;
       }
 
       const currentDate = analysisDate ? new Date(analysisDate) : new Date();
       
-      // 1. 기본 키워드 분석 데이터 생성 및 저장
-      const analyticsData = await this.generateAndSaveKeywordAnalytics(keyword, currentDate);
+      // 1. 기본 키워드 분석 데이터 저장 (외부에서 전달받은 네이버 API 데이터 사용)
+      const analyticsData = await this.generateAndSaveKeywordAnalytics(keyword, currentDate, naverApiData);
       
-      // 2. 연관 키워드 데이터 생성 및 저장
-      const relatedKeywordsData = await this.generateAndSaveRelatedKeywords(keyword, currentDate);
+      // 2. 연관 키워드 데이터 저장 (외부에서 전달받은 데이터 사용)
+      const relatedKeywords = relatedKeywordsData && relatedKeywordsData.length > 0 
+        ? await this.saveRelatedKeywords(keyword, relatedKeywordsData, currentDate)
+        : [];
       
-      // 3. 차트 데이터 생성 및 저장
-      const chartData = await this.generateAndSaveChartData(keyword, currentDate);
+      // 3. 차트 데이터 저장 (외부에서 전달받은 네이버 데이터랩 데이터 사용)
+      const chartData = await this.generateAndSaveChartData(keyword, currentDate, naverApiData);
 
       console.log(`✅ 키워드 분석 완료: ${keyword}`);
 
       return {
-        success: true,
-        data: {
-          analytics: analyticsData,
-          relatedKeywords: relatedKeywordsData,
-          chartData: chartData,
-        },
+        analytics: analyticsData,
+        relatedKeywords: relatedKeywords,
+        chartData: chartData,
       };
     } catch (error) {
       console.error('❌ KeywordAnalysisService.analyzeKeyword 오류:', error);
@@ -130,137 +141,154 @@ export class KeywordAnalysisService {
     }
   }
 
-  private async generateAndSaveKeywordAnalytics(keyword: string, analysisDate: Date) {
-    // 모의 데이터 생성 (실제로는 네이버 API나 다른 데이터 소스에서 가져와야 함)
-    const baseSearchVolume = Math.floor(Math.random() * 100000) + 10000;
-    
-    const analyticsData = this.keywordAnalyticsRepository.create({
+  private async generateAndSaveKeywordAnalytics(keyword: string, analysisDate: Date, naverApiData?: any) {
+    // 네이버 API 원본 데이터만 사용, 계산 로직 제거
+    const analyticsData = {
       keyword,
-      monthlySearchPc: Math.floor(baseSearchVolume * 0.4),
-      monthlySearchMobile: Math.floor(baseSearchVolume * 0.6),
-      monthlySearchTotal: baseSearchVolume,
-      monthlyContentBlog: Math.floor(Math.random() * 5000) + 500,
-      monthlyContentCafe: Math.floor(Math.random() * 1000) + 100,
-      monthlyContentAll: Math.floor(Math.random() * 6000) + 600,
-      estimatedSearchYesterday: Math.floor(baseSearchVolume * 0.8),
-      estimatedSearchEndMonth: Math.floor(baseSearchVolume * 1.2),
-      saturationIndexBlog: Math.floor(Math.random() * 100),
-      saturationIndexCafe: Math.floor(Math.random() * 100),
-      saturationIndexAll: Math.floor(Math.random() * 100),
+      // 네이버 데이터랩 원본 데이터 사용 (ratio 값 그대로)
+      monthlySearchPc: naverApiData?.datalab?.results?.[0]?.data?.[0]?.ratio || 0,
+      monthlySearchMobile: naverApiData?.datalab?.results?.[0]?.data?.[1]?.ratio || 0,
+      monthlySearchTotal: naverApiData?.datalab?.results?.[0]?.data?.reduce((sum: number, item: any) => sum + item.ratio, 0) || 0,
+      // 네이버 블로그 검색 원본 데이터 사용
+      monthlyContentBlog: naverApiData?.blogSearch?.total || 0,
+      monthlyContentCafe: 0, // 카페 검색 API가 없으므로 0
+      monthlyContentAll: naverApiData?.blogSearch?.total || 0,
+      // 추정 데이터 제거, 원본 데이터만 사용
+      estimatedSearchYesterday: 0,
+      estimatedSearchEndMonth: 0,
+      saturationIndexBlog: 0,
+      saturationIndexCafe: 0,
+      saturationIndexAll: 0,
       analysisDate,
-    });
+    };
 
-    return await this.keywordAnalyticsRepository.save(analyticsData);
+    try {
+        // UPSERT: INSERT ... ON DUPLICATE KEY UPDATE 방식으로 중복 처리
+        const result = await this.keywordAnalyticsRepository
+          .createQueryBuilder()
+          .insert()
+          .into(KeywordAnalytics)
+          .values(analyticsData)
+          .orUpdate(['monthly_search_pc', 'monthly_search_mobile', 'monthly_search_total', 
+                    'monthly_content_blog', 'monthly_content_cafe', 'monthly_content_all',
+                    'estimated_search_yesterday', 'estimated_search_end_month',
+                    'saturation_index_blog', 'saturation_index_cafe', 'saturation_index_all',
+                    'updated_at'], ['keyword', 'analysis_date'])
+          .execute();
+
+      // 저장된 데이터 조회하여 반환
+      return await this.keywordAnalyticsRepository.findOne({
+        where: { keyword, analysisDate }
+      });
+    } catch (error) {
+      console.error('❌ generateAndSaveKeywordAnalytics 오류:', error);
+      // 중복 키 에러인 경우 기존 데이터 조회하여 반환
+      if (error.code === 'ER_DUP_ENTRY') {
+        console.log(`⚠️ 중복 키 에러 발생, 기존 데이터 조회: ${keyword}`);
+        return await this.keywordAnalyticsRepository.findOne({
+          where: { keyword, analysisDate }
+        });
+      }
+      throw error;
+    }
   }
 
-  private async generateAndSaveRelatedKeywords(keyword: string, analysisDate: Date) {
-    const relatedKeywords = [];
-    const similarityOptions = [SimilarityScore.LOW, SimilarityScore.MEDIUM, SimilarityScore.HIGH];
-    
-    for (let i = 0; i < 10; i++) {
-      const relatedKeyword = this.relatedKeywordsRepository.create({
+  async saveRelatedKeywords(keyword: string, relatedKeywordsData: any[], analysisDate: Date) {
+    try {
+      // 기존 연관 키워드 데이터 삭제 (중복 방지)
+      await this.relatedKeywordsRepository.delete({
         baseKeyword: keyword,
-        relatedKeyword: `${keyword} 연관키워드${i + 1}`,
-        monthlySearchVolume: Math.floor(Math.random() * 50000) + 1000,
-        blogCumulativePosts: Math.floor(Math.random() * 10000) + 100,
-        similarityScore: similarityOptions[Math.floor(Math.random() * similarityOptions.length)],
-        rankPosition: i + 1,
         analysisDate,
       });
+
+      // 외부에서 전달받은 연관 키워드 데이터를 저장 (데이터 생성하지 않음)
+      const relatedKeywords = relatedKeywordsData.map((item, index) => ({
+        baseKeyword: keyword,
+        relatedKeyword: item.keyword,
+        monthlySearchVolume: item.monthlySearchVolume || 0,
+        blogCumulativePosts: 0, // 블로그 누적 게시물 수는 별도 API 필요
+        similarityScore: SimilarityScore.MEDIUM,
+        rankPosition: index + 1,
+        analysisDate,
+      }));
       
-      relatedKeywords.push(relatedKeyword);
+      return await this.relatedKeywordsRepository.save(relatedKeywords);
+    } catch (error) {
+      console.error('❌ saveRelatedKeywords 오류:', error);
+      throw error;
     }
-    
-    return await this.relatedKeywordsRepository.save(relatedKeywords);
   }
 
-  private async generateAndSaveChartData(keyword: string, analysisDate: Date) {
+  private async generateAndSaveChartData(keyword: string, analysisDate: Date, naverApiData?: any) {
     const currentYear = new Date().getFullYear();
     
-    // 검색량 트렌드 데이터
-    const searchTrends = [];
-    for (let i = 1; i <= 12; i++) {
-      const trend = this.searchTrendsRepository.create({
-        keyword,
-        periodType: PeriodType.MONTHLY,
-        periodValue: `${currentYear}-${String(i).padStart(2, '0')}`,
-        searchVolume: Math.floor(Math.random() * 100000) + 10000,
-        searchRatio: Math.floor(Math.random() * 100),
-      });
-      searchTrends.push(trend);
+    try {
+      // 기존 차트 데이터 삭제 (중복 방지)
+      await Promise.all([
+        this.searchTrendsRepository.delete({ keyword }),
+        this.monthlySearchRatiosRepository.delete({ keyword, analysisYear: currentYear }),
+        this.weekdaySearchRatiosRepository.delete({ keyword, analysisDate }),
+        this.genderSearchRatiosRepository.delete({ keyword, analysisDate }),
+        this.issueAnalysisRepository.delete({ keyword, analysisDate }),
+        this.intentAnalysisRepository.delete({ keyword, analysisDate }),
+      ]);
+
+      // 검색량 트렌드 데이터 (네이버 데이터랩 원본 데이터만 사용)
+      const searchTrends = [];
+      if (naverApiData?.datalab?.results?.[0]?.data) {
+        // 네이버 데이터랩 원본 데이터 그대로 사용
+        const datalabData = naverApiData.datalab.results[0].data;
+        for (const dataPoint of datalabData) {
+          const trend = this.searchTrendsRepository.create({
+            keyword,
+            periodType: PeriodType.MONTHLY,
+            periodValue: dataPoint.period,
+            searchVolume: dataPoint.ratio, // 원본 ratio 값 그대로 사용
+            searchRatio: dataPoint.ratio,
+          });
+          searchTrends.push(trend);
+        }
+        await this.searchTrendsRepository.save(searchTrends);
+      }
+
+      // 월별 검색 비율 데이터 (네이버 데이터랩 원본 데이터만 사용)
+      const monthlyRatios = [];
+      if (naverApiData?.datalab?.results?.[0]?.data) {
+        const datalabData = naverApiData.datalab.results[0].data;
+        datalabData.forEach((dataPoint, index) => {
+          const monthMatch = dataPoint.period.match(/-(\d{2})-/);
+          const monthNumber = monthMatch ? parseInt(monthMatch[1]) : index + 1;
+          
+          const ratio = this.monthlySearchRatiosRepository.create({
+            keyword,
+            monthNumber,
+            searchRatio: dataPoint.ratio, // 원본 ratio 값 그대로 사용
+            analysisYear: currentYear,
+          });
+          monthlyRatios.push(ratio);
+        });
+        await this.monthlySearchRatiosRepository.save(monthlyRatios);
+      }
+
+      // 요일별, 성별, 이슈성, 의도 분석은 네이버 API에서 제공하지 않으므로 
+      // 계산 로직 제거하고 빈 데이터로 처리
+      const weekdayRatios: WeekdaySearchRatios[] = [];
+      let genderRatio: GenderSearchRatios | null = null;
+      let issueAnalysis: IssueAnalysis | null = null;
+      let intentAnalysis: IntentAnalysis | null = null;
+
+      return {
+        searchTrends,
+        monthlyRatios,
+        weekdayRatios,
+        genderRatios: genderRatio,
+        issueAnalysis,
+        intentAnalysis,
+      };
+    } catch (error) {
+      console.error('❌ generateAndSaveChartData 오류:', error);
+      throw error;
     }
-    await this.searchTrendsRepository.save(searchTrends);
-
-    // 월별 검색 비율 데이터
-    const monthlyRatios = [];
-    for (let i = 1; i <= 12; i++) {
-      const ratio = this.monthlySearchRatiosRepository.create({
-        keyword,
-        monthNumber: i,
-        searchRatio: Math.floor(Math.random() * 20) + 5,
-        analysisYear: currentYear,
-      });
-      monthlyRatios.push(ratio);
-    }
-    await this.monthlySearchRatiosRepository.save(monthlyRatios);
-
-    // 요일별 검색 비율 데이터
-    const weekdayRatios = [];
-    for (let i = 1; i <= 7; i++) {
-      const ratio = this.weekdaySearchRatiosRepository.create({
-        keyword,
-        weekdayNumber: i,
-        searchRatio: Math.floor(Math.random() * 20) + 10,
-        analysisDate,
-      });
-      weekdayRatios.push(ratio);
-    }
-    await this.weekdaySearchRatiosRepository.save(weekdayRatios);
-
-    // 성별 검색 비율 데이터
-    const genderRatio = this.genderSearchRatiosRepository.create({
-      keyword,
-      maleRatio: Math.floor(Math.random() * 40) + 30,
-      femaleRatio: Math.floor(Math.random() * 40) + 30,
-      analysisDate,
-    });
-    await this.genderSearchRatiosRepository.save(genderRatio);
-
-    // 이슈성 분석 데이터
-    const issueTypes = [IssueType.RISING, IssueType.STABLE, IssueType.FALLING, IssueType.NEW];
-    const trendDirections = [TrendDirection.UP, TrendDirection.DOWN, TrendDirection.MAINTAIN];
-    
-    const issueAnalysis = this.issueAnalysisRepository.create({
-      keyword,
-      issueType: issueTypes[Math.floor(Math.random() * issueTypes.length)],
-      issueScore: Math.floor(Math.random() * 100),
-      trendDirection: trendDirections[Math.floor(Math.random() * trendDirections.length)],
-      volatilityScore: Math.floor(Math.random() * 100),
-      analysisDate,
-    });
-    await this.issueAnalysisRepository.save(issueAnalysis);
-
-    // 검색 의도 분석 데이터
-    const primaryIntents = [PrimaryIntent.INFORMATIONAL, PrimaryIntent.COMMERCIAL, PrimaryIntent.MIXED];
-    
-    const intentAnalysis = this.intentAnalysisRepository.create({
-      keyword,
-      informationalRatio: Math.floor(Math.random() * 60) + 20,
-      commercialRatio: Math.floor(Math.random() * 60) + 20,
-      primaryIntent: primaryIntents[Math.floor(Math.random() * primaryIntents.length)],
-      confidenceScore: Math.floor(Math.random() * 40) + 60,
-      analysisDate,
-    });
-    await this.intentAnalysisRepository.save(intentAnalysis);
-
-    return {
-      searchTrends,
-      monthlyRatios,
-      weekdayRatios,
-      genderRatios: genderRatio,
-      issueAnalysis,
-      intentAnalysis,
-    };
   }
 
   private async getAllChartData(keyword: string, analysisDate: Date) {
