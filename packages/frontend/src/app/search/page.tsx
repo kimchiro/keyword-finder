@@ -7,10 +7,8 @@ import {
   useKeywordSearch,
   useNaverApi,
   useIntegratedData,
-  SearchTrendChart,
-  ScrapedKeywords,
-  // BlogSearchResults,
-  KeywordTrendAnalysis
+  BlogSearchResults,
+  UnifiedKeywordTable
 } from '@/components/keyword-search';
 import { 
   Container, 
@@ -71,10 +69,8 @@ export default function SearchPage() {
 
         {/* 검색 결과들 */}
         {results && <SearchResults results={results} />}
-        <SearchTrendChart datalabResults={datalabResults} />
-        <KeywordTrendAnalysis analysis={integratedData?.analysis} />
-        <ScrapedKeywords integratedData={integratedData} />
-        {/* <BlogSearchResults searchResults={searchResults} /> */}
+        <UnifiedKeywordTable integratedData={integratedData} />
+        <BlogSearchResults searchResults={searchResults} />
 
         {/* 안내 메시지 */}
         {!isLoading && !searchResults && !datalabResults && !integratedData && !results && (
