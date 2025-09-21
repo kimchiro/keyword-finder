@@ -1,0 +1,36 @@
+import { DataSource } from 'typeorm';
+import * as dotenv from 'dotenv';
+import { KeywordAnalytics } from '../database/entities/keyword-analytics.entity';
+import { RelatedKeywords } from '../database/entities/related-keywords.entity';
+import { SearchTrends } from '../database/entities/search-trends.entity';
+import { MonthlySearchRatios } from '../database/entities/monthly-search-ratios.entity';
+import { WeekdaySearchRatios } from '../database/entities/weekday-search-ratios.entity';
+import { GenderSearchRatios } from '../database/entities/gender-search-ratios.entity';
+import { IssueAnalysis } from '../database/entities/issue-analysis.entity';
+import { IntentAnalysis } from '../database/entities/intent-analysis.entity';
+import { KeywordCollectionLogs } from '../database/entities/keyword-collection-logs.entity';
+
+dotenv.config();
+
+export const AppDataSource = new DataSource({
+  type: 'mysql',
+  host: process.env.MYSQL_HOST || 'localhost',
+  port: parseInt(process.env.MYSQL_PORT || '3306'),
+  username: process.env.MYSQL_USER || 'root',
+  password: process.env.MYSQL_PASSWORD || '',
+  database: process.env.MYSQL_DATABASE || 'keyword_finder',
+  entities: [
+    KeywordAnalytics,
+    RelatedKeywords,
+    SearchTrends,
+    MonthlySearchRatios,
+    WeekdaySearchRatios,
+    GenderSearchRatios,
+    IssueAnalysis,
+    IntentAnalysis,
+    KeywordCollectionLogs,
+  ],
+  migrations: ['src/database/migrations/*.ts'],
+  synchronize: false,
+  logging: process.env.NODE_ENV === 'development',
+});
