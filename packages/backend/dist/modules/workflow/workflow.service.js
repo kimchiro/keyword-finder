@@ -14,11 +14,13 @@ const common_1 = require("@nestjs/common");
 const naver_api_service_1 = require("../naver-api/naver-api.service");
 const scraping_service_1 = require("../scraping/scraping.service");
 const keyword_analysis_service_1 = require("../keyword-analysis/keyword-analysis.service");
+const app_config_1 = require("../../config/app.config");
 let WorkflowService = class WorkflowService {
-    constructor(naverApiService, scrapingService, keywordAnalysisService) {
+    constructor(naverApiService, scrapingService, keywordAnalysisService, appConfig) {
         this.naverApiService = naverApiService;
         this.scrapingService = scrapingService;
         this.keywordAnalysisService = keywordAnalysisService;
+        this.appConfig = appConfig;
     }
     async executeCompleteWorkflow(query) {
         const startTime = Date.now();
@@ -30,7 +32,7 @@ let WorkflowService = class WorkflowService {
                 this.scrapingService.scrapeKeywords({
                     query,
                     types: ['related_search'],
-                    maxResults: 50,
+                    maxResults: this.appConfig.scrapingMaxResults,
                 }),
             ]);
             const naverApiData = naverApiResult.status === 'fulfilled'
@@ -52,7 +54,7 @@ let WorkflowService = class WorkflowService {
                 if (scrapingData?.keywords) {
                     const relatedSearchKeywords = scrapingData.keywords
                         .filter(k => k.category === 'related_search')
-                        .slice(0, 10)
+                        .slice(0, this.appConfig.scrapingMaxKeywordsPerType)
                         .map(k => k.keyword);
                     if (relatedSearchKeywords.length > 0) {
                         try {
@@ -68,8 +70,8 @@ let WorkflowService = class WorkflowService {
                                 })),
                             ];
                             const datalabResult = await this.naverApiService.getDatalab({
-                                startDate: '2024-01-01',
-                                endDate: '2024-12-31',
+                                startDate: this.appConfig.defaultStartDate,
+                                endDate: this.appConfig.defaultEndDate,
                                 timeUnit: 'month',
                                 keywordGroups,
                             });
@@ -172,7 +174,7 @@ let WorkflowService = class WorkflowService {
             const scrapingResult = await this.scrapingService.scrapeKeywords({
                 query,
                 types: ['trending', 'smartblock'],
-                maxResults: 100,
+                maxResults: this.appConfig.scrapingMaxResults * 2,
             });
             const executionTime = (Date.now() - startTime) / 1000;
             console.log(`✅ 스크래핑 전용 워크플로우 완료: ${query} (${executionTime}초)`);
@@ -231,6 +233,7 @@ exports.WorkflowService = WorkflowService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [naver_api_service_1.NaverApiService,
         scraping_service_1.ScrapingService,
-        keyword_analysis_service_1.KeywordAnalysisService])
+        keyword_analysis_service_1.KeywordAnalysisService,
+        app_config_1.AppConfigService])
 ], WorkflowService);
 //# sourceMappingURL=workflow.service.js.map

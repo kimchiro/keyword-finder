@@ -18,16 +18,19 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const keyword_collection_logs_entity_1 = require("../../database/entities/keyword-collection-logs.entity");
 const browser_pool_service_1 = require("../../common/services/browser-pool.service");
+const app_config_1 = require("../../config/app.config");
+const scraping_constants_1 = require("../../constants/scraping.constants");
 let ScrapingService = class ScrapingService {
-    constructor(keywordCollectionLogsRepository, browserPoolService) {
+    constructor(keywordCollectionLogsRepository, browserPoolService, appConfig) {
         this.keywordCollectionLogsRepository = keywordCollectionLogsRepository;
         this.browserPoolService = browserPoolService;
+        this.appConfig = appConfig;
     }
     async scrapeKeywords(scrapeDto) {
         const startTime = Date.now();
         console.log(`🕷️ 키워드 스크래핑 시작: ${scrapeDto.query}`);
         try {
-            const { query, types = ['related_search'], maxResults = 50 } = scrapeDto;
+            const { query, types = ['related_search'], maxResults = this.appConfig.scrapingMaxResults } = scrapeDto;
             const scrapedKeywords = await this.performRealScraping(query, types, maxResults);
             await this.saveCollectionLogs(query, scrapedKeywords);
             const executionTime = (Date.now() - startTime) / 1000;
@@ -127,7 +130,7 @@ let ScrapingService = class ScrapingService {
                 category: keyword.category,
                 rank: index + 1,
                 source: keyword.source,
-                searchVolume: keyword.searchVolume || Math.floor(Math.random() * 10000) + 1000,
+                searchVolume: keyword.searchVolume || Math.floor(Math.random() * scraping_constants_1.SEARCH_VOLUME.DEFAULT_RANGE.MAX) + scraping_constants_1.SEARCH_VOLUME.DEFAULT_RANGE.MIN,
                 competition: keyword.competition || 'medium',
                 similarity: keyword.similarity || 'medium',
             }));
@@ -164,6 +167,7 @@ exports.ScrapingService = ScrapingService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(keyword_collection_logs_entity_1.KeywordCollectionLogs)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
-        browser_pool_service_1.BrowserPoolService])
+        browser_pool_service_1.BrowserPoolService,
+        app_config_1.AppConfigService])
 ], ScrapingService);
 //# sourceMappingURL=scraping.service.js.map

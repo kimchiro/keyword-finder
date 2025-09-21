@@ -1,5 +1,6 @@
 import { Browser, Page } from 'playwright';
 import { BrowserPoolService } from '../../../common/services/browser-pool.service';
+import { SCRAPING_DEFAULTS, NAVER_SCRAPING, SEARCH_VOLUME } from '../../../constants/scraping.constants';
 
 export interface ScrapedKeyword {
   keyword: string;
@@ -71,7 +72,7 @@ export class NaverScraper {
       
       const keywords: ScrapedKeyword[] = trendingKeywords
         .filter(keyword => keyword.trim() && keyword !== query)
-        .slice(0, 10) // 최대 10개
+        .slice(0, SCRAPING_DEFAULTS.MAX_KEYWORDS_PER_TYPE) // 최대 키워드 수
         .map(keyword => ({
           keyword: keyword.trim(),
           category: 'trending' as const,
@@ -132,7 +133,7 @@ export class NaverScraper {
         .filter((keyword, index, self) => 
           self.findIndex(k => k.keyword === keyword.keyword) === index
         )
-        .slice(0, 10);
+        .slice(0, SCRAPING_DEFAULTS.MAX_KEYWORDS_PER_TYPE);
 
       console.log(`✅ 스마트블록 키워드 ${uniqueKeywords.length}개 수집 완료`);
       return uniqueKeywords;
@@ -181,7 +182,7 @@ export class NaverScraper {
                   keyword: cleanText,
                   category: 'related_search',
                   source: 'naver_related_search',
-                  searchVolume: Math.floor(Math.random() * 10000) + 100,
+                  searchVolume: Math.floor(Math.random() * SEARCH_VOLUME.DEFAULT_RANGE.MAX) + SEARCH_VOLUME.DEFAULT_RANGE.MIN,
                   competition: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)] as 'low' | 'medium' | 'high',
                   similarity: 'medium',
                 });
@@ -199,7 +200,7 @@ export class NaverScraper {
       );
       
       console.log(`✅ 연관검색어 ${uniqueKeywords.length}개 수집 완료`);
-      return uniqueKeywords.slice(0, 10); // 최대 10개
+      return uniqueKeywords.slice(0, SCRAPING_DEFAULTS.MAX_KEYWORDS_PER_TYPE); // 최대 키워드 수
       
     } catch (error) {
       console.error('❌ 연관검색어 수집 실패:', error);

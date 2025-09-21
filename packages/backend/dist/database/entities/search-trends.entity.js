@@ -65,6 +65,7 @@ exports.SearchTrends = SearchTrends = __decorate([
     (0, typeorm_1.Unique)(['keyword', 'periodType', 'periodValue']),
     (0, typeorm_1.Index)(['keyword']),
     (0, typeorm_1.Index)(['periodType']),
-    (0, typeorm_1.Index)(['periodValue'])
+    (0, typeorm_1.Index)(['periodValue']),
+    (0, typeorm_1.Index)(['keyword', 'periodType'])
 ], SearchTrends);
 //# sourceMappingURL=search-trends.entity.js.map

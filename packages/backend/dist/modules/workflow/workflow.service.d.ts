@@ -1,6 +1,7 @@
 import { NaverApiService } from '../naver-api/naver-api.service';
 import { ScrapingService } from '../scraping/scraping.service';
 import { KeywordAnalysisService } from '../keyword-analysis/keyword-analysis.service';
+import { AppConfigService } from '../../config/app.config';
 export interface WorkflowResult {
     success: boolean;
     data: {
@@ -17,7 +18,8 @@ export declare class WorkflowService {
     private readonly naverApiService;
     private readonly scrapingService;
     private readonly keywordAnalysisService;
-    constructor(naverApiService: NaverApiService, scrapingService: ScrapingService, keywordAnalysisService: KeywordAnalysisService);
+    private readonly appConfig;
+    constructor(naverApiService: NaverApiService, scrapingService: ScrapingService, keywordAnalysisService: KeywordAnalysisService, appConfig: AppConfigService);
     executeCompleteWorkflow(query: string): Promise<WorkflowResult>;
     executeQuickAnalysis(query: string): Promise<WorkflowResult>;
     executeScrapingOnly(query: string): Promise<WorkflowResult>;

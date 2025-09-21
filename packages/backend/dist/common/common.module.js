@@ -9,14 +9,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommonModule = void 0;
 const common_1 = require("@nestjs/common");
 const browser_pool_service_1 = require("./services/browser-pool.service");
+const transaction_service_1 = require("./services/transaction.service");
+const api_retry_service_1 = require("./services/api-retry.service");
+const rate_limit_guard_1 = require("./guards/rate-limit.guard");
 let CommonModule = class CommonModule {
 };
 exports.CommonModule = CommonModule;
 exports.CommonModule = CommonModule = __decorate([
     (0, common_1.Global)(),
     (0, common_1.Module)({
-        providers: [browser_pool_service_1.BrowserPoolService],
-        exports: [browser_pool_service_1.BrowserPoolService],
+        providers: [
+            browser_pool_service_1.BrowserPoolService,
+            transaction_service_1.TransactionService,
+            api_retry_service_1.ApiRetryService,
+            rate_limit_guard_1.RateLimitGuard,
+        ],
+        exports: [
+            browser_pool_service_1.BrowserPoolService,
+            transaction_service_1.TransactionService,
+            api_retry_service_1.ApiRetryService,
+            rate_limit_guard_1.RateLimitGuard,
+        ],
     })
 ], CommonModule);
 //# sourceMappingURL=common.module.js.map

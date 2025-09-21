@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.IntegratedDataResponseDto = exports.DatalabTrendResponseDto = exports.BlogSearchResponseDto = exports.IntegratedDataDto = exports.DatalabTrendDto = exports.BlogSearchDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
+const api_constants_1 = require("../../../constants/api.constants");
 class BlogSearchDto {
 }
 exports.BlogSearchDto = BlogSearchDto;
@@ -72,7 +73,7 @@ __decorate([
 __decorate([
     (0, swagger_1.ApiProperty)({
         description: '시작 날짜 (YYYY-MM-DD)',
-        example: '2024-01-01',
+        example: api_constants_1.SEARCH_TREND_API.DEFAULT_DATE_RANGE.START_DATE,
         required: false
     }),
     (0, class_validator_1.IsOptional)(),
@@ -82,7 +83,7 @@ __decorate([
 __decorate([
     (0, swagger_1.ApiProperty)({
         description: '종료 날짜 (YYYY-MM-DD)',
-        example: '2024-12-31',
+        example: api_constants_1.SEARCH_TREND_API.DEFAULT_DATE_RANGE.END_DATE,
         required: false
     }),
     (0, class_validator_1.IsOptional)(),

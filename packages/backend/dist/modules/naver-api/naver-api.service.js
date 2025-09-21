@@ -13,22 +13,24 @@ exports.NaverApiService = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const axios_1 = require("axios");
+const api_retry_service_1 = require("../../common/services/api-retry.service");
+const app_config_1 = require("../../config/app.config");
+const api_constants_1 = require("../../constants/api.constants");
 let NaverApiService = class NaverApiService {
-    constructor(configService) {
+    constructor(configService, apiRetryService, appConfig) {
         this.configService = configService;
-        this.naverClientId = this.configService.get('NAVER_CLIENT_ID');
-        this.naverClientSecret = this.configService.get('NAVER_CLIENT_SECRET');
+        this.apiRetryService = apiRetryService;
+        this.appConfig = appConfig;
+        this.appConfig.validateNaverApiKeys();
     }
     async searchBlogs(query, display = 10, start = 1, sort = 'sim') {
         try {
-            if (!this.naverClientId || !this.naverClientSecret) {
-                throw new Error('네이버 API 키가 설정되지 않았습니다. 환경변수를 확인해주세요.');
-            }
             console.log(`🔍 네이버 블로그 검색 API 호출: ${query}`);
-            const response = await axios_1.default.get('https://openapi.naver.com/v1/search/blog.json', {
+            const response = await this.apiRetryService.executeNaverApiWithRetry(() => axios_1.default.get(`${this.appConfig.naverApiBaseUrl}${api_constants_1.NAVER_API.ENDPOINTS.BLOG_SEARCH}.json`, {
                 headers: {
-                    'X-Naver-Client-Id': this.naverClientId,
-                    'X-Naver-Client-Secret': this.naverClientSecret,
+                    [api_constants_1.NAVER_API.HEADERS.CLIENT_ID]: this.appConfig.naverClientId,
+                    [api_constants_1.NAVER_API.HEADERS.CLIENT_SECRET]: this.appConfig.naverClientSecret,
+                    'User-Agent': api_constants_1.NAVER_API.HEADERS.USER_AGENT,
                 },
                 params: {
                     query,
@@ -36,8 +38,8 @@ let NaverApiService = class NaverApiService {
                     start,
                     sort,
                 },
-                timeout: 10000,
-            });
+                timeout: this.appConfig.apiTimeoutMs,
+            }), 'blog-search');
             console.log(`✅ 네이버 블로그 검색 완료: ${response.data.items?.length || 0}개 결과`);
             return {
                 success: true,
@@ -51,18 +53,16 @@ let NaverApiService = class NaverApiService {
     }
     async getDatalab(requestBody) {
         try {
-            if (!this.naverClientId || !this.naverClientSecret) {
-                throw new Error('네이버 API 키가 설정되지 않았습니다. 환경변수를 확인해주세요.');
-            }
             console.log(`📊 네이버 데이터랩 API 호출:`, requestBody);
-            const response = await axios_1.default.post('https://openapi.naver.com/v1/datalab/search', requestBody, {
+            const response = await this.apiRetryService.executeNaverApiWithRetry(() => axios_1.default.post(`${this.appConfig.naverApiBaseUrl}${api_constants_1.NAVER_API.ENDPOINTS.SEARCH_TREND}`, requestBody, {
                 headers: {
-                    'X-Naver-Client-Id': this.naverClientId,
-                    'X-Naver-Client-Secret': this.naverClientSecret,
-                    'Content-Type': 'application/json',
+                    [api_constants_1.NAVER_API.HEADERS.CLIENT_ID]: this.appConfig.naverClientId,
+                    [api_constants_1.NAVER_API.HEADERS.CLIENT_SECRET]: this.appConfig.naverClientSecret,
+                    'Content-Type': api_constants_1.NAVER_API.HEADERS.CONTENT_TYPE,
+                    'User-Agent': api_constants_1.NAVER_API.HEADERS.USER_AGENT,
                 },
-                timeout: 15000,
-            });
+                timeout: this.appConfig.apiExtendedTimeoutMs,
+            }), 'datalab-search');
             console.log(`✅ 네이버 데이터랩 조회 완료: ${response.data.results?.length || 0}개 결과`);
             return {
                 success: true,
@@ -80,8 +80,8 @@ let NaverApiService = class NaverApiService {
             const [blogSearchResult, datalabResult] = await Promise.all([
                 this.searchBlogs(query, 20, 1),
                 this.getDatalab({
-                    startDate: '2024-01-01',
-                    endDate: '2024-12-31',
+                    startDate: this.appConfig.defaultStartDate,
+                    endDate: this.appConfig.defaultEndDate,
                     timeUnit: 'month',
                     keywordGroups: [
                         {
@@ -111,6 +111,8 @@ let NaverApiService = class NaverApiService {
 exports.NaverApiService = NaverApiService;
 exports.NaverApiService = NaverApiService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [config_1.ConfigService])
+    __metadata("design:paramtypes", [config_1.ConfigService,
+        api_retry_service_1.ApiRetryService,
+        app_config_1.AppConfigService])
 ], NaverApiService);
 //# sourceMappingURL=naver-api.service.js.map

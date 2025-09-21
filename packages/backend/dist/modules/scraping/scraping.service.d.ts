@@ -2,10 +2,12 @@ import { Repository } from 'typeorm';
 import { KeywordCollectionLogs } from '../../database/entities/keyword-collection-logs.entity';
 import { ScrapeKeywordsDto } from './dto/scraping.dto';
 import { BrowserPoolService } from '../../common/services/browser-pool.service';
+import { AppConfigService } from '../../config/app.config';
 export declare class ScrapingService {
     private keywordCollectionLogsRepository;
     private browserPoolService;
-    constructor(keywordCollectionLogsRepository: Repository<KeywordCollectionLogs>, browserPoolService: BrowserPoolService);
+    private appConfig;
+    constructor(keywordCollectionLogsRepository: Repository<KeywordCollectionLogs>, browserPoolService: BrowserPoolService, appConfig: AppConfigService);
     scrapeKeywords(scrapeDto: ScrapeKeywordsDto): Promise<{
         query: string;
         totalKeywords: number;
@@ -15,7 +17,7 @@ export declare class ScrapingService {
         };
         keywords: {
             keyword: string;
-            category: "autosuggest" | "related" | "trending" | "smartblock" | "related_search";
+            category: "related_search" | "autosuggest" | "related" | "trending" | "smartblock";
             rank: number;
             source: string;
             searchVolume: number;

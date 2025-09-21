@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { KeywordAnalysisController } from './keyword-analysis.controller';
 import { KeywordAnalysisService } from './keyword-analysis.service';
+import { TransactionService } from '../../common/services/transaction.service';
+import { AppConfigService } from '../../config/app.config';
 import { KeywordAnalytics } from '../../database/entities/keyword-analytics.entity';
 import { RelatedKeywords } from '../../database/entities/related-keywords.entity';
 import { SearchTrends } from '../../database/entities/search-trends.entity';
@@ -10,6 +12,11 @@ import { WeekdaySearchRatios } from '../../database/entities/weekday-search-rati
 import { GenderSearchRatios } from '../../database/entities/gender-search-ratios.entity';
 import { IssueAnalysis } from '../../database/entities/issue-analysis.entity';
 import { IntentAnalysis } from '../../database/entities/intent-analysis.entity';
+import { 
+  KeywordAnalysisDomainService, 
+  KeywordDataService, 
+  ChartDataService 
+} from './domain/services';
 
 @Module({
   imports: [
@@ -25,7 +32,14 @@ import { IntentAnalysis } from '../../database/entities/intent-analysis.entity';
     ]),
   ],
   controllers: [KeywordAnalysisController],
-  providers: [KeywordAnalysisService],
+  providers: [
+    KeywordAnalysisService,
+    KeywordAnalysisDomainService,
+    KeywordDataService,
+    ChartDataService,
+    TransactionService,
+    AppConfigService,
+  ],
   exports: [KeywordAnalysisService],
 })
 export class KeywordAnalysisModule {}

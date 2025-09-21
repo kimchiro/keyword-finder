@@ -20,6 +20,8 @@ export enum SimilarityScore {
 @Index(['baseKeyword'])
 @Index(['analysisDate'])
 @Index(['rankPosition'])
+@Index(['baseKeyword', 'analysisDate']) // 복합 인덱스 추가
+@Index(['baseKeyword', 'rankPosition']) // 복합 인덱스 추가
 export class RelatedKeywords {
   @ApiProperty({ description: '고유 ID' })
   @PrimaryGeneratedColumn()

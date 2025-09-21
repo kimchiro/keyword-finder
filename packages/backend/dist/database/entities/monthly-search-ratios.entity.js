@@ -51,6 +51,7 @@ exports.MonthlySearchRatios = MonthlySearchRatios = __decorate([
     (0, typeorm_1.Index)(['keyword']),
     (0, typeorm_1.Index)(['monthNumber']),
     (0, typeorm_1.Index)(['analysisYear']),
+    (0, typeorm_1.Index)(['keyword', 'analysisYear']),
     (0, typeorm_1.Check)('"month_number" BETWEEN 1 AND 12')
 ], MonthlySearchRatios);
 //# sourceMappingURL=monthly-search-ratios.entity.js.map

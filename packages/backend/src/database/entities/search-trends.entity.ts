@@ -19,6 +19,7 @@ export enum PeriodType {
 @Index(['keyword'])
 @Index(['periodType'])
 @Index(['periodValue'])
+@Index(['keyword', 'periodType']) // 복합 인덱스 추가
 export class SearchTrends {
   @ApiProperty({ description: '고유 ID' })
   @PrimaryGeneratedColumn()

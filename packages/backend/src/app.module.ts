@@ -8,13 +8,20 @@ import { ScrapingModule } from './modules/scraping/scraping.module';
 import { HealthModule } from './modules/health/health.module';
 import { WorkflowModule } from './modules/workflow/workflow.module';
 import { DatabaseConfig } from './config/database.config';
+import { AppConfigService } from './config/app.config';
+import { validateEnvironment } from './config/validation.schema';
 
 @Module({
   imports: [
-    // 환경 변수 설정
+    // 환경 변수 설정 및 검증
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+      validate: validateEnvironment,
+      validationOptions: {
+        allowUnknown: true,
+        abortEarly: true,
+      },
     }),
 
     // TypeORM 설정

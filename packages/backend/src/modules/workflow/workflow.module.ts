@@ -4,6 +4,7 @@ import { WorkflowService } from './workflow.service';
 import { NaverApiModule } from '../naver-api/naver-api.module';
 import { ScrapingModule } from '../scraping/scraping.module';
 import { KeywordAnalysisModule } from '../keyword-analysis/keyword-analysis.module';
+import { AppConfigService } from '../../config/app.config';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { KeywordAnalysisModule } from '../keyword-analysis/keyword-analysis.modu
     KeywordAnalysisModule,
   ],
   controllers: [WorkflowController],
-  providers: [WorkflowService],
+  providers: [WorkflowService, AppConfigService],
   exports: [WorkflowService],
 })
 export class WorkflowModule {}

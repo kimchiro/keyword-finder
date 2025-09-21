@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
+import { ApiRetryService } from '../../common/services/api-retry.service';
+import { AppConfigService } from '../../config/app.config';
+import { NAVER_API, API_RESPONSE } from '../../constants/api.constants';
 import {
   BlogSearchDto,
   DatalabTrendDto,
@@ -9,36 +12,37 @@ import {
 
 @Injectable()
 export class NaverApiService {
-  private readonly naverClientId: string;
-  private readonly naverClientSecret: string;
-
-  constructor(private configService: ConfigService) {
-    this.naverClientId = this.configService.get('NAVER_CLIENT_ID');
-    this.naverClientSecret = this.configService.get('NAVER_CLIENT_SECRET');
+  constructor(
+    private configService: ConfigService,
+    private apiRetryService: ApiRetryService,
+    private appConfig: AppConfigService,
+  ) {
+    // 애플리케이션 시작 시 네이버 API 키 검증
+    this.appConfig.validateNaverApiKeys();
   }
 
   async searchBlogs(query: string, display = 10, start = 1, sort = 'sim') {
     try {
-      // 네이버 API 키 검증
-      if (!this.naverClientId || !this.naverClientSecret) {
-        throw new Error('네이버 API 키가 설정되지 않았습니다. 환경변수를 확인해주세요.');
-      }
-
       console.log(`🔍 네이버 블로그 검색 API 호출: ${query}`);
 
-      const response = await axios.get('https://openapi.naver.com/v1/search/blog.json', {
-        headers: {
-          'X-Naver-Client-Id': this.naverClientId,
-          'X-Naver-Client-Secret': this.naverClientSecret,
-        },
-        params: {
-          query,
-          display,
-          start,
-          sort,
-        },
-        timeout: 10000,
-      });
+      // API 재시도 시스템을 사용한 호출
+      const response = await this.apiRetryService.executeNaverApiWithRetry(
+        () => axios.get(`${this.appConfig.naverApiBaseUrl}${NAVER_API.ENDPOINTS.BLOG_SEARCH}.json`, {
+          headers: {
+            [NAVER_API.HEADERS.CLIENT_ID]: this.appConfig.naverClientId,
+            [NAVER_API.HEADERS.CLIENT_SECRET]: this.appConfig.naverClientSecret,
+            'User-Agent': NAVER_API.HEADERS.USER_AGENT,
+          },
+          params: {
+            query,
+            display,
+            start,
+            sort,
+          },
+          timeout: this.appConfig.apiTimeoutMs,
+        }),
+        'blog-search'
+      );
 
       console.log(`✅ 네이버 블로그 검색 완료: ${response.data.items?.length || 0}개 결과`);
 
@@ -54,24 +58,24 @@ export class NaverApiService {
 
   async getDatalab(requestBody: any) {
     try {
-      // 네이버 API 키 검증
-      if (!this.naverClientId || !this.naverClientSecret) {
-        throw new Error('네이버 API 키가 설정되지 않았습니다. 환경변수를 확인해주세요.');
-      }
-
       console.log(`📊 네이버 데이터랩 API 호출:`, requestBody);
 
-      const response = await axios.post(
-        'https://openapi.naver.com/v1/datalab/search',
-        requestBody,
-        {
-          headers: {
-            'X-Naver-Client-Id': this.naverClientId,
-            'X-Naver-Client-Secret': this.naverClientSecret,
-            'Content-Type': 'application/json',
+      // API 재시도 시스템을 사용한 호출
+      const response = await this.apiRetryService.executeNaverApiWithRetry(
+        () => axios.post(
+          `${this.appConfig.naverApiBaseUrl}${NAVER_API.ENDPOINTS.SEARCH_TREND}`,
+          requestBody,
+          {
+            headers: {
+              [NAVER_API.HEADERS.CLIENT_ID]: this.appConfig.naverClientId,
+              [NAVER_API.HEADERS.CLIENT_SECRET]: this.appConfig.naverClientSecret,
+              'Content-Type': NAVER_API.HEADERS.CONTENT_TYPE,
+              'User-Agent': NAVER_API.HEADERS.USER_AGENT,
+            },
+            timeout: this.appConfig.apiExtendedTimeoutMs,
           },
-          timeout: 15000,
-        },
+        ),
+        'datalab-search'
       );
 
       console.log(`✅ 네이버 데이터랩 조회 완료: ${response.data.results?.length || 0}개 결과`);
@@ -95,8 +99,8 @@ export class NaverApiService {
       const [blogSearchResult, datalabResult] = await Promise.all([
         this.searchBlogs(query, 20, 1),
         this.getDatalab({
-          startDate: '2024-01-01',
-          endDate: '2024-12-31',
+          startDate: this.appConfig.defaultStartDate,
+          endDate: this.appConfig.defaultEndDate,
           timeUnit: 'month',
           keywordGroups: [
             {

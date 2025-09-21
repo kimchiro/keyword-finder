@@ -4,8 +4,11 @@ const core_1 = require("@nestjs/core");
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const app_module_1 = require("./app.module");
+const app_config_1 = require("./config/app.config");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    const appConfig = app.get(app_config_1.AppConfigService);
+    appConfig.validateAllConfigs();
     app.enableCors({
         origin: [
             'http://localhost:3000',
@@ -31,10 +34,11 @@ async function bootstrap() {
         .build();
     const document = swagger_1.SwaggerModule.createDocument(app, config);
     swagger_1.SwaggerModule.setup('api/docs', app, document);
-    const port = process.env.PORT || 3001;
+    const port = appConfig.port;
     await app.listen(port);
     console.log(`🚀 NestJS 애플리케이션이 포트 ${port}에서 실행 중입니다.`);
     console.log(`📚 API 문서: http://localhost:${port}/api/docs`);
+    console.log(`🔧 설정 요약:`, JSON.stringify(appConfig.getConfigSummary(), null, 2));
 }
 bootstrap();
 //# sourceMappingURL=main.js.map

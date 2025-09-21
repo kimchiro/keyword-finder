@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { NaverApiService } from '../naver-api/naver-api.service';
 import { ScrapingService } from '../scraping/scraping.service';
 import { KeywordAnalysisService } from '../keyword-analysis/keyword-analysis.service';
+import { AppConfigService } from '../../config/app.config';
+import { SCRAPING_DEFAULTS } from '../../constants/scraping.constants';
 
 export interface WorkflowResult {
   success: boolean;
@@ -22,6 +24,7 @@ export class WorkflowService {
     private readonly naverApiService: NaverApiService,
     private readonly scrapingService: ScrapingService,
     private readonly keywordAnalysisService: KeywordAnalysisService,
+    private readonly appConfig: AppConfigService,
   ) {}
 
   /**
@@ -43,7 +46,7 @@ export class WorkflowService {
         this.scrapingService.scrapeKeywords({
           query,
           types: ['related_search'],
-          maxResults: 50,
+          maxResults: this.appConfig.scrapingMaxResults,
         }),
       ]);
 
@@ -74,7 +77,7 @@ export class WorkflowService {
           // 스크래핑된 연관검색어 필터링
           const relatedSearchKeywords = scrapingData.keywords
             .filter(k => k.category === 'related_search')
-            .slice(0, 10)
+            .slice(0, this.appConfig.scrapingMaxKeywordsPerType)
             .map(k => k.keyword);
           
           if (relatedSearchKeywords.length > 0) {
@@ -94,8 +97,8 @@ export class WorkflowService {
               ];
 
               const datalabResult = await this.naverApiService.getDatalab({
-                startDate: '2024-01-01',
-                endDate: '2024-12-31',
+                startDate: this.appConfig.defaultStartDate,
+                endDate: this.appConfig.defaultEndDate,
                 timeUnit: 'month',
                 keywordGroups,
               });
@@ -227,7 +230,7 @@ export class WorkflowService {
       const scrapingResult = await this.scrapingService.scrapeKeywords({
         query,
         types: ['trending', 'smartblock'],
-        maxResults: 100,
+        maxResults: this.appConfig.scrapingMaxResults * 2, // 스크래핑 전용이므로 2배
       });
 
       const executionTime = (Date.now() - startTime) / 1000;

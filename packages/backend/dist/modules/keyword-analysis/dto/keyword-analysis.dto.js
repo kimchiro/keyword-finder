@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.GetAnalysisResponseDto = exports.KeywordAnalysisResponseDto = exports.AnalyzeKeywordDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
+const api_constants_1 = require("../../../constants/api.constants");
 class AnalyzeKeywordDto {
 }
 exports.AnalyzeKeywordDto = AnalyzeKeywordDto;
@@ -24,7 +25,7 @@ __decorate([
 __decorate([
     (0, swagger_1.ApiProperty)({
         description: '분석 날짜 (선택사항)',
-        example: '2024-01-01',
+        example: api_constants_1.SEARCH_TREND_API.DEFAULT_DATE_RANGE.START_DATE,
         required: false
     }),
     (0, class_validator_1.IsOptional)(),

@@ -1,7 +1,11 @@
 import { HealthService } from './health.service';
+import { ApiRetryService } from '../../common/services/api-retry.service';
+import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
 export declare class HealthController {
     private readonly healthService;
-    constructor(healthService: HealthService);
+    private readonly apiRetryService;
+    private readonly rateLimitGuard;
+    constructor(healthService: HealthService, apiRetryService: ApiRetryService, rateLimitGuard: RateLimitGuard);
     check(): Promise<{
         status: string;
         timestamp: string;
@@ -9,34 +13,53 @@ export declare class HealthController {
         version: string;
         environment: any;
     }>;
-    checkDatabase(): Promise<{
-        status: string;
-        database: string;
-        timestamp: string;
-    }>;
-    getInfo(): Promise<{
-        system: {
-            platform: NodeJS.Platform;
-            arch: NodeJS.Architecture;
-            nodeVersion: string;
-            pid: number;
-            uptime: number;
+    getCircuitBreakerStatus(): {
+        success: boolean;
+        message: string;
+        data: {
+            circuitBreakers: Record<string, import("../../common/services/api-retry.service").CircuitBreakerStats>;
+            timestamp: string;
         };
-        memory: {
-            rss: string;
-            heapTotal: string;
-            heapUsed: string;
-            external: string;
+    };
+    getRateLimitStatus(): {
+        success: boolean;
+        message: string;
+        data: {
+            rateLimits: Record<string, import("../../common/guards/rate-limit.guard").RateLimitEntry & {
+                remainingTime: number;
+            }>;
+            timestamp: string;
         };
-        environment: {
-            nodeEnv: any;
-            port: any;
-            database: {
-                host: any;
-                port: any;
-                database: any;
+    };
+    getApiMetrics(): {
+        success: boolean;
+        message: string;
+        data: {
+            circuitBreaker: {
+                successRate: string;
+                totalServices: number;
+                totalFailures: number;
+                totalSuccesses: number;
+                openCircuits: number;
+                halfOpenCircuits: number;
+                closedCircuits: number;
             };
+            rateLimit: {
+                totalKeys: number;
+                totalRequests: number;
+                activeWindows: number;
+            };
+            timestamp: string;
         };
+    };
+    resetCircuitBreaker(key: string): {
+        success: boolean;
+        message: string;
         timestamp: string;
-    }>;
+    };
+    resetRateLimit(key: string): {
+        success: boolean;
+        message: string;
+        timestamp: string;
+    };
 }

@@ -81,6 +81,8 @@ exports.RelatedKeywords = RelatedKeywords = __decorate([
     (0, typeorm_1.Unique)(['baseKeyword', 'relatedKeyword', 'analysisDate']),
     (0, typeorm_1.Index)(['baseKeyword']),
     (0, typeorm_1.Index)(['analysisDate']),
-    (0, typeorm_1.Index)(['rankPosition'])
+    (0, typeorm_1.Index)(['rankPosition']),
+    (0, typeorm_1.Index)(['baseKeyword', 'analysisDate']),
+    (0, typeorm_1.Index)(['baseKeyword', 'rankPosition'])
 ], RelatedKeywords);
 //# sourceMappingURL=related-keywords.entity.js.map

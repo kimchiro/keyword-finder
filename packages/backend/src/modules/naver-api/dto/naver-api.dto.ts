@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsOptional, IsNumber, Min, Max } from 'class-validator';
+import { SEARCH_TREND_API } from '../../../constants/api.constants';
 
 export class BlogSearchDto {
   @ApiProperty({ description: '검색어', example: '맛집' })
@@ -52,7 +53,7 @@ export class DatalabTrendDto {
 
   @ApiProperty({ 
     description: '시작 날짜 (YYYY-MM-DD)', 
-    example: '2024-01-01',
+    example: SEARCH_TREND_API.DEFAULT_DATE_RANGE.START_DATE,
     required: false 
   })
   @IsOptional()
@@ -61,7 +62,7 @@ export class DatalabTrendDto {
 
   @ApiProperty({ 
     description: '종료 날짜 (YYYY-MM-DD)', 
-    example: '2024-12-31',
+    example: SEARCH_TREND_API.DEFAULT_DATE_RANGE.END_DATE,
     required: false 
   })
   @IsOptional()

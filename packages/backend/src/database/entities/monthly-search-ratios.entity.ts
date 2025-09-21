@@ -14,6 +14,7 @@ import { ApiProperty } from '@nestjs/swagger';
 @Index(['keyword'])
 @Index(['monthNumber'])
 @Index(['analysisYear'])
+@Index(['keyword', 'analysisYear']) // 복합 인덱스 추가
 @Check('"month_number" BETWEEN 1 AND 12')
 export class MonthlySearchRatios {
   @ApiProperty({ description: '고유 ID' })

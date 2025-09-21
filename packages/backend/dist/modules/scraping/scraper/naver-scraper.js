@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NaverScraper = void 0;
+const scraping_constants_1 = require("../../../constants/scraping.constants");
 class NaverScraper {
     constructor(browserPoolService) {
         this.browserPoolService = browserPoolService;
@@ -37,7 +38,7 @@ class NaverScraper {
             const trendingKeywords = await this.page.locator('.trending_keyword').allTextContents();
             const keywords = trendingKeywords
                 .filter(keyword => keyword.trim() && keyword !== query)
-                .slice(0, 10)
+                .slice(0, scraping_constants_1.SCRAPING_DEFAULTS.MAX_KEYWORDS_PER_TYPE)
                 .map(keyword => ({
                 keyword: keyword.trim(),
                 category: 'trending',
@@ -82,7 +83,7 @@ class NaverScraper {
             }
             const uniqueKeywords = keywords
                 .filter((keyword, index, self) => self.findIndex(k => k.keyword === keyword.keyword) === index)
-                .slice(0, 10);
+                .slice(0, scraping_constants_1.SCRAPING_DEFAULTS.MAX_KEYWORDS_PER_TYPE);
             console.log(`✅ 스마트블록 키워드 ${uniqueKeywords.length}개 수집 완료`);
             return uniqueKeywords;
         }
@@ -116,7 +117,7 @@ class NaverScraper {
                                     keyword: cleanText,
                                     category: 'related_search',
                                     source: 'naver_related_search',
-                                    searchVolume: Math.floor(Math.random() * 10000) + 100,
+                                    searchVolume: Math.floor(Math.random() * scraping_constants_1.SEARCH_VOLUME.DEFAULT_RANGE.MAX) + scraping_constants_1.SEARCH_VOLUME.DEFAULT_RANGE.MIN,
                                     competition: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)],
                                     similarity: 'medium',
                                 });
@@ -130,7 +131,7 @@ class NaverScraper {
             }
             const uniqueKeywords = relatedKeywords.filter((keyword, index, self) => index === self.findIndex(k => k.keyword === keyword.keyword));
             console.log(`✅ 연관검색어 ${uniqueKeywords.length}개 수집 완료`);
-            return uniqueKeywords.slice(0, 10);
+            return uniqueKeywords.slice(0, scraping_constants_1.SCRAPING_DEFAULTS.MAX_KEYWORDS_PER_TYPE);
         }
         catch (error) {
             console.error('❌ 연관검색어 수집 실패:', error);

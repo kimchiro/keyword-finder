@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.NaverApiController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
+const rate_limit_guard_1 = require("../../common/guards/rate-limit.guard");
 const naver_api_service_1 = require("./naver-api.service");
 const naver_api_dto_1 = require("./dto/naver-api.dto");
 let NaverApiController = class NaverApiController {
@@ -82,6 +83,7 @@ let NaverApiController = class NaverApiController {
 exports.NaverApiController = NaverApiController;
 __decorate([
     (0, common_1.Get)('blog-search'),
+    (0, rate_limit_guard_1.NaverApiRateLimit)(50, 60000),
     (0, swagger_1.ApiOperation)({
         summary: '네이버 블로그 검색',
         description: '네이버 블로그 검색 API를 통해 블로그 포스트를 검색합니다.'
@@ -132,6 +134,7 @@ __decorate([
 ], NaverApiController.prototype, "searchBlog", null);
 __decorate([
     (0, common_1.Post)('datalab'),
+    (0, rate_limit_guard_1.NaverApiRateLimit)(30, 60000),
     (0, swagger_1.ApiOperation)({
         summary: '네이버 데이터랩 트렌드 조회',
         description: '네이버 데이터랩 API를 통해 검색 트렌드를 조회합니다.'
@@ -157,6 +160,7 @@ __decorate([
 ], NaverApiController.prototype, "getDatalabTrend", null);
 __decorate([
     (0, common_1.Get)('integrated-data/:query'),
+    (0, rate_limit_guard_1.NaverApiRateLimit)(20, 60000),
     (0, swagger_1.ApiOperation)({
         summary: '통합 데이터 조회',
         description: '블로그 검색과 트렌드 데이터를 통합하여 조회합니다.'
@@ -183,6 +187,8 @@ __decorate([
 exports.NaverApiController = NaverApiController = __decorate([
     (0, swagger_1.ApiTags)('naver-api'),
     (0, common_1.Controller)('naver'),
+    (0, common_1.UseGuards)(rate_limit_guard_1.RateLimitGuard),
+    (0, rate_limit_guard_1.NaverApiRateLimit)(100, 60000),
     __metadata("design:paramtypes", [naver_api_service_1.NaverApiService])
 ], NaverApiController);
 //# sourceMappingURL=naver-api.controller.js.map

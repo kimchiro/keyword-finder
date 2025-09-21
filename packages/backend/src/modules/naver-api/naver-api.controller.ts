@@ -7,6 +7,7 @@ import {
   Param,
   HttpStatus,
   HttpException,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -16,6 +17,7 @@ import {
   ApiResponse,
   ApiBody,
 } from '@nestjs/swagger';
+import { RateLimitGuard, NaverApiRateLimit } from '../../common/guards/rate-limit.guard';
 import { NaverApiService } from './naver-api.service';
 import {
   BlogSearchDto,
@@ -28,10 +30,13 @@ import {
 
 @ApiTags('naver-api')
 @Controller('naver')
+@UseGuards(RateLimitGuard)
+@NaverApiRateLimit(100, 60000) // 1분당 100회 제한
 export class NaverApiController {
   constructor(private readonly naverApiService: NaverApiService) {}
 
   @Get('blog-search')
+  @NaverApiRateLimit(50, 60000) // 블로그 검색은 1분당 50회로 제한
   @ApiOperation({ 
     summary: '네이버 블로그 검색',
     description: '네이버 블로그 검색 API를 통해 블로그 포스트를 검색합니다.'
@@ -102,6 +107,7 @@ export class NaverApiController {
   }
 
   @Post('datalab')
+  @NaverApiRateLimit(30, 60000) // 데이터랩은 1분당 30회로 제한 (더 무거운 API)
   @ApiOperation({ 
     summary: '네이버 데이터랩 트렌드 조회',
     description: '네이버 데이터랩 API를 통해 검색 트렌드를 조회합니다.'
@@ -145,6 +151,7 @@ export class NaverApiController {
   }
 
   @Get('integrated-data/:query')
+  @NaverApiRateLimit(20, 60000) // 통합 데이터는 1분당 20회로 제한 (가장 무거운 API)
   @ApiOperation({ 
     summary: '통합 데이터 조회',
     description: '블로그 검색과 트렌드 데이터를 통합하여 조회합니다.'

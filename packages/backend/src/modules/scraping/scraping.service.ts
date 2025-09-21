@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { KeywordCollectionLogs, CollectionType } from '../../database/entities/keyword-collection-logs.entity';
 import { ScrapeKeywordsDto } from './dto/scraping.dto';
 import { BrowserPoolService } from '../../common/services/browser-pool.service';
+import { AppConfigService } from '../../config/app.config';
+import { SCRAPING_DEFAULTS, SEARCH_VOLUME } from '../../constants/scraping.constants';
 
 @Injectable()
 export class ScrapingService {
@@ -11,6 +13,7 @@ export class ScrapingService {
     @InjectRepository(KeywordCollectionLogs)
     private keywordCollectionLogsRepository: Repository<KeywordCollectionLogs>,
     private browserPoolService: BrowserPoolService,
+    private appConfig: AppConfigService,
   ) {}
 
   async scrapeKeywords(scrapeDto: ScrapeKeywordsDto) {
@@ -18,7 +21,11 @@ export class ScrapingService {
     console.log(`🕷️ 키워드 스크래핑 시작: ${scrapeDto.query}`);
 
     try {
-      const { query, types = ['related_search'], maxResults = 50 } = scrapeDto;
+      const { 
+        query, 
+        types = ['related_search'], 
+        maxResults = this.appConfig.scrapingMaxResults 
+      } = scrapeDto;
       
       // 실제 Playwright 기반 스크래핑 수행
       const scrapedKeywords = await this.performRealScraping(query, types, maxResults);
@@ -143,7 +150,7 @@ export class ScrapingService {
         category: keyword.category,
         rank: index + 1,
         source: keyword.source,
-        searchVolume: keyword.searchVolume || Math.floor(Math.random() * 10000) + 1000,
+        searchVolume: keyword.searchVolume || Math.floor(Math.random() * SEARCH_VOLUME.DEFAULT_RANGE.MAX) + SEARCH_VOLUME.DEFAULT_RANGE.MIN,
         competition: keyword.competition || 'medium',
         similarity: keyword.similarity || 'medium',
       }));

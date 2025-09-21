@@ -2,9 +2,14 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { AppConfigService } from './config/app.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // 설정 검증 수행
+  const appConfig = app.get(AppConfigService);
+  appConfig.validateAllConfigs();
 
   // CORS 설정
   app.enableCors({
@@ -42,11 +47,12 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  const port = process.env.PORT || 3001;
+  const port = appConfig.port;
   await app.listen(port);
 
   console.log(`🚀 NestJS 애플리케이션이 포트 ${port}에서 실행 중입니다.`);
   console.log(`📚 API 문서: http://localhost:${port}/api/docs`);
+  console.log(`🔧 설정 요약:`, JSON.stringify(appConfig.getConfigSummary(), null, 2));
 }
 
 bootstrap();

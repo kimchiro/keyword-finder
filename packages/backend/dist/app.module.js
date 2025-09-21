@@ -17,6 +17,7 @@ const scraping_module_1 = require("./modules/scraping/scraping.module");
 const health_module_1 = require("./modules/health/health.module");
 const workflow_module_1 = require("./modules/workflow/workflow.module");
 const database_config_1 = require("./config/database.config");
+const validation_schema_1 = require("./config/validation.schema");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -26,6 +27,11 @@ exports.AppModule = AppModule = __decorate([
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
                 envFilePath: '.env',
+                validate: validation_schema_1.validateEnvironment,
+                validationOptions: {
+                    allowUnknown: true,
+                    abortEarly: true,
+                },
             }),
             typeorm_1.TypeOrmModule.forRootAsync({
                 useClass: database_config_1.DatabaseConfig,

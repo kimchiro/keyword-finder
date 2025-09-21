@@ -11,6 +11,8 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const keyword_analysis_controller_1 = require("./keyword-analysis.controller");
 const keyword_analysis_service_1 = require("./keyword-analysis.service");
+const transaction_service_1 = require("../../common/services/transaction.service");
+const app_config_1 = require("../../config/app.config");
 const keyword_analytics_entity_1 = require("../../database/entities/keyword-analytics.entity");
 const related_keywords_entity_1 = require("../../database/entities/related-keywords.entity");
 const search_trends_entity_1 = require("../../database/entities/search-trends.entity");
@@ -19,6 +21,7 @@ const weekday_search_ratios_entity_1 = require("../../database/entities/weekday-
 const gender_search_ratios_entity_1 = require("../../database/entities/gender-search-ratios.entity");
 const issue_analysis_entity_1 = require("../../database/entities/issue-analysis.entity");
 const intent_analysis_entity_1 = require("../../database/entities/intent-analysis.entity");
+const services_1 = require("./domain/services");
 let KeywordAnalysisModule = class KeywordAnalysisModule {
 };
 exports.KeywordAnalysisModule = KeywordAnalysisModule;
@@ -37,7 +40,14 @@ exports.KeywordAnalysisModule = KeywordAnalysisModule = __decorate([
             ]),
         ],
         controllers: [keyword_analysis_controller_1.KeywordAnalysisController],
-        providers: [keyword_analysis_service_1.KeywordAnalysisService],
+        providers: [
+            keyword_analysis_service_1.KeywordAnalysisService,
+            services_1.KeywordAnalysisDomainService,
+            services_1.KeywordDataService,
+            services_1.ChartDataService,
+            transaction_service_1.TransactionService,
+            app_config_1.AppConfigService,
+        ],
         exports: [keyword_analysis_service_1.KeywordAnalysisService],
     })
 ], KeywordAnalysisModule);

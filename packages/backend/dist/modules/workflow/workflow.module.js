@@ -13,6 +13,7 @@ const workflow_service_1 = require("./workflow.service");
 const naver_api_module_1 = require("../naver-api/naver-api.module");
 const scraping_module_1 = require("../scraping/scraping.module");
 const keyword_analysis_module_1 = require("../keyword-analysis/keyword-analysis.module");
+const app_config_1 = require("../../config/app.config");
 let WorkflowModule = class WorkflowModule {
 };
 exports.WorkflowModule = WorkflowModule;
@@ -24,7 +25,7 @@ exports.WorkflowModule = WorkflowModule = __decorate([
             keyword_analysis_module_1.KeywordAnalysisModule,
         ],
         controllers: [workflow_controller_1.WorkflowController],
-        providers: [workflow_service_1.WorkflowService],
+        providers: [workflow_service_1.WorkflowService, app_config_1.AppConfigService],
         exports: [workflow_service_1.WorkflowService],
     })
 ], WorkflowModule);
