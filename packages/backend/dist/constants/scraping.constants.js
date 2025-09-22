@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SEARCH_VOLUME = exports.SCRAPING_LOGS = exports.SCRAPING_ERRORS = exports.BROWSER_CONFIG = exports.SCRAPING_TYPES = exports.NAVER_SCRAPING = exports.SCRAPING_DEFAULTS = void 0;
+exports.KEYWORD_FILTERING = exports.SEARCH_VOLUME = exports.SCRAPING_LOGS = exports.SCRAPING_ERRORS = exports.BROWSER_CONFIG = exports.SCRAPING_TYPES = exports.NAVER_SCRAPING = exports.SCRAPING_DEFAULTS = void 0;
 exports.SCRAPING_DEFAULTS = {
     MAX_RESULTS: 50,
     MAX_KEYWORDS_PER_TYPE: 10,
@@ -95,5 +95,38 @@ exports.SEARCH_VOLUME = {
         HIGH: { min: 10001, max: 100000 },
         VERY_HIGH: { min: 100001, max: Infinity },
     },
+};
+exports.KEYWORD_FILTERING = {
+    ALLOWED_SELECTORS: [
+        '.api_subject_bx',
+        '._related_box',
+        '.sds-comps-vertical-layout.sds-comps-full-layout.fds-collection-root',
+        '.sds-comps-base-layout.sds-comps-inline-layout.fds-collection-root.QvXp8DhecF_dQ1pJ4MCf.gbHVDHMRi7To6vgU0dML'
+    ],
+    KEYWORD_BLACKLIST: [
+        '광고', '등록', '안내', '도움말', '서비스', '보기', '더보기',
+        '이 광고가 표시된 이유', '등록 안내', '도움말',
+        '전체필터', '필터', '정렬', '선택',
+        '확인', '취소', '닫기', '열기',
+        '네이버', 'Naver', 'NAVER',
+        '네이버 아이디', '네이버페이', 'Naver Pay',
+        '네이버 로그인', '네이버 회원가입',
+        '네이버에서', '네이버 서비스',
+        '전체', '기타', '선택', '확인',
+        '이전', '다음', '처음', '마지막',
+        '목록', '리스트', '메뉴',
+        '홈', '메인', '검색',
+        '할인', '세일', '특가', '이벤트',
+        '무료배송', '당일배송', '빠른배송',
+        '쿠폰', '적립', '혜택',
+        '지금 구매', '바로 구매', '장바구니'
+    ],
+    VALIDATION_RULES: {
+        MIN_LENGTH: 2,
+        MAX_LENGTH: 30,
+        ALLOWED_PATTERN: /^[가-힣a-zA-Z0-9\s\-_]+$/,
+        SIMILARITY_THRESHOLD: 0.9,
+        URL_PATTERN: /(http|www|\.com|\.kr|\.net|\.org)/i,
+    }
 };
 //# sourceMappingURL=scraping.constants.js.map

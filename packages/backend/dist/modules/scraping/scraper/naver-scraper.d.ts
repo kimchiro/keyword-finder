@@ -21,4 +21,7 @@ export declare class NaverScraper {
     scrapeAllKeywords(query: string, types?: string[]): Promise<ScrapedKeyword[]>;
     private estimateCompetition;
     private calculateSimilarity;
+    private isValidKeyword;
+    private isBlacklistedKeyword;
+    private calculateSimilarityScore;
 }

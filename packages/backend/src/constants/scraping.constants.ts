@@ -167,6 +167,60 @@ export const SEARCH_VOLUME = {
 } as const;
 
 /**
+ * 키워드 필터링 관련 상수
+ */
+export const KEYWORD_FILTERING = {
+  /** 허용할 CSS 선택자들 (화이트리스트) */
+  ALLOWED_SELECTORS: [
+    '.api_subject_bx',
+    '._related_box',
+    '.sds-comps-vertical-layout.sds-comps-full-layout.fds-collection-root',
+    '.sds-comps-base-layout.sds-comps-inline-layout.fds-collection-root.QvXp8DhecF_dQ1pJ4MCf.gbHVDHMRi7To6vgU0dML'
+  ],
+
+  /** 제외할 키워드 패턴 (블랙리스트) */
+  KEYWORD_BLACKLIST: [
+    // UI 관련 키워드
+    '광고', '등록', '안내', '도움말', '서비스', '보기', '더보기',
+    '이 광고가 표시된 이유', '등록 안내', '도움말',
+    '전체필터', '필터', '정렬', '선택',
+    '확인', '취소', '닫기', '열기',
+    
+    // 네이버 관련 키워드
+    '네이버', 'Naver', 'NAVER',
+    '네이버 아이디', '네이버페이', 'Naver Pay',
+    '네이버 로그인', '네이버 회원가입',
+    '네이버에서', '네이버 서비스',
+    
+    // 일반적 UI/네비게이션 단어
+    '전체', '기타', '선택', '확인',
+    '이전', '다음', '처음', '마지막',
+    '목록', '리스트', '메뉴',
+    '홈', '메인', '검색',
+    
+    // 상업적 광고 문구
+    '할인', '세일', '특가', '이벤트',
+    '무료배송', '당일배송', '빠른배송',
+    '쿠폰', '적립', '혜택',
+    '지금 구매', '바로 구매', '장바구니'
+  ],
+
+  /** 키워드 검증 규칙 */
+  VALIDATION_RULES: {
+    /** 최소 글자 수 */
+    MIN_LENGTH: 2,
+    /** 최대 글자 수 */
+    MAX_LENGTH: 30,
+    /** 허용할 문자 패턴 (한글, 영문, 숫자, 공백, 하이픈, 언더스코어) */
+    ALLOWED_PATTERN: /^[가-힣a-zA-Z0-9\s\-_]+$/,
+    /** 유사도 임계값 (90% 이상 유사하면 제외) */
+    SIMILARITY_THRESHOLD: 0.9,
+    /** URL/링크 패턴 */
+    URL_PATTERN: /(http|www|\.com|\.kr|\.net|\.org)/i,
+  }
+} as const;
+
+/**
  * 타입 정의를 위한 유틸리티
  */
 export type ScrapingType = typeof SCRAPING_TYPES[keyof typeof SCRAPING_TYPES];

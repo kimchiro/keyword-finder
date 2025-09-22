@@ -108,6 +108,17 @@ export declare const SEARCH_VOLUME: {
         };
     };
 };
+export declare const KEYWORD_FILTERING: {
+    readonly ALLOWED_SELECTORS: readonly [".api_subject_bx", "._related_box", ".sds-comps-vertical-layout.sds-comps-full-layout.fds-collection-root", ".sds-comps-base-layout.sds-comps-inline-layout.fds-collection-root.QvXp8DhecF_dQ1pJ4MCf.gbHVDHMRi7To6vgU0dML"];
+    readonly KEYWORD_BLACKLIST: readonly ["광고", "등록", "안내", "도움말", "서비스", "보기", "더보기", "이 광고가 표시된 이유", "등록 안내", "도움말", "전체필터", "필터", "정렬", "선택", "확인", "취소", "닫기", "열기", "네이버", "Naver", "NAVER", "네이버 아이디", "네이버페이", "Naver Pay", "네이버 로그인", "네이버 회원가입", "네이버에서", "네이버 서비스", "전체", "기타", "선택", "확인", "이전", "다음", "처음", "마지막", "목록", "리스트", "메뉴", "홈", "메인", "검색", "할인", "세일", "특가", "이벤트", "무료배송", "당일배송", "빠른배송", "쿠폰", "적립", "혜택", "지금 구매", "바로 구매", "장바구니"];
+    readonly VALIDATION_RULES: {
+        readonly MIN_LENGTH: 2;
+        readonly MAX_LENGTH: 30;
+        readonly ALLOWED_PATTERN: RegExp;
+        readonly SIMILARITY_THRESHOLD: 0.9;
+        readonly URL_PATTERN: RegExp;
+    };
+};
 export type ScrapingType = typeof SCRAPING_TYPES[keyof typeof SCRAPING_TYPES];
 export type ScrapingError = typeof SCRAPING_ERRORS[keyof typeof SCRAPING_ERRORS];
 export type LogLevel = typeof SCRAPING_LOGS.LEVELS[keyof typeof SCRAPING_LOGS.LEVELS];

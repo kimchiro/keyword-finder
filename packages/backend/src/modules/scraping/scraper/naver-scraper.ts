@@ -1,6 +1,6 @@
 import { Browser, Page } from 'playwright';
 import { BrowserPoolService } from '../../../common/services/browser-pool.service';
-import { SCRAPING_DEFAULTS, NAVER_SCRAPING, SEARCH_VOLUME } from '../../../constants/scraping.constants';
+import { SCRAPING_DEFAULTS, NAVER_SCRAPING, SEARCH_VOLUME, KEYWORD_FILTERING } from '../../../constants/scraping.constants';
 
 export interface ScrapedKeyword {
   keyword: string;
@@ -46,9 +46,7 @@ export class NaverScraper {
 
   // 자동완성과 연관검색어 스크래핑은 봇 차단으로 인해 제거됨
 
-  /**
-   * 네이버 인기주제 키워드 수집
-   */
+  // 네이버 인기주제 키워드 수집
   async scrapeTrendingKeywords(query: string): Promise<ScrapedKeyword[]> {
 
     console.log(`📈 인기주제 키워드 수집 시작: ${query}`);
@@ -71,7 +69,7 @@ export class NaverScraper {
       const trendingKeywords = await this.page.locator('.trending_keyword').allTextContents();
       
       const keywords: ScrapedKeyword[] = trendingKeywords
-        .filter(keyword => keyword.trim() && keyword !== query)
+        .filter(keyword => this.isValidKeyword(keyword.trim(), query))
         .slice(0, SCRAPING_DEFAULTS.MAX_KEYWORDS_PER_TYPE) // 최대 키워드 수
         .map(keyword => ({
           keyword: keyword.trim(),
@@ -88,9 +86,7 @@ export class NaverScraper {
     }
   }
 
-  /**
-   * 네이버 스마트블록 데이터 수집
-   */
+  // 네이버 스마트블록 데이터 수집
   async scrapeSmartBlockData(query: string): Promise<ScrapedKeyword[]> {
 
     console.log(`🧠 스마트블록 데이터 수집 시작: ${query}`);
@@ -101,8 +97,9 @@ export class NaverScraper {
         waitUntil: 'networkidle',
       });
       
-      // 스마트블록 영역들 확인
-      const smartBlocks = await this.page.locator('.api_subject_bx, .knowledge_box, .info_group').all();
+      // 화이트리스트 선택자만 사용하여 스마트블록 영역들 확인
+      const allowedSelectorsString = KEYWORD_FILTERING.ALLOWED_SELECTORS.join(', ');
+      const smartBlocks = await this.page.locator(allowedSelectorsString).all();
       
       const keywords: ScrapedKeyword[] = [];
       
@@ -112,7 +109,7 @@ export class NaverScraper {
           const blockKeywords = await block.locator('a, .keyword, .tag').allTextContents();
           
           blockKeywords
-            .filter(keyword => keyword.trim() && keyword !== query && keyword.length > 1)
+            .filter(keyword => this.isValidKeyword(keyword.trim(), query))
             .slice(0, 5) // 블록당 최대 5개
             .forEach(keyword => {
               keywords.push({
@@ -143,9 +140,7 @@ export class NaverScraper {
     }
   }
 
-  /**
-   * 네이버 검색 결과 페이지에서 연관검색어 수집
-   */
+  // 네이버 검색 결과 페이지에서 연관검색어 수집
   async scrapeRelatedSearchKeywords(query: string): Promise<ScrapedKeyword[]> {
     console.log(`🔗 연관검색어 수집 시작: ${query}`);
     
@@ -174,10 +169,10 @@ export class NaverScraper {
           
           for (const element of elements) {
             const text = await element.textContent();
-            if (text && text.trim() && text.trim() !== query) {
+            if (text && text.trim()) {
               const cleanText = text.trim().replace(/[\n\r\t]/g, ' ').replace(/\s+/g, ' ');
               
-              if (cleanText.length > 1 && cleanText.length < 50) {
+              if (this.isValidKeyword(cleanText, query)) {
                 relatedKeywords.push({
                   keyword: cleanText,
                   category: 'related_search',
@@ -208,9 +203,7 @@ export class NaverScraper {
     }
   }
 
-  /**
-   * 스마트블록, 인기주제, 연관검색어 키워드 수집
-   */
+  // 스마트블록, 인기주제, 연관검색어 키워드 수집
   async scrapeAllKeywords(
     query: string, 
     types: string[] = ['related_search']
@@ -249,9 +242,7 @@ export class NaverScraper {
     return uniqueKeywords;
   }
 
-  /**
-   * 키워드 경쟁도 추정 (간단한 휴리스틱)
-   */
+  // 키워드 경쟁도 추정 (간단한 휴리스틱)
   private estimateCompetition(keyword: string): 'low' | 'medium' | 'high' {
     const length = keyword.length;
     const hasNumbers = /\d/.test(keyword);
@@ -266,9 +257,7 @@ export class NaverScraper {
     }
   }
 
-  /**
-   * 키워드 유사도 계산 (간단한 문자열 유사도)
-   */
+  // 키워드 유사도 계산 (간단한 문자열 유사도)
   private calculateSimilarity(original: string, target: string): 'low' | 'medium' | 'high' {
     const originalChars = new Set(original.split(''));
     const targetChars = new Set(target.split(''));
@@ -281,5 +270,64 @@ export class NaverScraper {
     if (similarity >= 0.7) return 'high';
     if (similarity >= 0.4) return 'medium';
     return 'low';
+  }
+
+  // 키워드 유효성 검증
+  private isValidKeyword(keyword: string, originalQuery: string): boolean {
+    // 기본 검증: 빈 문자열이거나 원본 쿼리와 동일한 경우 제외
+    if (!keyword || keyword === originalQuery) {
+      return false;
+    }
+
+    // 길이 검증
+    if (keyword.length < KEYWORD_FILTERING.VALIDATION_RULES.MIN_LENGTH || 
+        keyword.length > KEYWORD_FILTERING.VALIDATION_RULES.MAX_LENGTH) {
+      return false;
+    }
+
+    // 허용된 문자 패턴 검증
+    if (!KEYWORD_FILTERING.VALIDATION_RULES.ALLOWED_PATTERN.test(keyword)) {
+      return false;
+    }
+
+    // URL/링크 텍스트 제외
+    if (KEYWORD_FILTERING.VALIDATION_RULES.URL_PATTERN.test(keyword)) {
+      return false;
+    }
+
+    // 블랙리스트 키워드 체크
+    if (this.isBlacklistedKeyword(keyword)) {
+      return false;
+    }
+
+    // 유사도 검사 (90% 이상 유사하면 제외)
+    const similarity = this.calculateSimilarityScore(originalQuery, keyword);
+    if (similarity >= KEYWORD_FILTERING.VALIDATION_RULES.SIMILARITY_THRESHOLD) {
+      return false;
+    }
+
+    return true;
+  }
+
+  // 블랙리스트 키워드 체크
+  private isBlacklistedKeyword(keyword: string): boolean {
+    const lowerKeyword = keyword.toLowerCase();
+    
+    return KEYWORD_FILTERING.KEYWORD_BLACKLIST.some(blacklisted => {
+      const lowerBlacklisted = blacklisted.toLowerCase();
+      // 정확히 일치하거나 포함하는 경우
+      return lowerKeyword === lowerBlacklisted || lowerKeyword.includes(lowerBlacklisted);
+    });
+  }
+
+  // 정확한 유사도 점수 계산 (0~1 사이 값)
+  private calculateSimilarityScore(str1: string, str2: string): number {
+    const chars1 = new Set(str1.split(''));
+    const chars2 = new Set(str2.split(''));
+    
+    const intersection = new Set([...chars1].filter(x => chars2.has(x)));
+    const union = new Set([...chars1, ...chars2]);
+    
+    return intersection.size / union.size;
   }
 }

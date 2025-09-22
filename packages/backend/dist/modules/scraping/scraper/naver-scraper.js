@@ -37,7 +37,7 @@ class NaverScraper {
             await this.page.waitForTimeout(3000);
             const trendingKeywords = await this.page.locator('.trending_keyword').allTextContents();
             const keywords = trendingKeywords
-                .filter(keyword => keyword.trim() && keyword !== query)
+                .filter(keyword => this.isValidKeyword(keyword.trim(), query))
                 .slice(0, scraping_constants_1.SCRAPING_DEFAULTS.MAX_KEYWORDS_PER_TYPE)
                 .map(keyword => ({
                 keyword: keyword.trim(),
@@ -59,13 +59,14 @@ class NaverScraper {
             await this.page.goto(`https://search.naver.com/search.naver?query=${encodeURIComponent(query)}`, {
                 waitUntil: 'networkidle',
             });
-            const smartBlocks = await this.page.locator('.api_subject_bx, .knowledge_box, .info_group').all();
+            const allowedSelectorsString = scraping_constants_1.KEYWORD_FILTERING.ALLOWED_SELECTORS.join(', ');
+            const smartBlocks = await this.page.locator(allowedSelectorsString).all();
             const keywords = [];
             for (const block of smartBlocks) {
                 try {
                     const blockKeywords = await block.locator('a, .keyword, .tag').allTextContents();
                     blockKeywords
-                        .filter(keyword => keyword.trim() && keyword !== query && keyword.length > 1)
+                        .filter(keyword => this.isValidKeyword(keyword.trim(), query))
                         .slice(0, 5)
                         .forEach(keyword => {
                         keywords.push({
@@ -110,9 +111,9 @@ class NaverScraper {
                     const elements = await this.page.$$(selector);
                     for (const element of elements) {
                         const text = await element.textContent();
-                        if (text && text.trim() && text.trim() !== query) {
+                        if (text && text.trim()) {
                             const cleanText = text.trim().replace(/[\n\r\t]/g, ' ').replace(/\s+/g, ' ');
-                            if (cleanText.length > 1 && cleanText.length < 50) {
+                            if (this.isValidKeyword(cleanText, query)) {
                                 relatedKeywords.push({
                                     keyword: cleanText,
                                     category: 'related_search',
@@ -189,6 +190,43 @@ class NaverScraper {
         if (similarity >= 0.4)
             return 'medium';
         return 'low';
+    }
+    isValidKeyword(keyword, originalQuery) {
+        if (!keyword || keyword === originalQuery) {
+            return false;
+        }
+        if (keyword.length < scraping_constants_1.KEYWORD_FILTERING.VALIDATION_RULES.MIN_LENGTH ||
+            keyword.length > scraping_constants_1.KEYWORD_FILTERING.VALIDATION_RULES.MAX_LENGTH) {
+            return false;
+        }
+        if (!scraping_constants_1.KEYWORD_FILTERING.VALIDATION_RULES.ALLOWED_PATTERN.test(keyword)) {
+            return false;
+        }
+        if (scraping_constants_1.KEYWORD_FILTERING.VALIDATION_RULES.URL_PATTERN.test(keyword)) {
+            return false;
+        }
+        if (this.isBlacklistedKeyword(keyword)) {
+            return false;
+        }
+        const similarity = this.calculateSimilarityScore(originalQuery, keyword);
+        if (similarity >= scraping_constants_1.KEYWORD_FILTERING.VALIDATION_RULES.SIMILARITY_THRESHOLD) {
+            return false;
+        }
+        return true;
+    }
+    isBlacklistedKeyword(keyword) {
+        const lowerKeyword = keyword.toLowerCase();
+        return scraping_constants_1.KEYWORD_FILTERING.KEYWORD_BLACKLIST.some(blacklisted => {
+            const lowerBlacklisted = blacklisted.toLowerCase();
+            return lowerKeyword === lowerBlacklisted || lowerKeyword.includes(lowerBlacklisted);
+        });
+    }
+    calculateSimilarityScore(str1, str2) {
+        const chars1 = new Set(str1.split(''));
+        const chars2 = new Set(str2.split(''));
+        const intersection = new Set([...chars1].filter(x => chars2.has(x)));
+        const union = new Set([...chars1, ...chars2]);
+        return intersection.size / union.size;
     }
 }
 exports.NaverScraper = NaverScraper;
