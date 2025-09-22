@@ -13,6 +13,7 @@ const keyword_analysis_controller_1 = require("./keyword-analysis.controller");
 const keyword_analysis_service_1 = require("./keyword-analysis.service");
 const transaction_service_1 = require("../../common/services/transaction.service");
 const app_config_1 = require("../../config/app.config");
+const keyword_entity_1 = require("../../database/entities/keyword.entity");
 const keyword_analytics_entity_1 = require("../../database/entities/keyword-analytics.entity");
 const related_keywords_entity_1 = require("../../database/entities/related-keywords.entity");
 const search_trends_entity_1 = require("../../database/entities/search-trends.entity");
@@ -29,6 +30,7 @@ exports.KeywordAnalysisModule = KeywordAnalysisModule = __decorate([
     (0, common_1.Module)({
         imports: [
             typeorm_1.TypeOrmModule.forFeature([
+                keyword_entity_1.Keyword,
                 keyword_analytics_entity_1.KeywordAnalytics,
                 related_keywords_entity_1.RelatedKeywords,
                 search_trends_entity_1.SearchTrends,

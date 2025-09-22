@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.IntentAnalysis = exports.PrimaryIntent = void 0;
 const typeorm_1 = require("typeorm");
 const swagger_1 = require("@nestjs/swagger");
+const keyword_entity_1 = require("./keyword.entity");
 var PrimaryIntent;
 (function (PrimaryIntent) {
     PrimaryIntent["INFORMATIONAL"] = "\uC815\uBCF4\uC131";
@@ -27,10 +28,20 @@ __decorate([
     __metadata("design:type", Number)
 ], IntentAnalysis.prototype, "id", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ description: '키워드 ID' }),
+    (0, typeorm_1.Column)({ name: 'keyword_id', type: 'int' }),
+    __metadata("design:type", Number)
+], IntentAnalysis.prototype, "keywordId", void 0);
+__decorate([
     (0, swagger_1.ApiProperty)({ description: '키워드' }),
     (0, typeorm_1.Column)({ type: 'varchar', length: 255 }),
     __metadata("design:type", String)
 ], IntentAnalysis.prototype, "keyword", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => keyword_entity_1.Keyword, (keyword) => keyword.intentAnalysis, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.JoinColumn)({ name: 'keyword_id' }),
+    __metadata("design:type", keyword_entity_1.Keyword)
+], IntentAnalysis.prototype, "keywordEntity", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ description: '정보성 비율' }),
     (0, typeorm_1.Column)({ name: 'informational_ratio', type: 'decimal', precision: 5, scale: 2, default: 0 }),
@@ -68,8 +79,8 @@ __decorate([
 ], IntentAnalysis.prototype, "createdAt", void 0);
 exports.IntentAnalysis = IntentAnalysis = __decorate([
     (0, typeorm_1.Entity)('intent_analysis'),
-    (0, typeorm_1.Unique)(['keyword', 'analysisDate']),
-    (0, typeorm_1.Index)(['keyword']),
+    (0, typeorm_1.Unique)(['keywordId', 'analysisDate']),
+    (0, typeorm_1.Index)(['keywordId']),
     (0, typeorm_1.Index)(['primaryIntent']),
     (0, typeorm_1.Index)(['analysisDate'])
 ], IntentAnalysis);

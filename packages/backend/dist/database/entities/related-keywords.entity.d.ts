@@ -1,3 +1,4 @@
+import { Keyword } from './keyword.entity';
 export declare enum SimilarityScore {
     LOW = "\uB0AE\uC74C",
     MEDIUM = "\uBCF4\uD1B5",
@@ -5,8 +6,12 @@ export declare enum SimilarityScore {
 }
 export declare class RelatedKeywords {
     id: number;
+    baseKeywordId: number;
+    relatedKeywordId: number;
     baseKeyword: string;
     relatedKeyword: string;
+    baseKeywordEntity: Keyword;
+    relatedKeywordEntity: Keyword;
     monthlySearchVolume: number;
     blogCumulativePosts: number;
     similarityScore: SimilarityScore;

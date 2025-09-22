@@ -1,3 +1,4 @@
+import { Keyword } from './keyword.entity';
 export declare enum PrimaryIntent {
     INFORMATIONAL = "\uC815\uBCF4\uC131",
     COMMERCIAL = "\uC0C1\uC5C5\uC131",
@@ -5,7 +6,9 @@ export declare enum PrimaryIntent {
 }
 export declare class IntentAnalysis {
     id: number;
+    keywordId: number;
     keyword: string;
+    keywordEntity: Keyword;
     informationalRatio: number;
     commercialRatio: number;
     primaryIntent: PrimaryIntent;

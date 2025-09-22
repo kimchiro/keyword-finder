@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MonthlySearchRatios = void 0;
 const typeorm_1 = require("typeorm");
 const swagger_1 = require("@nestjs/swagger");
+const keyword_entity_1 = require("./keyword.entity");
 let MonthlySearchRatios = class MonthlySearchRatios {
 };
 exports.MonthlySearchRatios = MonthlySearchRatios;
@@ -21,10 +22,20 @@ __decorate([
     __metadata("design:type", Number)
 ], MonthlySearchRatios.prototype, "id", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ description: '키워드 ID' }),
+    (0, typeorm_1.Column)({ name: 'keyword_id', type: 'int' }),
+    __metadata("design:type", Number)
+], MonthlySearchRatios.prototype, "keywordId", void 0);
+__decorate([
     (0, swagger_1.ApiProperty)({ description: '키워드' }),
     (0, typeorm_1.Column)({ type: 'varchar', length: 255 }),
     __metadata("design:type", String)
 ], MonthlySearchRatios.prototype, "keyword", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => keyword_entity_1.Keyword, (keyword) => keyword.monthlySearchRatios, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.JoinColumn)({ name: 'keyword_id' }),
+    __metadata("design:type", keyword_entity_1.Keyword)
+], MonthlySearchRatios.prototype, "keywordEntity", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ description: '월 (1-12)' }),
     (0, typeorm_1.Column)({ name: 'month_number', type: 'int' }),
@@ -47,11 +58,11 @@ __decorate([
 ], MonthlySearchRatios.prototype, "createdAt", void 0);
 exports.MonthlySearchRatios = MonthlySearchRatios = __decorate([
     (0, typeorm_1.Entity)('monthly_search_ratios'),
-    (0, typeorm_1.Unique)(['keyword', 'monthNumber', 'analysisYear']),
-    (0, typeorm_1.Index)(['keyword']),
+    (0, typeorm_1.Unique)(['keywordId', 'monthNumber', 'analysisYear']),
+    (0, typeorm_1.Index)(['keywordId']),
     (0, typeorm_1.Index)(['monthNumber']),
     (0, typeorm_1.Index)(['analysisYear']),
-    (0, typeorm_1.Index)(['keyword', 'analysisYear']),
+    (0, typeorm_1.Index)(['keywordId', 'analysisYear']),
     (0, typeorm_1.Check)('"month_number" BETWEEN 1 AND 12')
 ], MonthlySearchRatios);
 //# sourceMappingURL=monthly-search-ratios.entity.js.map

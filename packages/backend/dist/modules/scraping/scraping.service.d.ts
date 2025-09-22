@@ -1,13 +1,15 @@
 import { Repository } from 'typeorm';
+import { Keyword } from '../../database/entities/keyword.entity';
 import { KeywordCollectionLogs } from '../../database/entities/keyword-collection-logs.entity';
 import { ScrapeKeywordsDto } from './dto/scraping.dto';
 import { BrowserPoolService } from '../../common/services/browser-pool.service';
 import { AppConfigService } from '../../config/app.config';
 export declare class ScrapingService {
+    private keywordRepository;
     private keywordCollectionLogsRepository;
     private browserPoolService;
     private appConfig;
-    constructor(keywordCollectionLogsRepository: Repository<KeywordCollectionLogs>, browserPoolService: BrowserPoolService, appConfig: AppConfigService);
+    constructor(keywordRepository: Repository<Keyword>, keywordCollectionLogsRepository: Repository<KeywordCollectionLogs>, browserPoolService: BrowserPoolService, appConfig: AppConfigService);
     scrapeKeywords(scrapeDto: ScrapeKeywordsDto): Promise<{
         query: string;
         totalKeywords: number;
@@ -17,13 +19,21 @@ export declare class ScrapingService {
         };
         keywords: {
             keyword: string;
-            category: "related_search" | "autosuggest" | "related" | "trending" | "smartblock";
+            category: "trending" | "smartblock" | "related_search" | "autosuggest" | "related";
             rank: number;
             source: string;
             searchVolume: number;
             competition: "low" | "medium" | "high";
             similarity: "low" | "medium" | "high";
         }[];
+        collectionDetails: {
+            [key: string]: {
+                status: "success" | "no_content" | "error";
+                message: string;
+                count: number;
+                pages?: number[];
+            };
+        };
     }>;
     getCollectionLogs(query?: string, page?: number, limit?: number): Promise<{
         logs: KeywordCollectionLogs[];
@@ -51,5 +61,6 @@ export declare class ScrapingService {
             age: number;
         }[];
     }>;
+    private findOrCreateKeyword;
     private saveCollectionLogs;
 }

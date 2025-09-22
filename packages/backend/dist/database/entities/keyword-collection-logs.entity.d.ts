@@ -1,3 +1,4 @@
+import { Keyword } from './keyword.entity';
 export declare enum CollectionType {
     TRENDING = "trending",
     SMARTBLOCK = "smartblock",
@@ -5,10 +6,13 @@ export declare enum CollectionType {
 }
 export declare class KeywordCollectionLogs {
     id: number;
+    baseQueryId: number;
+    collectedKeywordId: number;
     baseQuery: string;
     collectedKeyword: string;
+    baseQueryEntity: Keyword;
+    collectedKeywordEntity: Keyword;
     collectionType: CollectionType;
-    sourcePage: string;
     rankPosition: number;
     collectedAt: Date;
 }

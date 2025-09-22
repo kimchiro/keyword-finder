@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SearchTrends = exports.PeriodType = void 0;
 const typeorm_1 = require("typeorm");
 const swagger_1 = require("@nestjs/swagger");
+const keyword_entity_1 = require("./keyword.entity");
 var PeriodType;
 (function (PeriodType) {
     PeriodType["DAILY"] = "daily";
@@ -27,10 +28,20 @@ __decorate([
     __metadata("design:type", Number)
 ], SearchTrends.prototype, "id", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ description: '키워드 ID' }),
+    (0, typeorm_1.Column)({ name: 'keyword_id', type: 'int' }),
+    __metadata("design:type", Number)
+], SearchTrends.prototype, "keywordId", void 0);
+__decorate([
     (0, swagger_1.ApiProperty)({ description: '키워드' }),
     (0, typeorm_1.Column)({ type: 'varchar', length: 255 }),
     __metadata("design:type", String)
 ], SearchTrends.prototype, "keyword", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => keyword_entity_1.Keyword, (keyword) => keyword.searchTrends, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.JoinColumn)({ name: 'keyword_id' }),
+    __metadata("design:type", keyword_entity_1.Keyword)
+], SearchTrends.prototype, "keywordEntity", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ description: '기간 타입', enum: PeriodType }),
     (0, typeorm_1.Column)({
@@ -62,10 +73,10 @@ __decorate([
 ], SearchTrends.prototype, "createdAt", void 0);
 exports.SearchTrends = SearchTrends = __decorate([
     (0, typeorm_1.Entity)('search_trends'),
-    (0, typeorm_1.Unique)(['keyword', 'periodType', 'periodValue']),
-    (0, typeorm_1.Index)(['keyword']),
+    (0, typeorm_1.Unique)(['keywordId', 'periodType', 'periodValue']),
+    (0, typeorm_1.Index)(['keywordId']),
     (0, typeorm_1.Index)(['periodType']),
     (0, typeorm_1.Index)(['periodValue']),
-    (0, typeorm_1.Index)(['keyword', 'periodType'])
+    (0, typeorm_1.Index)(['keywordId', 'periodType'])
 ], SearchTrends);
 //# sourceMappingURL=search-trends.entity.js.map

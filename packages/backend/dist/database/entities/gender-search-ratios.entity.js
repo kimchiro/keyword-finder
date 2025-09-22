@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.GenderSearchRatios = void 0;
 const typeorm_1 = require("typeorm");
 const swagger_1 = require("@nestjs/swagger");
+const keyword_entity_1 = require("./keyword.entity");
 let GenderSearchRatios = class GenderSearchRatios {
 };
 exports.GenderSearchRatios = GenderSearchRatios;
@@ -21,10 +22,20 @@ __decorate([
     __metadata("design:type", Number)
 ], GenderSearchRatios.prototype, "id", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ description: '키워드 ID' }),
+    (0, typeorm_1.Column)({ name: 'keyword_id', type: 'int' }),
+    __metadata("design:type", Number)
+], GenderSearchRatios.prototype, "keywordId", void 0);
+__decorate([
     (0, swagger_1.ApiProperty)({ description: '키워드' }),
     (0, typeorm_1.Column)({ type: 'varchar', length: 255 }),
     __metadata("design:type", String)
 ], GenderSearchRatios.prototype, "keyword", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => keyword_entity_1.Keyword, (keyword) => keyword.genderSearchRatios, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.JoinColumn)({ name: 'keyword_id' }),
+    __metadata("design:type", keyword_entity_1.Keyword)
+], GenderSearchRatios.prototype, "keywordEntity", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ description: '남성 검색 비율' }),
     (0, typeorm_1.Column)({ name: 'male_ratio', type: 'decimal', precision: 5, scale: 2, default: 0 }),
@@ -47,8 +58,8 @@ __decorate([
 ], GenderSearchRatios.prototype, "createdAt", void 0);
 exports.GenderSearchRatios = GenderSearchRatios = __decorate([
     (0, typeorm_1.Entity)('gender_search_ratios'),
-    (0, typeorm_1.Unique)(['keyword', 'analysisDate']),
-    (0, typeorm_1.Index)(['keyword']),
+    (0, typeorm_1.Unique)(['keywordId', 'analysisDate']),
+    (0, typeorm_1.Index)(['keywordId']),
     (0, typeorm_1.Index)(['analysisDate'])
 ], GenderSearchRatios);
 //# sourceMappingURL=gender-search-ratios.entity.js.map

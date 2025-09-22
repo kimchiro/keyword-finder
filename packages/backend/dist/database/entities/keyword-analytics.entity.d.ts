@@ -1,6 +1,9 @@
+import { Keyword } from './keyword.entity';
 export declare class KeywordAnalytics {
     id: number;
+    keywordId: number;
     keyword: string;
+    keywordEntity: Keyword;
     monthlySearchPc: number;
     monthlySearchMobile: number;
     monthlySearchTotal: number;

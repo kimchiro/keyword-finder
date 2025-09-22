@@ -125,7 +125,7 @@ exports.KEYWORD_FILTERING = {
         MIN_LENGTH: 2,
         MAX_LENGTH: 30,
         ALLOWED_PATTERN: /^[가-힣a-zA-Z0-9\s\-_]+$/,
-        SIMILARITY_THRESHOLD: 0.9,
+        SIMILARITY_THRESHOLD: 0.8,
         URL_PATTERN: /(http|www|\.com|\.kr|\.net|\.org)/i,
     }
 };

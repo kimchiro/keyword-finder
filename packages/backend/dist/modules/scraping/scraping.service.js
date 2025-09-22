@@ -16,12 +16,14 @@ exports.ScrapingService = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
+const keyword_entity_1 = require("../../database/entities/keyword.entity");
 const keyword_collection_logs_entity_1 = require("../../database/entities/keyword-collection-logs.entity");
 const browser_pool_service_1 = require("../../common/services/browser-pool.service");
 const app_config_1 = require("../../config/app.config");
 const scraping_constants_1 = require("../../constants/scraping.constants");
 let ScrapingService = class ScrapingService {
-    constructor(keywordCollectionLogsRepository, browserPoolService, appConfig) {
+    constructor(keywordRepository, keywordCollectionLogsRepository, browserPoolService, appConfig) {
+        this.keywordRepository = keywordRepository;
         this.keywordCollectionLogsRepository = keywordCollectionLogsRepository;
         this.browserPoolService = browserPoolService;
         this.appConfig = appConfig;
@@ -31,20 +33,21 @@ let ScrapingService = class ScrapingService {
         console.log(`🕷️ 키워드 스크래핑 시작: ${scrapeDto.query}`);
         try {
             const { query, types = ['related_search'], maxResults = this.appConfig.scrapingMaxResults } = scrapeDto;
-            const scrapedKeywords = await this.performRealScraping(query, types, maxResults);
-            await this.saveCollectionLogs(query, scrapedKeywords);
+            const scrapingResult = await this.performRealScraping(query, types, maxResults);
+            await this.saveCollectionLogs(query, scrapingResult.keywords);
             const executionTime = (Date.now() - startTime) / 1000;
-            const categories = scrapedKeywords.reduce((acc, keyword) => {
+            const categories = scrapingResult.keywords.reduce((acc, keyword) => {
                 acc[keyword.category] = (acc[keyword.category] || 0) + 1;
                 return acc;
             }, {});
-            console.log(`✅ 키워드 스크래핑 완료: ${scrapedKeywords.length}개, ${executionTime}초`);
+            console.log(`✅ 키워드 스크래핑 완료: ${scrapingResult.keywords.length}개, ${executionTime}초`);
             return {
                 query,
-                totalKeywords: scrapedKeywords.length,
+                totalKeywords: scrapingResult.keywords.length,
                 executionTime,
                 categories,
-                keywords: scrapedKeywords,
+                keywords: scrapingResult.keywords,
+                collectionDetails: scrapingResult.collectionDetails,
             };
         }
         catch (error) {
@@ -123,8 +126,8 @@ let ScrapingService = class ScrapingService {
         const scraper = new NaverScraper(this.browserPoolService);
         try {
             await scraper.initialize();
-            const scrapedKeywords = await scraper.scrapeAllKeywords(query, types);
-            const limitedKeywords = scrapedKeywords.slice(0, maxResults);
+            const scrapingResult = await scraper.scrapeAllKeywords(query, types);
+            const limitedKeywords = scrapingResult.keywords.slice(0, maxResults);
             const formattedKeywords = limitedKeywords.map((keyword, index) => ({
                 keyword: keyword.keyword,
                 category: keyword.category,
@@ -134,7 +137,10 @@ let ScrapingService = class ScrapingService {
                 competition: keyword.competition || 'medium',
                 similarity: keyword.similarity || 'medium',
             }));
-            return formattedKeywords;
+            return {
+                keywords: formattedKeywords,
+                collectionDetails: scrapingResult.collectionDetails
+            };
         }
         finally {
             await scraper.close();
@@ -143,17 +149,36 @@ let ScrapingService = class ScrapingService {
     async getBrowserPoolStatus() {
         return this.browserPoolService.getPoolStatus();
     }
+    async findOrCreateKeyword(keywordText) {
+        let keyword = await this.keywordRepository.findOne({
+            where: { keyword: keywordText }
+        });
+        if (!keyword) {
+            keyword = this.keywordRepository.create({
+                keyword: keywordText,
+                status: 'active'
+            });
+            keyword = await this.keywordRepository.save(keyword);
+            console.log(`🆕 새 키워드 생성: ${keywordText} (ID: ${keyword.id})`);
+        }
+        return keyword;
+    }
     async saveCollectionLogs(baseQuery, keywords) {
         try {
-            const logs = keywords.map(keyword => {
-                return this.keywordCollectionLogsRepository.create({
+            const baseKeyword = await this.findOrCreateKeyword(baseQuery);
+            const logs = [];
+            for (const keyword of keywords) {
+                const collectedKeyword = await this.findOrCreateKeyword(keyword.keyword);
+                const log = this.keywordCollectionLogsRepository.create({
+                    baseQueryId: baseKeyword.id,
+                    collectedKeywordId: collectedKeyword.id,
                     baseQuery,
                     collectedKeyword: keyword.keyword,
                     collectionType: keyword.category,
-                    sourcePage: keyword.source,
                     rankPosition: keyword.rank,
                 });
-            });
+                logs.push(log);
+            }
             await this.keywordCollectionLogsRepository.save(logs);
             console.log(`📝 수집 로그 저장 완료: ${logs.length}개`);
         }
@@ -165,8 +190,10 @@ let ScrapingService = class ScrapingService {
 exports.ScrapingService = ScrapingService;
 exports.ScrapingService = ScrapingService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_1.InjectRepository)(keyword_collection_logs_entity_1.KeywordCollectionLogs)),
+    __param(0, (0, typeorm_1.InjectRepository)(keyword_entity_1.Keyword)),
+    __param(1, (0, typeorm_1.InjectRepository)(keyword_collection_logs_entity_1.KeywordCollectionLogs)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
         browser_pool_service_1.BrowserPoolService,
         app_config_1.AppConfigService])
 ], ScrapingService);

@@ -115,7 +115,7 @@ export declare const KEYWORD_FILTERING: {
         readonly MIN_LENGTH: 2;
         readonly MAX_LENGTH: 30;
         readonly ALLOWED_PATTERN: RegExp;
-        readonly SIMILARITY_THRESHOLD: 0.9;
+        readonly SIMILARITY_THRESHOLD: 0.8;
         readonly URL_PATTERN: RegExp;
     };
 };

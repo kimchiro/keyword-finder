@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.KeywordAnalytics = void 0;
 const typeorm_1 = require("typeorm");
 const swagger_1 = require("@nestjs/swagger");
+const keyword_entity_1 = require("./keyword.entity");
 let KeywordAnalytics = class KeywordAnalytics {
 };
 exports.KeywordAnalytics = KeywordAnalytics;
@@ -21,10 +22,20 @@ __decorate([
     __metadata("design:type", Number)
 ], KeywordAnalytics.prototype, "id", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ description: '키워드 ID' }),
+    (0, typeorm_1.Column)({ name: 'keyword_id', type: 'int' }),
+    __metadata("design:type", Number)
+], KeywordAnalytics.prototype, "keywordId", void 0);
+__decorate([
     (0, swagger_1.ApiProperty)({ description: '분석 키워드' }),
     (0, typeorm_1.Column)({ type: 'varchar', length: 255 }),
     __metadata("design:type", String)
 ], KeywordAnalytics.prototype, "keyword", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => keyword_entity_1.Keyword, (keyword) => keyword.analytics, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.JoinColumn)({ name: 'keyword_id' }),
+    __metadata("design:type", keyword_entity_1.Keyword)
+], KeywordAnalytics.prototype, "keywordEntity", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ description: '월간 PC 검색량' }),
     (0, typeorm_1.Column)({ name: 'monthly_search_pc', type: 'bigint', default: 0 }),
@@ -97,8 +108,8 @@ __decorate([
 ], KeywordAnalytics.prototype, "updatedAt", void 0);
 exports.KeywordAnalytics = KeywordAnalytics = __decorate([
     (0, typeorm_1.Entity)('keyword_analytics'),
-    (0, typeorm_1.Unique)(['keyword', 'analysisDate']),
-    (0, typeorm_1.Index)(['keyword']),
+    (0, typeorm_1.Unique)(['keywordId', 'analysisDate']),
+    (0, typeorm_1.Index)(['keywordId']),
     (0, typeorm_1.Index)(['analysisDate']),
     (0, typeorm_1.Index)(['monthlySearchTotal'])
 ], KeywordAnalytics);

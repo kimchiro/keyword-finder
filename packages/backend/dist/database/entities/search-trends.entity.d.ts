@@ -1,3 +1,4 @@
+import { Keyword } from './keyword.entity';
 export declare enum PeriodType {
     DAILY = "daily",
     WEEKLY = "weekly",
@@ -5,7 +6,9 @@ export declare enum PeriodType {
 }
 export declare class SearchTrends {
     id: number;
+    keywordId: number;
     keyword: string;
+    keywordEntity: Keyword;
     periodType: PeriodType;
     periodValue: string;
     searchVolume: number;

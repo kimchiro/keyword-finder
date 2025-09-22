@@ -11,6 +11,7 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const scraping_controller_1 = require("./scraping.controller");
 const scraping_service_1 = require("./scraping.service");
+const keyword_entity_1 = require("../../database/entities/keyword.entity");
 const keyword_collection_logs_entity_1 = require("../../database/entities/keyword-collection-logs.entity");
 const app_config_1 = require("../../config/app.config");
 const common_module_1 = require("../../common/common.module");
@@ -20,7 +21,7 @@ exports.ScrapingModule = ScrapingModule;
 exports.ScrapingModule = ScrapingModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([keyword_collection_logs_entity_1.KeywordCollectionLogs]),
+            typeorm_1.TypeOrmModule.forFeature([keyword_entity_1.Keyword, keyword_collection_logs_entity_1.KeywordCollectionLogs]),
             common_module_1.CommonModule,
         ],
         controllers: [scraping_controller_1.ScrapingController],

@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RelatedKeywords = exports.SimilarityScore = void 0;
 const typeorm_1 = require("typeorm");
 const swagger_1 = require("@nestjs/swagger");
+const keyword_entity_1 = require("./keyword.entity");
 var SimilarityScore;
 (function (SimilarityScore) {
     SimilarityScore["LOW"] = "\uB0AE\uC74C";
@@ -27,6 +28,16 @@ __decorate([
     __metadata("design:type", Number)
 ], RelatedKeywords.prototype, "id", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ description: '기준 키워드 ID' }),
+    (0, typeorm_1.Column)({ name: 'base_keyword_id', type: 'int' }),
+    __metadata("design:type", Number)
+], RelatedKeywords.prototype, "baseKeywordId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: '연관 키워드 ID' }),
+    (0, typeorm_1.Column)({ name: 'related_keyword_id', type: 'int' }),
+    __metadata("design:type", Number)
+], RelatedKeywords.prototype, "relatedKeywordId", void 0);
+__decorate([
     (0, swagger_1.ApiProperty)({ description: '기준 키워드' }),
     (0, typeorm_1.Column)({ name: 'base_keyword', type: 'varchar', length: 255 }),
     __metadata("design:type", String)
@@ -36,6 +47,16 @@ __decorate([
     (0, typeorm_1.Column)({ name: 'related_keyword', type: 'varchar', length: 255 }),
     __metadata("design:type", String)
 ], RelatedKeywords.prototype, "relatedKeyword", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => keyword_entity_1.Keyword, (keyword) => keyword.relatedKeywords, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.JoinColumn)({ name: 'base_keyword_id' }),
+    __metadata("design:type", keyword_entity_1.Keyword)
+], RelatedKeywords.prototype, "baseKeywordEntity", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => keyword_entity_1.Keyword, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.JoinColumn)({ name: 'related_keyword_id' }),
+    __metadata("design:type", keyword_entity_1.Keyword)
+], RelatedKeywords.prototype, "relatedKeywordEntity", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ description: '월간 검색량' }),
     (0, typeorm_1.Column)({ name: 'monthly_search_volume', type: 'bigint', default: 0 }),
@@ -78,11 +99,12 @@ __decorate([
 ], RelatedKeywords.prototype, "updatedAt", void 0);
 exports.RelatedKeywords = RelatedKeywords = __decorate([
     (0, typeorm_1.Entity)('related_keywords'),
-    (0, typeorm_1.Unique)(['baseKeyword', 'relatedKeyword', 'analysisDate']),
-    (0, typeorm_1.Index)(['baseKeyword']),
+    (0, typeorm_1.Unique)(['baseKeywordId', 'relatedKeywordId', 'analysisDate']),
+    (0, typeorm_1.Index)(['baseKeywordId']),
+    (0, typeorm_1.Index)(['relatedKeywordId']),
     (0, typeorm_1.Index)(['analysisDate']),
     (0, typeorm_1.Index)(['rankPosition']),
-    (0, typeorm_1.Index)(['baseKeyword', 'analysisDate']),
-    (0, typeorm_1.Index)(['baseKeyword', 'rankPosition'])
+    (0, typeorm_1.Index)(['baseKeywordId', 'analysisDate']),
+    (0, typeorm_1.Index)(['baseKeywordId', 'rankPosition'])
 ], RelatedKeywords);
 //# sourceMappingURL=related-keywords.entity.js.map

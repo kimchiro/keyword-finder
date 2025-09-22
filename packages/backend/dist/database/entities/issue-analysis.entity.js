@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.IssueAnalysis = exports.TrendDirection = exports.IssueType = void 0;
 const typeorm_1 = require("typeorm");
 const swagger_1 = require("@nestjs/swagger");
+const keyword_entity_1 = require("./keyword.entity");
 var IssueType;
 (function (IssueType) {
     IssueType["RISING"] = "\uAE09\uC0C1\uC2B9";
@@ -34,10 +35,20 @@ __decorate([
     __metadata("design:type", Number)
 ], IssueAnalysis.prototype, "id", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ description: '키워드 ID' }),
+    (0, typeorm_1.Column)({ name: 'keyword_id', type: 'int' }),
+    __metadata("design:type", Number)
+], IssueAnalysis.prototype, "keywordId", void 0);
+__decorate([
     (0, swagger_1.ApiProperty)({ description: '키워드' }),
     (0, typeorm_1.Column)({ type: 'varchar', length: 255 }),
     __metadata("design:type", String)
 ], IssueAnalysis.prototype, "keyword", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => keyword_entity_1.Keyword, (keyword) => keyword.issueAnalysis, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.JoinColumn)({ name: 'keyword_id' }),
+    __metadata("design:type", keyword_entity_1.Keyword)
+], IssueAnalysis.prototype, "keywordEntity", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ description: '이슈 타입', enum: IssueType }),
     (0, typeorm_1.Column)({
@@ -79,8 +90,8 @@ __decorate([
 ], IssueAnalysis.prototype, "createdAt", void 0);
 exports.IssueAnalysis = IssueAnalysis = __decorate([
     (0, typeorm_1.Entity)('issue_analysis'),
-    (0, typeorm_1.Unique)(['keyword', 'analysisDate']),
-    (0, typeorm_1.Index)(['keyword']),
+    (0, typeorm_1.Unique)(['keywordId', 'analysisDate']),
+    (0, typeorm_1.Index)(['keywordId']),
     (0, typeorm_1.Index)(['issueType']),
     (0, typeorm_1.Index)(['analysisDate'])
 ], IssueAnalysis);

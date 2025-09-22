@@ -20,12 +20,16 @@ import {
 import { RateLimitGuard, NaverApiRateLimit } from '../../common/guards/rate-limit.guard';
 import { NaverApiService } from './naver-api.service';
 import {
-  BlogSearchDto,
   DatalabTrendDto,
-  IntegratedDataDto,
   BlogSearchResponseDto,
   DatalabTrendResponseDto,
   IntegratedDataResponseDto,
+  SingleKeywordFullDataDto,
+  MultipleKeywordsLimitedDataDto,
+  BatchRequestDto,
+  SingleKeywordFullDataResponseDto,
+  MultipleKeywordsLimitedDataResponseDto,
+  BatchResponseDto,
 } from './dto/naver-api.dto';
 
 @ApiTags('naver-api')
@@ -187,6 +191,138 @@ export class NaverApiController {
         {
           success: false,
           message: '통합 데이터 조회 중 오류가 발생했습니다.',
+          error: error.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post('single-keyword-full-data')
+  @NaverApiRateLimit(10, 60000) // 1분당 10회로 제한 (무거운 API)
+  @ApiOperation({ 
+    summary: '단일 키워드 전체 데이터 조회',
+    description: '1개 키워드의 모든 데이터를 조회합니다. 블로그 검색(최신 5개), 트렌드(작년 어제~어제), 연관 검색어를 포함합니다.'
+  })
+  @ApiBody({ type: SingleKeywordFullDataDto })
+  @ApiResponse({
+    status: 200,
+    description: '단일 키워드 전체 데이터 조회 성공',
+    type: SingleKeywordFullDataResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: '잘못된 요청',
+  })
+  @ApiResponse({
+    status: 500,
+    description: '서버 오류',
+  })
+  async getSingleKeywordFullData(@Body() request: SingleKeywordFullDataDto): Promise<SingleKeywordFullDataResponseDto> {
+    try {
+      console.log(`🔍 단일 키워드 전체 데이터 조회: ${request.keyword}`);
+      
+      const result = await this.naverApiService.getSingleKeywordFullData(request);
+
+      return {
+        success: true,
+        message: '단일 키워드 전체 데이터 조회가 완료되었습니다.',
+        data: result.data,
+      };
+    } catch (error) {
+      console.error('❌ 단일 키워드 전체 데이터 조회 실패:', error);
+      throw new HttpException(
+        {
+          success: false,
+          message: '단일 키워드 전체 데이터 조회 중 오류가 발생했습니다.',
+          error: error.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post('multiple-keywords-limited-data')
+  @NaverApiRateLimit(15, 60000) // 1분당 15회로 제한
+  @ApiOperation({ 
+    summary: '다중 키워드 제한 데이터 조회',
+    description: '최대 5개 키워드의 월간검색량, 누적발행량, 성비율, 디바이스 데이터를 조회합니다.'
+  })
+  @ApiBody({ type: MultipleKeywordsLimitedDataDto })
+  @ApiResponse({
+    status: 200,
+    description: '다중 키워드 제한 데이터 조회 성공',
+    type: MultipleKeywordsLimitedDataResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: '잘못된 요청',
+  })
+  @ApiResponse({
+    status: 500,
+    description: '서버 오류',
+  })
+  async getMultipleKeywordsLimitedData(@Body() request: MultipleKeywordsLimitedDataDto): Promise<MultipleKeywordsLimitedDataResponseDto> {
+    try {
+      console.log(`📊 다중 키워드 제한 데이터 조회: ${request.keywords.join(', ')}`);
+      
+      const result = await this.naverApiService.getMultipleKeywordsLimitedData(request);
+
+      return {
+        success: true,
+        message: '다중 키워드 제한 데이터 조회가 완료되었습니다.',
+        data: result.data,
+      };
+    } catch (error) {
+      console.error('❌ 다중 키워드 제한 데이터 조회 실패:', error);
+      throw new HttpException(
+        {
+          success: false,
+          message: '다중 키워드 제한 데이터 조회 중 오류가 발생했습니다.',
+          error: error.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post('batch-request')
+  @NaverApiRateLimit(5, 60000) // 1분당 5회로 제한 (가장 무거운 API)
+  @ApiOperation({ 
+    summary: '배치 요청 처리',
+    description: '3개의 요청을 배치로 처리합니다: 1) 단일 키워드 전체 데이터, 2) 5개 키워드 제한 데이터, 3) 5개 키워드 제한 데이터'
+  })
+  @ApiBody({ type: BatchRequestDto })
+  @ApiResponse({
+    status: 200,
+    description: '배치 요청 처리 성공',
+    type: BatchResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: '잘못된 요청',
+  })
+  @ApiResponse({
+    status: 500,
+    description: '서버 오류',
+  })
+  async processBatchRequest(@Body() request: BatchRequestDto): Promise<BatchResponseDto> {
+    try {
+      console.log('🚀 배치 요청 처리 시작');
+      
+      const result = await this.naverApiService.processBatchRequest(request);
+
+      return {
+        success: true,
+        message: '배치 요청 처리가 완료되었습니다.',
+        data: result.data,
+      };
+    } catch (error) {
+      console.error('❌ 배치 요청 처리 실패:', error);
+      throw new HttpException(
+        {
+          success: false,
+          message: '배치 요청 처리 중 오류가 발생했습니다.',
           error: error.message,
         },
         HttpStatus.INTERNAL_SERVER_ERROR,

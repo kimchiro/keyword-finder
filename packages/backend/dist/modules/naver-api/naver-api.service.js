@@ -78,7 +78,7 @@ let NaverApiService = class NaverApiService {
         try {
             console.log(`🔄 통합 데이터 조회 시작: ${query}`);
             const [blogSearchResult, datalabResult] = await Promise.all([
-                this.searchBlogs(query, 20, 1),
+                this.searchBlogs(query, 1, 1),
                 this.getDatalab({
                     startDate: this.appConfig.defaultStartDate,
                     endDate: this.appConfig.defaultEndDate,

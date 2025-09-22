@@ -8,6 +8,13 @@ export interface ScrapedKeyword {
     similarity?: 'low' | 'medium' | 'high';
     relatedData?: any;
 }
+export interface ScrapingResult {
+    keywords: ScrapedKeyword[];
+    message: string;
+    status: 'success' | 'no_content' | 'error';
+    count?: number;
+    pages?: number[];
+}
 export declare class NaverScraper {
     private browserPoolService;
     private session;
@@ -15,10 +22,21 @@ export declare class NaverScraper {
     initialize(): Promise<void>;
     close(): Promise<void>;
     private get page();
-    scrapeTrendingKeywords(query: string): Promise<ScrapedKeyword[]>;
-    scrapeSmartBlockData(query: string): Promise<ScrapedKeyword[]>;
-    scrapeRelatedSearchKeywords(query: string): Promise<ScrapedKeyword[]>;
-    scrapeAllKeywords(query: string, types?: string[]): Promise<ScrapedKeyword[]>;
+    scrapeTrendingKeywords(query: string): Promise<ScrapingResult>;
+    scrapeSmartBlockData(query: string): Promise<ScrapingResult>;
+    scrapeRelatedSearchKeywords(query: string, maxResults?: number): Promise<ScrapingResult>;
+    private scrapeRelatedFromPage;
+    scrapeAllKeywords(query: string, types?: string[]): Promise<{
+        keywords: ScrapedKeyword[];
+        collectionDetails: {
+            [key: string]: {
+                status: 'success' | 'no_content' | 'error';
+                message: string;
+                count: number;
+                pages?: number[];
+            };
+        };
+    }>;
     private estimateCompetition;
     private calculateSimilarity;
     private isValidKeyword;

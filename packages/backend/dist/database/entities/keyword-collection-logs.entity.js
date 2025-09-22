@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.KeywordCollectionLogs = exports.CollectionType = void 0;
 const typeorm_1 = require("typeorm");
 const swagger_1 = require("@nestjs/swagger");
+const keyword_entity_1 = require("./keyword.entity");
 var CollectionType;
 (function (CollectionType) {
     CollectionType["TRENDING"] = "trending";
@@ -27,6 +28,16 @@ __decorate([
     __metadata("design:type", Number)
 ], KeywordCollectionLogs.prototype, "id", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ description: '기준 검색어 ID' }),
+    (0, typeorm_1.Column)({ name: 'base_query_id', type: 'int' }),
+    __metadata("design:type", Number)
+], KeywordCollectionLogs.prototype, "baseQueryId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: '수집된 키워드 ID' }),
+    (0, typeorm_1.Column)({ name: 'collected_keyword_id', type: 'int' }),
+    __metadata("design:type", Number)
+], KeywordCollectionLogs.prototype, "collectedKeywordId", void 0);
+__decorate([
     (0, swagger_1.ApiProperty)({ description: '기준 검색어' }),
     (0, typeorm_1.Column)({ name: 'base_query', type: 'varchar', length: 255 }),
     __metadata("design:type", String)
@@ -37,6 +48,16 @@ __decorate([
     __metadata("design:type", String)
 ], KeywordCollectionLogs.prototype, "collectedKeyword", void 0);
 __decorate([
+    (0, typeorm_1.ManyToOne)(() => keyword_entity_1.Keyword, (keyword) => keyword.collectionLogs, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.JoinColumn)({ name: 'base_query_id' }),
+    __metadata("design:type", keyword_entity_1.Keyword)
+], KeywordCollectionLogs.prototype, "baseQueryEntity", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => keyword_entity_1.Keyword, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.JoinColumn)({ name: 'collected_keyword_id' }),
+    __metadata("design:type", keyword_entity_1.Keyword)
+], KeywordCollectionLogs.prototype, "collectedKeywordEntity", void 0);
+__decorate([
     (0, swagger_1.ApiProperty)({ description: '수집 타입', enum: CollectionType }),
     (0, typeorm_1.Column)({
         name: 'collection_type',
@@ -45,11 +66,6 @@ __decorate([
     }),
     __metadata("design:type", String)
 ], KeywordCollectionLogs.prototype, "collectionType", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ description: '소스 페이지' }),
-    (0, typeorm_1.Column)({ name: 'source_page', type: 'varchar', length: 100, default: 'naver' }),
-    __metadata("design:type", String)
-], KeywordCollectionLogs.prototype, "sourcePage", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ description: '순위' }),
     (0, typeorm_1.Column)({ name: 'rank_position', type: 'int', default: 0 }),
@@ -62,7 +78,8 @@ __decorate([
 ], KeywordCollectionLogs.prototype, "collectedAt", void 0);
 exports.KeywordCollectionLogs = KeywordCollectionLogs = __decorate([
     (0, typeorm_1.Entity)('keyword_collection_logs'),
-    (0, typeorm_1.Index)(['baseQuery']),
+    (0, typeorm_1.Index)(['baseQueryId']),
+    (0, typeorm_1.Index)(['collectedKeywordId']),
     (0, typeorm_1.Index)(['collectionType']),
     (0, typeorm_1.Index)(['collectedAt'])
 ], KeywordCollectionLogs);
