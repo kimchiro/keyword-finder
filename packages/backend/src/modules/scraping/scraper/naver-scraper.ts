@@ -287,16 +287,16 @@ export class NaverScraper {
             
             // 연관검색어 특별 검증 (더 엄격한 필터링)
             if (this.isValidRelatedKeyword(cleanKeyword, query)) {
-              const globalRank = (page - 1) * 10 + i + 1; // 페이지별 전역 순위 계산
+              const relativeRank = relatedKeywords.length + 1; // 상대적 순위 (수집된 순서대로)
               relatedKeywords.push({
                 keyword: cleanKeyword,
                 category: 'related_search',
-                rank: globalRank, // 순위 설정
+                rank: relativeRank, // 상대적 순위 설정
                 competition: this.estimateCompetition(cleanKeyword),
                 similarity: this.calculateSimilarity(query, cleanKeyword),
               });
               
-              console.log(`✅ 연관검색어 수집: "${cleanKeyword}" (순위: ${globalRank})`);
+              console.log(`✅ 연관검색어 수집: "${cleanKeyword}" (상대순위: ${relativeRank}, 페이지: ${page})`);
             } else {
               console.log(`❌ 연관검색어 필터링됨: "${cleanKeyword}"`);
             }
@@ -502,39 +502,66 @@ export class NaverScraper {
     return 1 - (distance / maxLen);
   }
 
-  // 연관검색어 전용 유효성 검사 (더 엄격한 필터링)
+  // 연관검색어 전용 유효성 검사 (개선된 필터링 - 더 관대함)
   private isValidRelatedKeyword(keyword: string, originalQuery: string): boolean {
-    // 기본 유효성 검사
-    if (!this.isValidKeyword(keyword, originalQuery)) return false;
+    // 기본 검증: 빈 문자열이거나 공백만 있는 경우, 원본 쿼리와 동일한 경우 제외
+    if (!keyword || !keyword.trim() || keyword.trim() === originalQuery) {
+      return false;
+    }
     
-    // 연관검색어에서 제외할 키워드들
+    keyword = keyword.trim();
+
+    // 길이 검증 (연관검색어는 더 관대하게)
+    if (keyword.length < 2 || keyword.length > 50) {
+      return false;
+    }
+
+    // 연관검색어에서 제외할 키워드들 (핵심 UI 요소만)
     const excludePatterns = [
-      /컨텍스트/i,
-      /자동완성/i,
-      /기간/i,
-      /특별한/i,
-      /추석/i,
-      /더보기/i,
-      /열기/i,
-      /닫기/i,
-      /도움말/i,
-      /신고/i,
-      /^[0-9]+$/,
-      /^\s*$/,
+      /^더보기$/i,
+      /^열기$/i,
+      /^닫기$/i,
+      /^도움말$/i,
+      /^신고$/i,
+      /^광고$/i,
+      /^네이버$/i,
+      /^NAVER$/i,
+      /^[0-9]+$/,  // 숫자만 있는 경우
+      /^\s*$/,     // 공백만 있는 경우
+      /^\.+$/,     // 점만 있는 경우
+      /^-+$/,      // 하이픈만 있는 경우
     ];
     
-    // 제외 패턴에 매칭되는지 확인
+    // 제외 패턴에 정확히 매칭되는지 확인 (부분 매칭 제거)
     for (const pattern of excludePatterns) {
       if (pattern.test(keyword)) {
         return false;
       }
     }
+
+    // URL/링크 텍스트 제외
+    if (/(http|www|\.com|\.kr|\.net|\.org)/i.test(keyword)) {
+      return false;
+    }
+
+    // 허용된 문자 패턴 검증 (한글, 영문, 숫자, 공백, 하이픈, 언더스코어, 일부 특수문자)
+    if (!/^[가-힣a-zA-Z0-9\s\-_()]+$/.test(keyword)) {
+      return false;
+    }
+
+    // 원본 쿼리와의 관련성 검사 (더 관대하게)
+    const queryLower = originalQuery.toLowerCase();
+    const keywordLower = keyword.toLowerCase();
     
-    // 원본 쿼리와 관련성이 있는지 확인 (최소 1글자 이상 공통)
-    const queryChars = originalQuery.toLowerCase().split('');
-    const keywordChars = keyword.toLowerCase().split('');
+    // 1. 공통 글자가 있는지 확인
+    const queryChars = queryLower.split('');
+    const keywordChars = keywordLower.split('');
     const hasCommonChar = queryChars.some(char => keywordChars.includes(char));
     
-    return hasCommonChar || keyword.length >= 3; // 공통 글자가 있거나 3글자 이상
+    // 2. 키워드가 쿼리를 포함하거나 쿼리가 키워드를 포함하는지 확인
+    const hasSubstring = keywordLower.includes(queryLower) || queryLower.includes(keywordLower);
+    
+    // 3. 관련성이 있거나 충분히 긴 키워드면 허용
+    return hasCommonChar || hasSubstring || keyword.length >= 3;
   }
 }

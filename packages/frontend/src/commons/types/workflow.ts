@@ -6,6 +6,9 @@ import { NaverBlogSearchResult, NaverDatalabResult } from './naver';
 export interface ScrapedKeyword {
   keyword: string;
   category: string;
+  rank: number;
+  competition: 'low' | 'medium' | 'high';
+  similarity: 'low' | 'medium' | 'high';
   score?: number;
   url?: string;
   metadata?: Record<string, unknown>;
@@ -23,13 +26,15 @@ export interface ScrapingData {
 }
 
 /**
- * 네이버 API 데이터 (블로그 검색 + 데이터랩)
+ * 네이버 API 데이터 (백엔드 워크플로우에서 반환)
  */
 export interface NaverApiData {
-  query: string;
-  blogSearch: NaverBlogSearchResult;
-  datalab: NaverDatalabResult;
-  timestamp: string;
+  original: {
+    blogSearch: NaverBlogSearchResult;
+    datalab: NaverDatalabResult;
+  };
+  firstBatch: NaverDatalabResult | null;
+  secondBatch: NaverDatalabResult | null;
 }
 
 /**
@@ -169,7 +174,7 @@ export interface AnalysisData {
 }
 
 /**
- * 워크플로우 응답 데이터
+ * 워크플로우 응답 데이터 (백엔드 실제 응답 구조)
  */
 export interface WorkflowResponse {
   success: boolean;
@@ -178,6 +183,13 @@ export interface WorkflowResponse {
     naverApiData: NaverApiData;
     scrapingData: ScrapingData;
     analysisData: AnalysisData | null;
+    topKeywords: string[];
+    keywordsWithRank: Array<{
+      keyword: string;
+      originalRank: number;
+      category: string;
+      source: string;
+    }>;
     executionTime: number;
     timestamp: string;
   };

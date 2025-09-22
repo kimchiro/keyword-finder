@@ -1,19 +1,6 @@
-export interface ScrapedKeyword {
-  keyword: string;
-  category: string;
-  score?: number;
-  url?: string;
-  metadata?: Record<string, unknown>;
-}
+import { ScrapedKeyword } from '@/commons/types/workflow';
 
-export interface ScrapingData {
-  query: string;
-  totalKeywords: number;
-  executionTime: number;
-  categories: Record<string, number>;
-  keywords: ScrapedKeyword[];
-}
-
+// SmartBlock 컴포넌트 Props 타입 (스크래핑된 키워드 데이터 사용)
 export interface SmartBlockProps {
-  scrapingData?: ScrapingData | null;
+  keywords: ScrapedKeyword[] | null;
 }

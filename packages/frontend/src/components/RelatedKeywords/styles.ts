@@ -17,32 +17,85 @@ export const Title = styled.h2`
   border-bottom: 2px solid #f0f0f0;
 `;
 
+export const ScrollContainer = styled.div`
+  overflow-x: auto;
+  
+  /* 스크롤바 스타일링 */
+  &::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+`;
+
 export const KeywordList = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  gap: 16px;
+  min-width: max-content;
+  padding-bottom: 8px;
+  
+  @media (max-width: 768px) {
+    gap: 12px;
+  }
 `;
 
 export const KeywordItem = styled.div`
   display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px;
+  flex-direction: column;
+  min-width: 250px;
+  flex-shrink: 0;
+  padding: 20px;
   background: #f8f9fa;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid #e9ecef;
+  position: relative;
   transition: all 0.2s ease;
 
   &:hover {
     background: #e9ecef;
-    transform: translateX(4px);
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
 
   @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+    min-width: 220px;
+    padding: 16px;
   }
+`;
+
+export const RankBadge = styled.div<{ rank: number }>`
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: ${props => {
+    if (props.rank <= 3) return '#ffd700'; // 금색
+    if (props.rank <= 10) return '#2563eb'; // 파란색
+    return '#666'; // 회색
+  }};
+  color: ${props => props.rank <= 3 ? '#333' : 'white'};
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 10;
 `;
 
 export const KeywordRank = styled.div`
@@ -60,31 +113,30 @@ export const KeywordRank = styled.div`
 `;
 
 export const KeywordText = styled.div`
-  flex: 1;
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 18px;
+  font-weight: 600;
   color: #1f2937;
-  min-width: 0;
+  margin: 12px 0 16px 0;
+  text-align: center;
   word-break: break-word;
+  line-height: 1.3;
 `;
 
 export const KeywordStats = styled.div`
   display: flex;
-  gap: 24px;
-  align-items: center;
-
-  @media (max-width: 768px) {
-    flex-wrap: wrap;
-    gap: 16px;
-    width: 100%;
-  }
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
 `;
 
 export const StatItem = styled.div`
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  gap: 4px;
+  padding: 8px 12px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
 `;
 
 export const StatLabel = styled.div`

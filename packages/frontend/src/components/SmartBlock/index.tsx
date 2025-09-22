@@ -2,56 +2,111 @@ import React from 'react';
 import { SmartBlockProps } from './types';
 import {
   SmartBlockContainer,
-  SmartBlockHeader,
   SmartBlockTitle,
+  SmartBlockScrollContainer,
   SmartBlockGrid,
   SmartBlockItem,
   KeywordText,
-  CategoryBadge,
-  ScoreText,
+  KeywordStats,
+  StatItem,
+  StatLabel,
+  StatValue,
+  SimilarityBadge,
+  RankBadge,
 } from './styles';
 
-export const SmartBlock: React.FC<SmartBlockProps> = ({ scrapingData }) => {
-  if (!scrapingData?.keywords || scrapingData.keywords.length === 0) {
+export const SmartBlock: React.FC<SmartBlockProps> = ({ keywords }) => {
+  // 이미 필터링된 스마트블록 키워드 데이터 사용
+  const smartBlockKeywords = keywords || [];
+  const hasSmartBlockKeywords = smartBlockKeywords.length > 0;
+
+  // 경쟁도 텍스트 변환 함수
+  const getCompetitionText = (competition: 'low' | 'medium' | 'high') => {
+    switch (competition) {
+      case 'high':
+        return '높음';
+      case 'medium':
+        return '보통';
+      case 'low':
+        return '낮음';
+      default:
+        return '알 수 없음';
+    }
+  };
+
+  // 유사도 텍스트 변환 함수
+  const getSimilarityText = (similarity: 'low' | 'medium' | 'high') => {
+    switch (similarity) {
+      case 'high':
+        return '높음';
+      case 'medium':
+        return '보통';
+      case 'low':
+        return '낮음';
+      default:
+        return '알 수 없음';
+    }
+  };
+
+  // 유사도 색상 함수
+  const getSimilarityColor = (similarity: 'low' | 'medium' | 'high') => {
+    switch (similarity) {
+      case 'high':
+        return '#10b981';
+      case 'medium':
+        return '#f59e0b';
+      case 'low':
+        return '#ef4444';
+      default:
+        return '#6b7280';
+    }
+  };
+
+  if (!hasSmartBlockKeywords) {
     return (
       <SmartBlockContainer>
-        <SmartBlockHeader>
-          <SmartBlockTitle>🧠 스마트블록 키워드</SmartBlockTitle>
-        </SmartBlockHeader>
-        <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
-          스크래핑된 키워드가 없습니다.
+        <SmartBlockTitle>🧠 스마트블록 키워드</SmartBlockTitle>
+        <div style={{ textAlign: 'center', padding: '40px 20px', color: '#666', fontSize: '14px' }}>
+          스마트블록 키워드 데이터가 없습니다.
         </div>
       </SmartBlockContainer>
     );
   }
 
-  // smartblock 타입의 키워드만 필터링
-  const smartBlockKeywords = scrapingData.keywords.filter(
-    keyword => keyword.category === 'smartblock'
-  );
-
   return (
     <SmartBlockContainer>
-      <SmartBlockHeader>
-        <SmartBlockTitle>🧠 스마트블록 키워드</SmartBlockTitle>
-        <div style={{ fontSize: '14px', color: '#666' }}>
-          총 {smartBlockKeywords.length}개 키워드
-        </div>
-      </SmartBlockHeader>
+      <SmartBlockTitle>🧠 스마트블록 키워드 (상위 {smartBlockKeywords.length}개)</SmartBlockTitle>
       
-      <SmartBlockGrid>
-        {smartBlockKeywords.map((keyword, index) => (
-          <SmartBlockItem key={`${keyword.keyword}-${index}`}>
-            <KeywordText>{keyword.keyword}</KeywordText>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
-              <CategoryBadge>{keyword.category}</CategoryBadge>
-              {keyword.score && (
-                <ScoreText>점수: {keyword.score}</ScoreText>
-              )}
-            </div>
-          </SmartBlockItem>
-        ))}
-      </SmartBlockGrid>
+      <SmartBlockScrollContainer>
+        <SmartBlockGrid>
+          {smartBlockKeywords.map((keyword, index) => (
+            <SmartBlockItem key={`smartblock-${keyword.keyword}-${index}`}>
+              <RankBadge rank={keyword.rank}>#{keyword.rank}</RankBadge>
+              
+              <KeywordText>{keyword.keyword}</KeywordText>
+              
+              <KeywordStats>
+                <StatItem>
+                  <StatLabel>카테고리</StatLabel>
+                  <StatValue>스마트블록</StatValue>
+                </StatItem>
+                
+                <StatItem>
+                  <StatLabel>경쟁도</StatLabel>
+                  <StatValue>{getCompetitionText(keyword.competition)}</StatValue>
+                </StatItem>
+                
+                <StatItem>
+                  <StatLabel>유사도</StatLabel>
+                  <SimilarityBadge color={getSimilarityColor(keyword.similarity)}>
+                    {getSimilarityText(keyword.similarity)}
+                  </SimilarityBadge>
+                </StatItem>
+              </KeywordStats>
+            </SmartBlockItem>
+          ))}
+        </SmartBlockGrid>
+      </SmartBlockScrollContainer>
     </SmartBlockContainer>
   );
 };

@@ -1,25 +1,15 @@
-// 키워드 데이터 타입
+import { ScrapingData } from '@/commons/types/workflow';
+
+// 키워드 데이터 타입 (백엔드 스크래핑 결과)
 export interface KeywordData {
-  text: string;
-  rank: number;
-  keyword_type: string;
-}
-
-// 검색 결과 통계 타입
-export interface SearchStats {
-  total: number;
-  duration: number;
-}
-
-// 검색 결과 타입
-export interface SearchResultsData {
-  success: boolean;
-  keywords?: KeywordData[];
-  totalKeywords?: number;
-  stats?: SearchStats;
+  keyword: string;
+  category: string;
+  score?: number;
+  url?: string;
+  metadata?: Record<string, unknown>;
 }
 
 // SearchResults 컴포넌트 Props 타입
 export interface SearchResultsProps {
-  results: SearchResultsData;
+  scrapingData: ScrapingData | null;
 }

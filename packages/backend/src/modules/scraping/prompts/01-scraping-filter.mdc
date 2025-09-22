@@ -1,4 +1,111 @@
+---
+alwaysApply: false
+---
+
 # 키워드 스크래핑 필터링 개선 요구사항
+
+## 수정해야 할 파일들
+- `src/modules/scraping/scraper/naver-scraper.ts` - 메인 스크래핑 로직
+- `src/constants/scraping.constants.ts` - 필터링 상수 추가
+- `src/modules/scraping/scraping.service.ts` - 서비스 로직 (필요시)
+
+## 1. 노이즈 키워드 필터링 강화
+
+### **스크래핑 대상 선택자 (화이트리스트)**
+다음 CSS 선택자에 해당하는 요소들만 스크래핑하고, 나머지는 전부 제외:
+
+```css
+/* 허용할 선택자들 */
+.api_subject_bx
+._related_box
+.sds-comps-vertical-layout.sds-comps-full-layout.fds-collection-root
+.sds-comps-base-layout.sds-comps-inline-layout.fds-collection-root.QvXp8DhecF_dQ1pJ4MCf.gbHVDHMRi7To6vgU0dML
+```
+
+### **제외할 키워드 패턴 (블랙리스트)**
+다음 키워드들이 포함된 텍스트는 수집에서 완전히 제외:
+
+#### UI 관련 키워드
+- "광고", "등록", "안내", "도움말", "서비스", "보기", "더보기"
+- "이 광고가 표시된 이유", "등록 안내", "도움말"
+- "전체필터", "필터", "정렬", "선택"
+- "확인", "취소", "닫기", "열기"
+
+#### 네이버 관련 키워드
+- "네이버", "Naver", "NAVER"
+- "네이버 아이디", "네이버페이", "Naver Pay"
+- "네이버 로그인", "네이버 회원가입"
+- "네이버에서", "네이버 서비스"
+
+#### 일반적 UI/네비게이션 단어
+- "전체", "기타", "선택", "확인"
+- "이전", "다음", "처음", "마지막"
+- "목록", "리스트", "메뉴"
+- "홈", "메인", "검색"
+
+#### 상업적 광고 문구
+- "할인", "세일", "특가", "이벤트"
+- "무료배송", "당일배송", "빠른배송"
+- "쿠폰", "적립", "혜택"
+- "지금 구매", "바로 구매", "장바구니"
+
+### **허용할 키워드 패턴 (화이트리스트)**
+다음 패턴에 해당하는 키워드만 수집:
+
+#### 브랜드명/제품명
+ -수집하지말것.
+
+#### 관련 용어
+- 검색어와 1글자 이상 공통 문자가 있는 키워드
+- 카테고리 관련 용어 (예: 초콜릿 → 다크초콜릿, 밀크초콜릿)
+- 용도/특성 관련 용어
+
+### **키워드 길이 제한**
+- 최소 글자 수: 2글자 이상
+- 최대 글자 수: 30글자 이하
+- 특수 규칙: 
+  - 한글, 영문, 숫자, 공백만 허용
+  - 특수문자는 하이픈(-), 언더스코어(_)만 허용
+
+### **추가 필터링 규칙**
+1. **중복 제거**: 동일한 키워드는 1개만 수집
+2. **유사도 검사**: 검색어와 너무 유사한 키워드 제외 (90% 이상 유사)
+3. **의미없는 단어 제외**: 조사, 접속사, 감탄사 등
+4. **URL/링크 텍스트 제외**: http, www, .com 등이 포함된 텍스트
+
+### **구현 방법**
+```typescript
+// 허용할 선택자만 사용
+const allowedSelectors = [
+  '.api_subject_bx',
+  '._related_box', 
+  '.sds-comps-vertical-layout.sds-comps-full-layout.fds-collection-root',
+  '.sds-comps-base-layout.sds-comps-inline-layout.fds-collection-root.QvXp8DhecF_dQ1pJ4MCf.gbHVDHMRi7To6vgU0dML'
+];
+
+// 나머지 모든 선택자는 사용 금지
+// 기존의 '.knowledge_box', '.info_group' 등은 제거
+```
+
+## 구체적 수정 작업
+
+### 1. `naver-scraper.ts` 수정사항
+- `scrapeSmartBlockData()` 메서드의 선택자를 위 화이트리스트로 변경
+- 키워드 필터링 로직 추가 (`isValidKeyword()` 메서드 구현)
+- 블랙리스트 키워드 체크 로직 추가
+
+### 2. `scraping.constants.ts` 수정사항  
+- `KEYWORD_BLACKLIST` 상수 추가
+- `ALLOWED_SELECTORS` 상수 추가
+- `KEYWORD_VALIDATION_RULES` 상수 추가
+
+### 3. 테스트 방법
+수정 후 다음 키워드로 테스트:
+- "초콜릿" - 브랜드명만 수집되어야 함
+- "맛집" - 실제 맛집 관련 키워드만 수집
+- UI 키워드들("광고", "등록 안내" 등)은 완전 제외되어야 함
+
+이 요구사항에 따라 스크래핑 로직을 수정해주세요.# 키워드 스크래핑 필터링 개선 요구사항
 
 ## 수정해야 할 파일들
 - `src/modules/scraping/scraper/naver-scraper.ts` - 메인 스크래핑 로직

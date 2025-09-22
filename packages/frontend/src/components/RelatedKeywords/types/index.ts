@@ -1,5 +1,5 @@
-import { RelatedKeywordData } from '@/commons/types';
+import { ScrapedKeyword } from '@/commons/types/workflow';
 
 export interface RelatedKeywordsProps {
-  keywords: RelatedKeywordData[] | null;
+  keywords: ScrapedKeyword[] | null;
 }

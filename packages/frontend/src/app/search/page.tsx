@@ -3,10 +3,16 @@
 import React from 'react';
 import { SearchForm } from '@/commons/components';
 import { BlogSearchResults } from '@/components/BlogSearchResults';
-import { KeywordAnalytics } from '@/components/KeywordAnalytics';
-import { RelatedKeywords } from '@/components/RelatedKeywords';
-import { ChartData } from '@/components/ChartData';
+import { MonthlyVolume } from '@/components/MonthlyVolume';
+import { CompetitionIndex } from '@/components/CompetitionIndex';
+import { GenderRatio } from '@/components/GenderRatio';
+import { AdultKeywordCheck } from '@/components/AdultKeywordCheck';
+import { SearchTrendChart } from '@/components/SearchTrendChart';
+import { MonthlyRatioChart } from '@/components/MonthlyRatioChart';
 import { SmartBlock } from '@/components/SmartBlock';
+import { RelatedKeywords } from '@/components/RelatedKeywords';
+import { UnifiedDataTable } from '@/components/UnifiedDataTable';
+import { SearchResults } from '@/components/SearchResults';
 import { useWorkflow } from '@/commons/hooks';
 import styled from '@emotion/styled';
 import Loading, { EmptyState } from './loading';
@@ -24,6 +30,28 @@ const Card = styled.div`
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 24px;
   margin-bottom: 24px;
+`;
+
+const AnalyticsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const ChartGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const Title = styled.h1`
@@ -64,7 +92,7 @@ export default function SearchPage() {
     loading,
     data: workflowData,
     error,
-    runComplete,
+    runWorkflow,
     reset
   } = useWorkflow();
 
@@ -72,7 +100,7 @@ export default function SearchPage() {
     console.log(`🔍 SearchPage: 검색 시작 - "${query}"`);
     reset();
     try {
-      const result = await runComplete(query);
+      const result = await runWorkflow(query);
       console.log(`✅ SearchPage: 검색 완료 - "${query}"`, result);
     } catch (error) {
       console.error(`❌ SearchPage: 검색 실패 - "${query}":`, error);
@@ -102,27 +130,48 @@ export default function SearchPage() {
         )}
 
         {/* 워크플로우 결과 표시 */}
-        {workflowData && (
+        {workflowData?.success && workflowData.data && (
           <>
-            {/* 키워드 분석 데이터 */}
-            {workflowData.analysisData && (
-              <>
-                <KeywordAnalytics analytics={workflowData.analysisData.analytics} />
-                <RelatedKeywords keywords={workflowData.analysisData.relatedKeywords} />
-                <ChartData chartData={workflowData.analysisData.chartData} />
-              </>
+            {/* 키워드 분석 4개 컴포넌트 */}
+            {workflowData.data.analysisData && (
+              <AnalyticsGrid>
+                <MonthlyVolume analytics={workflowData.data.analysisData.analytics} />
+                <CompetitionIndex analytics={workflowData.data.analysisData.analytics} />
+                <GenderRatio genderRatios={workflowData.data.analysisData.chartData?.genderRatios} />
+                <AdultKeywordCheck 
+                  keyword={workflowData.data.query} 
+                  intentAnalysis={workflowData.data.analysisData.chartData?.intentAnalysis} 
+                />
+              </AnalyticsGrid>
             )}
 
-            {/* 네이버 블로그 검색 결과 */}
-            {workflowData.naverApiData && (
-              <BlogSearchResults searchResults={workflowData.naverApiData.blogSearch} />
+            {/* 차트 2개 컴포넌트 */}
+            {workflowData.data.analysisData?.chartData && (
+              <ChartGrid>
+                <SearchTrendChart searchTrends={workflowData.data.analysisData.chartData.searchTrends} />
+                <MonthlyRatioChart monthlyRatios={workflowData.data.analysisData.chartData.monthlyRatios} />
+              </ChartGrid>
             )}
 
-            {/* 스마트블록 키워드 */}
-            {workflowData.scrapingData && (
-              <SmartBlock scrapingData={workflowData.scrapingData} />
-            )}
+            {/* 스마트블록 키워드 (순위표시, overflow-x 스크롤) */}
+            <SmartBlock 
+              keywords={workflowData.data.scrapingData?.keywords?.filter(keyword => keyword.category === 'smartblock') || []} 
+            />
 
+            {/* 연관키워드 (순위표시, overflow-x 스크롤) */}
+            <RelatedKeywords 
+              keywords={workflowData.data.scrapingData?.keywords?.filter(keyword => keyword.category === 'related_search') || []} 
+            />
+
+            {/* 통합 데이터 테이블 */}
+            <UnifiedDataTable 
+              relatedKeywords={workflowData.data.analysisData?.relatedKeywords}
+            />
+
+            {/* 네이버 블로그 검색결과 리스트 */}
+            {workflowData.data.naverApiData?.original?.blogSearch && (
+              <BlogSearchResults blogSearchData={workflowData.data.naverApiData.original.blogSearch} />
+            )}
           </>
         )}
 

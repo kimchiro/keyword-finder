@@ -1,13 +1,26 @@
 'use client';
 
 import React from 'react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title as ChartTitle,
+  Tooltip,
+  Legend,
+  TooltipItem,
+} from 'chart.js';
+import { Line, Bar } from 'react-chartjs-2';
 import { ChartDataProps } from './types';
 import {
   Container,
   Title,
   ChartGrid,
   ChartCard,
-  ChartTitle,
+  ChartTitle as StyledChartTitle,
   ChartContent,
   DataList,
   DataItem,
@@ -15,10 +28,26 @@ import {
   DataValue,
   EmptyState,
   Badge,
+  ChartContainer,
 } from './styles';
 
+// Chart.js 등록
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ChartTitle,
+  Tooltip,
+  Legend
+);
+
 export const ChartData: React.FC<ChartDataProps> = ({ chartData }) => {
+  console.log('🔍 ChartData 컴포넌트 - 받은 데이터:', chartData);
+  
   if (!chartData) {
+    console.log('❌ ChartData 컴포넌트 - 차트 데이터가 없음');
     return (
       <Container>
         <Title>차트 데이터</Title>
@@ -27,10 +56,6 @@ export const ChartData: React.FC<ChartDataProps> = ({ chartData }) => {
     );
   }
 
-  const formatNumber = (num: number | string) => {
-    const numValue = typeof num === 'string' ? parseFloat(num) : num;
-    return isNaN(numValue) ? '0' : new Intl.NumberFormat('ko-KR').format(numValue);
-  };
 
   const formatPercentage = (num: number | string) => {
     const numValue = typeof num === 'string' ? parseFloat(num) : num;
@@ -74,41 +99,196 @@ export const ChartData: React.FC<ChartDataProps> = ({ chartData }) => {
     }
   };
 
+  // 라인차트 데이터 생성 (검색량 트렌드)
+  const createLineChartData = () => {
+    console.log('📊 라인차트 데이터 생성 - searchTrends:', chartData?.searchTrends);
+    if (!chartData?.searchTrends || chartData.searchTrends.length === 0) {
+      console.log('❌ 라인차트 - searchTrends 데이터 없음');
+      return null;
+    }
+
+    const sortedTrends = [...chartData.searchTrends].sort((a, b) => {
+      return new Date(a.periodValue).getTime() - new Date(b.periodValue).getTime();
+    });
+
+    return {
+      labels: sortedTrends.map(trend => trend.periodValue),
+      datasets: [
+        {
+          label: '검색량',
+          data: sortedTrends.map(trend => trend.searchVolume),
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#3b82f6',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+        },
+      ],
+    };
+  };
+
+  // 바차트 데이터 생성 (월별 검색비율)
+  const createBarChartData = () => {
+    console.log('📊 바차트 데이터 생성 - monthlyRatios:', chartData?.monthlyRatios);
+    if (!chartData?.monthlyRatios || chartData.monthlyRatios.length === 0) {
+      console.log('❌ 바차트 - monthlyRatios 데이터 없음');
+      return null;
+    }
+
+    const sortedRatios = [...chartData.monthlyRatios].sort((a, b) => {
+      return a.monthNumber - b.monthNumber;
+    });
+
+    return {
+      labels: sortedRatios.map(ratio => getMonthName(ratio.monthNumber)),
+      datasets: [
+        {
+          label: '검색 비율 (%)',
+          data: sortedRatios.map(ratio => parseFloat(ratio.searchRatio.toString())),
+          backgroundColor: 'rgba(16, 185, 129, 0.8)',
+          borderColor: '#10b981',
+          borderWidth: 1,
+          borderRadius: 4,
+        },
+      ],
+    };
+  };
+
+  // 차트 옵션
+  const lineChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+        labels: {
+          font: {
+            family: 'system-ui, -apple-system, sans-serif',
+            size: 12,
+          },
+        },
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleColor: '#ffffff',
+        bodyColor: '#ffffff',
+        borderColor: '#3b82f6',
+        borderWidth: 1,
+      },
+    },
+    scales: {
+      x: {
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+        },
+        ticks: {
+          font: {
+            size: 11,
+          },
+        },
+      },
+      y: {
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+        },
+        ticks: {
+          font: {
+            size: 11,
+          },
+          callback: function(value: string | number) {
+            return new Intl.NumberFormat('ko-KR').format(Number(value));
+          },
+        },
+      },
+    },
+  };
+
+  const barChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+        labels: {
+          font: {
+            family: 'system-ui, -apple-system, sans-serif',
+            size: 12,
+          },
+        },
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleColor: '#ffffff',
+        bodyColor: '#ffffff',
+        borderColor: '#10b981',
+        borderWidth: 1,
+        callbacks: {
+          label: function(context: TooltipItem<'bar'>) {
+            return `${context.dataset.label || '검색 비율'}: ${context.parsed.y.toFixed(1)}%`;
+          },
+        },
+      },
+    },
+    scales: {
+      x: {
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+        },
+        ticks: {
+          font: {
+            size: 11,
+          },
+        },
+      },
+      y: {
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+        },
+        ticks: {
+          font: {
+            size: 11,
+          },
+          callback: function(value: string | number) {
+            return `${value}%`;
+          },
+        },
+        beginAtZero: true,
+      },
+    },
+  };
+
+  const lineChartData = createLineChartData();
+  const barChartData = createBarChartData();
+
   return (
     <Container>
       <Title>차트 데이터</Title>
       
       <ChartGrid>
-        {/* 검색 트렌드 */}
-        {chartData.searchTrends && chartData.searchTrends.length > 0 && (
+        {/* 검색량 트렌드 - 라인차트 */}
+        {lineChartData && (
           <ChartCard>
-            <ChartTitle>검색량 트렌드</ChartTitle>
+            <StyledChartTitle>검색량 트렌드</StyledChartTitle>
             <ChartContent>
-              <DataList>
-                {chartData.searchTrends.slice(0, 6).map((trend, index) => (
-                  <DataItem key={trend.id || index}>
-                    <DataLabel>{trend.periodValue}</DataLabel>
-                    <DataValue>{formatNumber(trend.searchVolume)}</DataValue>
-                  </DataItem>
-                ))}
-              </DataList>
+              <ChartContainer>
+                <Line data={lineChartData} options={lineChartOptions} />
+              </ChartContainer>
             </ChartContent>
           </ChartCard>
         )}
 
-        {/* 월별 검색 비율 */}
-        {chartData.monthlyRatios && chartData.monthlyRatios.length > 0 && (
+        {/* 월별 검색 비율 - 바차트 */}
+        {barChartData && (
           <ChartCard>
-            <ChartTitle>월별 검색 비율</ChartTitle>
+            <StyledChartTitle>월별 검색 비율</StyledChartTitle>
             <ChartContent>
-              <DataList>
-                {chartData.monthlyRatios.slice(0, 6).map((ratio, index) => (
-                  <DataItem key={ratio.id || index}>
-                    <DataLabel>{getMonthName(ratio.monthNumber)}</DataLabel>
-                    <DataValue>{formatPercentage(ratio.searchRatio)}</DataValue>
-                  </DataItem>
-                ))}
-              </DataList>
+              <ChartContainer>
+                <Bar data={barChartData} options={barChartOptions} />
+              </ChartContainer>
             </ChartContent>
           </ChartCard>
         )}
@@ -116,7 +296,7 @@ export const ChartData: React.FC<ChartDataProps> = ({ chartData }) => {
         {/* 요일별 검색 비율 */}
         {chartData.weekdayRatios && chartData.weekdayRatios.length > 0 && (
           <ChartCard>
-            <ChartTitle>요일별 검색 비율</ChartTitle>
+            <StyledChartTitle>요일별 검색 비율</StyledChartTitle>
             <ChartContent>
               <DataList>
                 {chartData.weekdayRatios.map((ratio, index) => (
@@ -133,7 +313,7 @@ export const ChartData: React.FC<ChartDataProps> = ({ chartData }) => {
         {/* 성별 검색 비율 */}
         {chartData.genderRatios && (
           <ChartCard>
-            <ChartTitle>성별 검색 비율</ChartTitle>
+            <StyledChartTitle>성별 검색 비율</StyledChartTitle>
             <ChartContent>
               <DataList>
                 <DataItem>
@@ -152,7 +332,7 @@ export const ChartData: React.FC<ChartDataProps> = ({ chartData }) => {
         {/* 이슈성 분석 */}
         {chartData.issueAnalysis && (
           <ChartCard>
-            <ChartTitle>이슈성 분석</ChartTitle>
+            <StyledChartTitle>이슈성 분석</StyledChartTitle>
             <ChartContent>
               <DataList>
                 <DataItem>
@@ -177,7 +357,7 @@ export const ChartData: React.FC<ChartDataProps> = ({ chartData }) => {
         {/* 의도 분석 */}
         {chartData.intentAnalysis && (
           <ChartCard>
-            <ChartTitle>정보성/상업성 분석</ChartTitle>
+            <StyledChartTitle>정보성/상업성 분석</StyledChartTitle>
             <ChartContent>
               <DataList>
                 <DataItem>

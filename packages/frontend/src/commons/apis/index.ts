@@ -9,8 +9,6 @@ export { getIntegratedKeywordData } from './keywordAnalysis';
 
 // 워크플로우 API
 export { 
-  runCompleteWorkflow, 
-  runQuickWorkflow, 
-  runScrapingWorkflow, 
-  getWorkflowHealth 
+  executeWorkflow,
+  checkWorkflowHealth
 } from './workflow';

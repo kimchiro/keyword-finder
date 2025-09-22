@@ -15,24 +15,16 @@ export type * from './types';
 
 // 메인 BlogSearchResults 컴포넌트
 export const BlogSearchResults: React.FC<BlogSearchResultsProps> = ({
-  searchResults,
+  blogSearchData,
 }) => {
-  if (!searchResults) {
-    return null;
-  }
-
-  // 백엔드 워크플로우에서 온 데이터인지 확인
-  const isWorkflowData = 'items' in searchResults;
-  const items = isWorkflowData ? searchResults.items : searchResults.data?.items;
-
-  if (!items?.length) {
+  if (!blogSearchData?.items || blogSearchData.items.length === 0) {
     return null;
   }
 
   return (
     <ResultsContainer>
-      <SectionTitle>📝 네이버 블로그 검색 결과</SectionTitle>
-      {items.map((item, index) => (
+      <SectionTitle>📝 네이버 블로그 검색 결과 ({blogSearchData.total.toLocaleString()}건)</SectionTitle>
+      {blogSearchData.items.map((item, index) => (
         <SearchResultItem key={index}>
           <BlogTitle>
             <a href={item.link} target="_blank" rel="noopener noreferrer">
