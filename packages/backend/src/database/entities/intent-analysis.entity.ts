@@ -5,8 +5,11 @@ import {
   CreateDateColumn,
   Index,
   Unique,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { Keyword } from './keyword.entity';
 
 export enum PrimaryIntent {
   INFORMATIONAL = '정보성',
@@ -15,8 +18,8 @@ export enum PrimaryIntent {
 }
 
 @Entity('intent_analysis')
-@Unique(['keyword', 'analysisDate'])
-@Index(['keyword'])
+@Unique(['keywordId', 'analysisDate'])
+@Index(['keywordId'])
 @Index(['primaryIntent'])
 @Index(['analysisDate'])
 export class IntentAnalysis {
@@ -24,9 +27,17 @@ export class IntentAnalysis {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ApiProperty({ description: '키워드 ID' })
+  @Column({ name: 'keyword_id', type: 'int' })
+  keywordId: number;
+
   @ApiProperty({ description: '키워드' })
   @Column({ type: 'varchar', length: 255 })
   keyword: string;
+
+  @ManyToOne(() => Keyword, (keyword) => keyword.intentAnalysis, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'keyword_id' })
+  keywordEntity: Keyword;
 
   @ApiProperty({ description: '정보성 비율' })
   @Column({ name: 'informational_ratio', type: 'decimal', precision: 5, scale: 2, default: 0 })

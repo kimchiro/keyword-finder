@@ -5,21 +5,32 @@ import {
   CreateDateColumn,
   Index,
   Unique,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { Keyword } from './keyword.entity';
 
 @Entity('gender_search_ratios')
-@Unique(['keyword', 'analysisDate'])
-@Index(['keyword'])
+@Unique(['keywordId', 'analysisDate'])
+@Index(['keywordId'])
 @Index(['analysisDate'])
 export class GenderSearchRatios {
   @ApiProperty({ description: '고유 ID' })
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ApiProperty({ description: '키워드 ID' })
+  @Column({ name: 'keyword_id', type: 'int' })
+  keywordId: number;
+
   @ApiProperty({ description: '키워드' })
   @Column({ type: 'varchar', length: 255 })
   keyword: string;
+
+  @ManyToOne(() => Keyword, (keyword) => keyword.genderSearchRatios, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'keyword_id' })
+  keywordEntity: Keyword;
 
   @ApiProperty({ description: '남성 검색 비율' })
   @Column({ name: 'male_ratio', type: 'decimal', precision: 5, scale: 2, default: 0 })

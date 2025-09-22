@@ -213,8 +213,8 @@ export const KEYWORD_FILTERING = {
     MAX_LENGTH: 30,
     /** 허용할 문자 패턴 (한글, 영문, 숫자, 공백, 하이픈, 언더스코어) */
     ALLOWED_PATTERN: /^[가-힣a-zA-Z0-9\s\-_]+$/,
-    /** 유사도 임계값 (90% 이상 유사하면 제외) */
-    SIMILARITY_THRESHOLD: 0.9,
+    /** 유사도 임계값 (80% 이상 유사하면 제외) */
+    SIMILARITY_THRESHOLD: 0.8,
     /** URL/링크 패턴 */
     URL_PATTERN: /(http|www|\.com|\.kr|\.net|\.org)/i,
   }

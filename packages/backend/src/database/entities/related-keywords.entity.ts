@@ -6,8 +6,11 @@ import {
   UpdateDateColumn,
   Index,
   Unique,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { Keyword } from './keyword.entity';
 
 export enum SimilarityScore {
   LOW = '낮음',
@@ -16,16 +19,25 @@ export enum SimilarityScore {
 }
 
 @Entity('related_keywords')
-@Unique(['baseKeyword', 'relatedKeyword', 'analysisDate'])
-@Index(['baseKeyword'])
+@Unique(['baseKeywordId', 'relatedKeywordId', 'analysisDate'])
+@Index(['baseKeywordId'])
+@Index(['relatedKeywordId'])
 @Index(['analysisDate'])
 @Index(['rankPosition'])
-@Index(['baseKeyword', 'analysisDate']) // 복합 인덱스 추가
-@Index(['baseKeyword', 'rankPosition']) // 복합 인덱스 추가
+@Index(['baseKeywordId', 'analysisDate']) // 복합 인덱스 추가
+@Index(['baseKeywordId', 'rankPosition']) // 복합 인덱스 추가
 export class RelatedKeywords {
   @ApiProperty({ description: '고유 ID' })
   @PrimaryGeneratedColumn()
   id: number;
+
+  @ApiProperty({ description: '기준 키워드 ID' })
+  @Column({ name: 'base_keyword_id', type: 'int' })
+  baseKeywordId: number;
+
+  @ApiProperty({ description: '연관 키워드 ID' })
+  @Column({ name: 'related_keyword_id', type: 'int' })
+  relatedKeywordId: number;
 
   @ApiProperty({ description: '기준 키워드' })
   @Column({ name: 'base_keyword', type: 'varchar', length: 255 })
@@ -34,6 +46,14 @@ export class RelatedKeywords {
   @ApiProperty({ description: '연관 키워드' })
   @Column({ name: 'related_keyword', type: 'varchar', length: 255 })
   relatedKeyword: string;
+
+  @ManyToOne(() => Keyword, (keyword) => keyword.relatedKeywords, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'base_keyword_id' })
+  baseKeywordEntity: Keyword;
+
+  @ManyToOne(() => Keyword, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'related_keyword_id' })
+  relatedKeywordEntity: Keyword;
 
   @ApiProperty({ description: '월간 검색량' })
   @Column({ name: 'monthly_search_volume', type: 'bigint', default: 0 })

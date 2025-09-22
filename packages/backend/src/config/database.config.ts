@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
+import { Keyword } from '../database/entities/keyword.entity';
 import { KeywordAnalytics } from '../database/entities/keyword-analytics.entity';
 import { RelatedKeywords } from '../database/entities/related-keywords.entity';
 import { SearchTrends } from '../database/entities/search-trends.entity';
@@ -25,6 +26,7 @@ export class DatabaseConfig implements TypeOrmOptionsFactory {
       database: this.configService.get('MYSQL_DATABASE', 'keyword_finder'),
       charset: 'utf8mb4',
       entities: [
+        Keyword,
         KeywordAnalytics,
         RelatedKeywords,
         SearchTrends,

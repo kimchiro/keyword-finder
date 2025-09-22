@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
 import * as dotenv from 'dotenv';
+import { Keyword } from '../database/entities/keyword.entity';
 import { KeywordAnalytics } from '../database/entities/keyword-analytics.entity';
 import { RelatedKeywords } from '../database/entities/related-keywords.entity';
 import { SearchTrends } from '../database/entities/search-trends.entity';
@@ -20,6 +21,7 @@ export const AppDataSource = new DataSource({
   password: process.env.MYSQL_PASSWORD || '',
   database: process.env.MYSQL_DATABASE || 'keyword_finder',
   entities: [
+    Keyword,
     KeywordAnalytics,
     RelatedKeywords,
     SearchTrends,

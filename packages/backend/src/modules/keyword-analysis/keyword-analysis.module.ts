@@ -4,6 +4,7 @@ import { KeywordAnalysisController } from './keyword-analysis.controller';
 import { KeywordAnalysisService } from './keyword-analysis.service';
 import { TransactionService } from '../../common/services/transaction.service';
 import { AppConfigService } from '../../config/app.config';
+import { Keyword } from '../../database/entities/keyword.entity';
 import { KeywordAnalytics } from '../../database/entities/keyword-analytics.entity';
 import { RelatedKeywords } from '../../database/entities/related-keywords.entity';
 import { SearchTrends } from '../../database/entities/search-trends.entity';
@@ -21,6 +22,7 @@ import {
 @Module({
   imports: [
     TypeOrmModule.forFeature([
+      Keyword,
       KeywordAnalytics,
       RelatedKeywords,
       SearchTrends,

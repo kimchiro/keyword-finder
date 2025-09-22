@@ -6,12 +6,15 @@ import {
   UpdateDateColumn,
   Index,
   Unique,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { Keyword } from './keyword.entity';
 
 @Entity('keyword_analytics')
-@Unique(['keyword', 'analysisDate'])
-@Index(['keyword'])
+@Unique(['keywordId', 'analysisDate'])
+@Index(['keywordId'])
 @Index(['analysisDate'])
 @Index(['monthlySearchTotal'])
 export class KeywordAnalytics {
@@ -19,9 +22,17 @@ export class KeywordAnalytics {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ApiProperty({ description: '키워드 ID' })
+  @Column({ name: 'keyword_id', type: 'int' })
+  keywordId: number;
+
   @ApiProperty({ description: '분석 키워드' })
   @Column({ type: 'varchar', length: 255 })
   keyword: string;
+
+  @ManyToOne(() => Keyword, (keyword) => keyword.analytics, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'keyword_id' })
+  keywordEntity: Keyword;
 
   @ApiProperty({ description: '월간 PC 검색량' })
   @Column({ name: 'monthly_search_pc', type: 'bigint', default: 0 })

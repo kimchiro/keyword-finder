@@ -6,12 +6,15 @@ import {
   Index,
   Unique,
   Check,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { Keyword } from './keyword.entity';
 
 @Entity('weekday_search_ratios')
-@Unique(['keyword', 'weekdayNumber', 'analysisDate'])
-@Index(['keyword'])
+@Unique(['keywordId', 'weekdayNumber', 'analysisDate'])
+@Index(['keywordId'])
 @Index(['weekdayNumber'])
 @Index(['analysisDate'])
 @Check('"weekday_number" BETWEEN 1 AND 7')
@@ -20,9 +23,17 @@ export class WeekdaySearchRatios {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ApiProperty({ description: '키워드 ID' })
+  @Column({ name: 'keyword_id', type: 'int' })
+  keywordId: number;
+
   @ApiProperty({ description: '키워드' })
   @Column({ type: 'varchar', length: 255 })
   keyword: string;
+
+  @ManyToOne(() => Keyword, (keyword) => keyword.weekdaySearchRatios, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'keyword_id' })
+  keywordEntity: Keyword;
 
   @ApiProperty({ description: '요일 (1=월요일, 7=일요일)' })
   @Column({ name: 'weekday_number', type: 'int' })

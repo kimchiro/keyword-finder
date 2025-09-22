@@ -6,24 +6,35 @@ import {
   Index,
   Unique,
   Check,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { Keyword } from './keyword.entity';
 
 @Entity('monthly_search_ratios')
-@Unique(['keyword', 'monthNumber', 'analysisYear'])
-@Index(['keyword'])
+@Unique(['keywordId', 'monthNumber', 'analysisYear'])
+@Index(['keywordId'])
 @Index(['monthNumber'])
 @Index(['analysisYear'])
-@Index(['keyword', 'analysisYear']) // 복합 인덱스 추가
+@Index(['keywordId', 'analysisYear']) // 복합 인덱스 추가
 @Check('"month_number" BETWEEN 1 AND 12')
 export class MonthlySearchRatios {
   @ApiProperty({ description: '고유 ID' })
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ApiProperty({ description: '키워드 ID' })
+  @Column({ name: 'keyword_id', type: 'int' })
+  keywordId: number;
+
   @ApiProperty({ description: '키워드' })
   @Column({ type: 'varchar', length: 255 })
   keyword: string;
+
+  @ManyToOne(() => Keyword, (keyword) => keyword.monthlySearchRatios, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'keyword_id' })
+  keywordEntity: Keyword;
 
   @ApiProperty({ description: '월 (1-12)' })
   @Column({ name: 'month_number', type: 'int' })

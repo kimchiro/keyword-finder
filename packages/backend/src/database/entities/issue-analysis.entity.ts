@@ -5,8 +5,11 @@ import {
   CreateDateColumn,
   Index,
   Unique,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { Keyword } from './keyword.entity';
 
 export enum IssueType {
   RISING = '급상승',
@@ -22,8 +25,8 @@ export enum TrendDirection {
 }
 
 @Entity('issue_analysis')
-@Unique(['keyword', 'analysisDate'])
-@Index(['keyword'])
+@Unique(['keywordId', 'analysisDate'])
+@Index(['keywordId'])
 @Index(['issueType'])
 @Index(['analysisDate'])
 export class IssueAnalysis {
@@ -31,9 +34,17 @@ export class IssueAnalysis {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ApiProperty({ description: '키워드 ID' })
+  @Column({ name: 'keyword_id', type: 'int' })
+  keywordId: number;
+
   @ApiProperty({ description: '키워드' })
   @Column({ type: 'varchar', length: 255 })
   keyword: string;
+
+  @ManyToOne(() => Keyword, (keyword) => keyword.issueAnalysis, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'keyword_id' })
+  keywordEntity: Keyword;
 
   @ApiProperty({ description: '이슈 타입', enum: IssueType })
   @Column({

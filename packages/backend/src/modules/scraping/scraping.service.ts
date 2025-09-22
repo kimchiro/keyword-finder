@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Keyword } from '../../database/entities/keyword.entity';
 import { KeywordCollectionLogs, CollectionType } from '../../database/entities/keyword-collection-logs.entity';
 import { ScrapeKeywordsDto } from './dto/scraping.dto';
 import { BrowserPoolService } from '../../common/services/browser-pool.service';
@@ -10,6 +11,8 @@ import { SCRAPING_DEFAULTS, SEARCH_VOLUME } from '../../constants/scraping.const
 @Injectable()
 export class ScrapingService {
   constructor(
+    @InjectRepository(Keyword)
+    private keywordRepository: Repository<Keyword>,
     @InjectRepository(KeywordCollectionLogs)
     private keywordCollectionLogsRepository: Repository<KeywordCollectionLogs>,
     private browserPoolService: BrowserPoolService,
@@ -27,28 +30,29 @@ export class ScrapingService {
         maxResults = this.appConfig.scrapingMaxResults 
       } = scrapeDto;
       
-      // 실제 Playwright 기반 스크래핑 수행
-      const scrapedKeywords = await this.performRealScraping(query, types, maxResults);
+      // 실제 Playwright 기반 스크래핑 수행 (개선된 응답 구조)
+      const scrapingResult = await this.performRealScraping(query, types, maxResults);
       
       // 수집된 키워드들을 로그에 저장
-      await this.saveCollectionLogs(query, scrapedKeywords);
+      await this.saveCollectionLogs(query, scrapingResult.keywords);
       
       const executionTime = (Date.now() - startTime) / 1000;
       
       // 카테고리별 통계 계산
-      const categories = scrapedKeywords.reduce((acc, keyword) => {
+      const categories = scrapingResult.keywords.reduce((acc, keyword) => {
         acc[keyword.category] = (acc[keyword.category] || 0) + 1;
         return acc;
       }, {} as { [key: string]: number });
 
-      console.log(`✅ 키워드 스크래핑 완료: ${scrapedKeywords.length}개, ${executionTime}초`);
+      console.log(`✅ 키워드 스크래핑 완료: ${scrapingResult.keywords.length}개, ${executionTime}초`);
 
       return {
         query,
-        totalKeywords: scrapedKeywords.length,
+        totalKeywords: scrapingResult.keywords.length,
         executionTime,
         categories,
-        keywords: scrapedKeywords,
+        keywords: scrapingResult.keywords,
+        collectionDetails: scrapingResult.collectionDetails, // 수집 상세 정보 추가
       };
     } catch (error) {
       console.error('❌ ScrapingService.scrapeKeywords 오류:', error);
@@ -138,11 +142,11 @@ export class ScrapingService {
     try {
       await scraper.initialize();
       
-      // 실제 스크래핑 수행
-      const scrapedKeywords = await scraper.scrapeAllKeywords(query, types);
+      // 실제 스크래핑 수행 (개선된 응답 구조)
+      const scrapingResult = await scraper.scrapeAllKeywords(query, types);
       
       // maxResults 제한 적용
-      const limitedKeywords = scrapedKeywords.slice(0, maxResults);
+      const limitedKeywords = scrapingResult.keywords.slice(0, maxResults);
       
       // 데이터베이스 저장 형식으로 변환
       const formattedKeywords = limitedKeywords.map((keyword, index) => ({
@@ -150,12 +154,14 @@ export class ScrapingService {
         category: keyword.category,
         rank: index + 1,
         source: keyword.source,
-        searchVolume: keyword.searchVolume || Math.floor(Math.random() * SEARCH_VOLUME.DEFAULT_RANGE.MAX) + SEARCH_VOLUME.DEFAULT_RANGE.MIN,
         competition: keyword.competition || 'medium',
         similarity: keyword.similarity || 'medium',
       }));
       
-      return formattedKeywords;
+      return {
+        keywords: formattedKeywords,
+        collectionDetails: scrapingResult.collectionDetails
+      };
     } finally {
       await scraper.close();
     }
@@ -168,17 +174,47 @@ export class ScrapingService {
     return this.browserPoolService.getPoolStatus();
   }
 
+  /**
+   * 키워드를 찾거나 생성합니다
+   */
+  private async findOrCreateKeyword(keywordText: string): Promise<Keyword> {
+    let keyword = await this.keywordRepository.findOne({
+      where: { keyword: keywordText }
+    });
+
+    if (!keyword) {
+      keyword = this.keywordRepository.create({
+        keyword: keywordText,
+        status: 'active'
+      });
+      keyword = await this.keywordRepository.save(keyword);
+      console.log(`🆕 새 키워드 생성: ${keywordText} (ID: ${keyword.id})`);
+    }
+
+    return keyword;
+  }
+
   private async saveCollectionLogs(baseQuery: string, keywords: any[]) {
     try {
-      const logs = keywords.map(keyword => {
-        return this.keywordCollectionLogsRepository.create({
+      // 기준 쿼리 키워드 찾기/생성
+      const baseKeyword = await this.findOrCreateKeyword(baseQuery);
+
+      // 수집된 키워드들 처리
+      const logs = [];
+      for (const keyword of keywords) {
+        const collectedKeyword = await this.findOrCreateKeyword(keyword.keyword);
+        
+        const log = this.keywordCollectionLogsRepository.create({
+          baseQueryId: baseKeyword.id,
+          collectedKeywordId: collectedKeyword.id,
           baseQuery,
           collectedKeyword: keyword.keyword,
           collectionType: keyword.category as CollectionType,
-          sourcePage: keyword.source,
           rankPosition: keyword.rank,
         });
-      });
+        
+        logs.push(log);
+      }
 
       await this.keywordCollectionLogsRepository.save(logs);
       console.log(`📝 수집 로그 저장 완료: ${logs.length}개`);

@@ -97,7 +97,7 @@ export class NaverApiService {
 
       // 블로그 검색과 데이터랩 트렌드를 병렬로 조회
       const [blogSearchResult, datalabResult] = await Promise.all([
-        this.searchBlogs(query, 20, 1),
+        this.searchBlogs(query, 1, 1),
         this.getDatalab({
           startDate: this.appConfig.defaultStartDate,
           endDate: this.appConfig.defaultEndDate,

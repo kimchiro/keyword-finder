@@ -5,8 +5,11 @@ import {
   CreateDateColumn,
   Index,
   Unique,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { Keyword } from './keyword.entity';
 
 export enum PeriodType {
   DAILY = 'daily',
@@ -15,19 +18,27 @@ export enum PeriodType {
 }
 
 @Entity('search_trends')
-@Unique(['keyword', 'periodType', 'periodValue'])
-@Index(['keyword'])
+@Unique(['keywordId', 'periodType', 'periodValue'])
+@Index(['keywordId'])
 @Index(['periodType'])
 @Index(['periodValue'])
-@Index(['keyword', 'periodType']) // 복합 인덱스 추가
+@Index(['keywordId', 'periodType']) // 복합 인덱스 추가
 export class SearchTrends {
   @ApiProperty({ description: '고유 ID' })
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ApiProperty({ description: '키워드 ID' })
+  @Column({ name: 'keyword_id', type: 'int' })
+  keywordId: number;
+
   @ApiProperty({ description: '키워드' })
   @Column({ type: 'varchar', length: 255 })
   keyword: string;
+
+  @ManyToOne(() => Keyword, (keyword) => keyword.searchTrends, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'keyword_id' })
+  keywordEntity: Keyword;
 
   @ApiProperty({ description: '기간 타입', enum: PeriodType })
   @Column({

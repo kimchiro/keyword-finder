@@ -3,6 +3,8 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ScrapingService } from './scraping.service';
 import { KeywordCollectionLogs } from '../../database/entities/keyword-collection-logs.entity';
+import { BrowserPoolService } from '../../common/services/browser-pool.service';
+import { AppConfigService } from '../../config/app.config';
 
 describe('ScrapingService', () => {
   let service: ScrapingService;
@@ -14,6 +16,15 @@ describe('ScrapingService', () => {
     createQueryBuilder: jest.fn(),
   };
 
+  const mockBrowserPoolService = {
+    acquireBrowser: jest.fn(),
+    releaseBrowser: jest.fn(),
+  };
+
+  const mockAppConfigService = {
+    get: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -21,6 +32,14 @@ describe('ScrapingService', () => {
         {
           provide: getRepositoryToken(KeywordCollectionLogs),
           useValue: mockRepository,
+        },
+        {
+          provide: BrowserPoolService,
+          useValue: mockBrowserPoolService,
+        },
+        {
+          provide: AppConfigService,
+          useValue: mockAppConfigService,
         },
       ],
     }).compile();
@@ -44,14 +63,13 @@ describe('ScrapingService', () => {
         maxResults: 50,
       };
 
-      // Mock performRealScraping method
+      // Mock performRealScraping method with new response structure
       const mockScrapedKeywords = [
         {
           keyword: '맛집 추천',
           category: 'autosuggest',
           rank: 1,
           source: 'naver_autosuggest',
-          searchVolume: 10000,
           competition: 'medium',
           similarity: 'high',
         },
@@ -60,7 +78,6 @@ describe('ScrapingService', () => {
           category: 'related',
           rank: 2,
           source: 'naver_related',
-          searchVolume: 8000,
           competition: 'low',
           similarity: 'medium',
         },
@@ -69,14 +86,34 @@ describe('ScrapingService', () => {
           category: 'trending',
           rank: 3,
           source: 'naver_trending',
-          searchVolume: 15000,
           competition: 'high',
           similarity: 'low',
         },
       ];
 
+      const mockCollectionDetails = {
+        autosuggest: {
+          status: 'success',
+          message: '자동완성 키워드 1개 수집 완료',
+          count: 1,
+        },
+        related: {
+          status: 'success',
+          message: '연관검색어 1개 수집 완료',
+          count: 1,
+        },
+        trending: {
+          status: 'success',
+          message: '인기주제 키워드 1개 수집 완료',
+          count: 1,
+        },
+      };
+
       // Mock private method using prototype
-      jest.spyOn(service as any, 'performRealScraping').mockResolvedValue(mockScrapedKeywords);
+      jest.spyOn(service as any, 'performRealScraping').mockResolvedValue({
+        keywords: mockScrapedKeywords,
+        collectionDetails: mockCollectionDetails,
+      });
       jest.spyOn(service as any, 'saveCollectionLogs').mockResolvedValue(undefined);
 
       // When
@@ -91,6 +128,7 @@ describe('ScrapingService', () => {
         related: 1,
         trending: 1,
       });
+      expect(result.collectionDetails).toEqual(mockCollectionDetails);
       expect(result.executionTime).toBeGreaterThan(0);
       expect(service['performRealScraping']).toHaveBeenCalledWith(
         scrapeDto.query,
@@ -111,7 +149,18 @@ describe('ScrapingService', () => {
         maxResults: 10,
       };
 
-      jest.spyOn(service as any, 'performRealScraping').mockResolvedValue([]);
+      const mockEmptyCollectionDetails = {
+        autosuggest: {
+          status: 'no_content',
+          message: '해당 키워드에 대한 자동완성 데이터가 존재하지 않습니다',
+          count: 0,
+        },
+      };
+
+      jest.spyOn(service as any, 'performRealScraping').mockResolvedValue({
+        keywords: [],
+        collectionDetails: mockEmptyCollectionDetails,
+      });
       jest.spyOn(service as any, 'saveCollectionLogs').mockResolvedValue(undefined);
 
       // When
@@ -122,6 +171,7 @@ describe('ScrapingService', () => {
       expect(result.totalKeywords).toBe(0);
       expect(result.keywords).toEqual([]);
       expect(result.categories).toEqual({});
+      expect(result.collectionDetails).toEqual(mockEmptyCollectionDetails);
     });
   });
 
@@ -204,13 +254,14 @@ describe('ScrapingService', () => {
       const mockQueryBuilder = {
         select: jest.fn().mockReturnThis(),
         addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
         groupBy: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
         limit: jest.fn().mockReturnThis(),
         getRawMany: jest.fn().mockResolvedValue([
-          { baseQuery: '맛집', totalKeywords: 150, avgSearchVolume: 12000 },
-          { baseQuery: '카페', totalKeywords: 120, avgSearchVolume: 8000 },
-          { baseQuery: '여행', totalKeywords: 200, avgSearchVolume: 15000 },
+          { date: '2024-01-01', collectionType: 'related_search', count: 150 },
+          { date: '2024-01-02', collectionType: 'smartblock', count: 120 },
+          { date: '2024-01-03', collectionType: 'trending', count: 200 },
         ]),
       };
 
@@ -222,6 +273,13 @@ describe('ScrapingService', () => {
       // Then
       expect(result.period).toBeDefined();
       expect(result.totalKeywords).toBeDefined();
+      expect(result.dailyStats).toBeDefined();
+      expect(Array.isArray(result.dailyStats)).toBe(true);
+      expect(mockQueryBuilder.select).toHaveBeenCalled();
+      expect(mockQueryBuilder.where).toHaveBeenCalled();
+      expect(mockQueryBuilder.groupBy).toHaveBeenCalled();
+      expect(mockQueryBuilder.orderBy).toHaveBeenCalled();
+      expect(mockQueryBuilder.getRawMany).toHaveBeenCalled();
     });
   });
 });
