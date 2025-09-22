@@ -13,6 +13,7 @@ import { WeekdaySearchRatios } from '../../database/entities/weekday-search-rati
 import { GenderSearchRatios } from '../../database/entities/gender-search-ratios.entity';
 import { IssueAnalysis } from '../../database/entities/issue-analysis.entity';
 import { IntentAnalysis } from '../../database/entities/intent-analysis.entity';
+import { KeywordCollectionLogs } from '../../database/entities/keyword-collection-logs.entity';
 import { 
   KeywordAnalysisDomainService, 
   KeywordDataService, 
@@ -31,6 +32,7 @@ import {
       GenderSearchRatios,
       IssueAnalysis,
       IntentAnalysis,
+      KeywordCollectionLogs,
     ]),
   ],
   controllers: [KeywordAnalysisController],

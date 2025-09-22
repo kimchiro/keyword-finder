@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { Keyword, AnalysisDate, SearchVolume } from '../value-objects';
+import { Keyword, AnalysisDate } from '../value-objects';
 import { KeywordDataService } from './keyword-data.service';
 import { ChartDataService } from './chart-data.service';
 import { KeywordAnalysisAggregate } from '../aggregates/keyword-analysis.aggregate';
 
-// 키워드 분석 도메인 서비스 - 순수한 비즈니스 로직을 담당
+// 키워드 분석 도메인 서비스 - 네이버 API 결과 저장 및 조회 (단순화됨)
 @Injectable()
 export class KeywordAnalysisDomainService {
   constructor(
@@ -12,7 +12,7 @@ export class KeywordAnalysisDomainService {
     private chartDataService: ChartDataService,
   ) {}
 
-  // 키워드 분석 실행
+  // 키워드 분석 실행 - 네이버 API 결과를 직접 저장
   async analyzeKeyword(
     keywordValue: string,
     analysisDateValue?: string,
@@ -36,14 +36,10 @@ export class KeywordAnalysisDomainService {
       return await this.getExistingAnalysis(keyword, analysisDate);
     }
 
-    // 검색량 데이터 추출 및 검증
-    const searchVolume = this.extractSearchVolume(naverApiData);
-
-    // 키워드 분석 데이터 저장
+    // 네이버 API 결과를 직접 저장 (계산 로직 제거)
     const analytics = await this.keywordDataService.saveKeywordAnalytics(
       keyword,
       analysisDate,
-      searchVolume,
       naverApiData,
     );
 
@@ -54,7 +50,7 @@ export class KeywordAnalysisDomainService {
       relatedKeywordsData || [],
     );
 
-    // 차트 데이터 저장
+    // 차트 데이터 저장 (네이버 API 결과 직접 사용)
     const chartData = await this.chartDataService.saveChartData(
       keyword,
       analysisDate,
@@ -115,49 +111,40 @@ export class KeywordAnalysisDomainService {
     }
   }
 
-  // 네이버 API 데이터에서 검색량 추출
-  private extractSearchVolume(naverApiData?: any): SearchVolume {
-    if (!naverApiData?.datalab?.results?.[0]?.data) {
-      console.log('⚠️ 네이버 데이터랩 응답 데이터가 없습니다. 기본값 반환');
-      return SearchVolume.zero();
+  // 스크래핑 데이터 저장
+  async saveScrapingData(query: string, scrapingData: any): Promise<void> {
+    try {
+      console.log(`💾 스크래핑 데이터 저장 시작: ${query}`);
+      
+      const keyword = new Keyword(query);
+      const analysisDate = new AnalysisDate();
+      
+      // 스크래핑된 키워드 데이터를 데이터베이스에 저장
+      await this.keywordDataService.saveScrapedKeywords(keyword, analysisDate, scrapingData);
+      
+      console.log(`✅ 스크래핑 데이터 저장 완료: ${query}`);
+    } catch (error) {
+      console.error('❌ KeywordAnalysisDomainService.saveScrapingData 오류:', error);
+      throw error;
     }
-
-    const datalabData = naverApiData.datalab.results[0].data;
-    
-    // PC와 모바일 데이터가 분리되어 있는 경우
-    if (datalabData.length >= 2) {
-      const pcRatio = this.safeParseNumber(datalabData[0]?.ratio, 0);
-      const mobileRatio = this.safeParseNumber(datalabData[1]?.ratio, 0);
-      console.log(`📊 PC/모바일 분리 데이터: PC=${pcRatio}, Mobile=${mobileRatio}`);
-      return new SearchVolume(pcRatio, mobileRatio);
-    }
-
-    // 통합 데이터인 경우 (50:50 비율로 가정)
-    if (datalabData.length === 1) {
-      const totalRatio = this.safeParseNumber(datalabData[0]?.ratio, 0);
-      console.log(`📊 통합 데이터: Total=${totalRatio}`);
-      return SearchVolume.fromTotal(totalRatio, 50);
-    }
-
-    console.log('⚠️ 유효한 데이터랩 데이터가 없습니다. 기본값 반환');
-    return SearchVolume.zero();
   }
 
-  // 안전한 숫자 파싱 헬퍼 메서드
-  private safeParseNumber(value: any, defaultValue: number = 0): number {
-    if (value === null || value === undefined) {
-      return defaultValue;
+  // 저장된 스크래핑 키워드 조회
+  async getScrapedKeywords(query: string): Promise<any[]> {
+    try {
+      console.log(`🔍 스크래핑 키워드 조회: ${query}`);
+      
+      const keyword = new Keyword(query);
+      const result = await this.keywordDataService.findScrapedKeywords(keyword);
+      
+      console.log(`✅ 스크래핑 키워드 조회 완료: ${result.length}개`);
+      return result;
+    } catch (error) {
+      console.error('❌ KeywordAnalysisDomainService.getScrapedKeywords 오류:', error);
+      throw error;
     }
-    
-    const parsed = typeof value === 'number' ? value : parseFloat(value);
-    
-    if (isNaN(parsed) || !isFinite(parsed)) {
-      console.warn(`⚠️ 유효하지 않은 숫자 값: ${value}, 기본값 ${defaultValue} 사용`);
-      return defaultValue;
-    }
-    
-    return parsed;
   }
+
 
   // 기존 분석 데이터 조회
   private async getExistingAnalysis(

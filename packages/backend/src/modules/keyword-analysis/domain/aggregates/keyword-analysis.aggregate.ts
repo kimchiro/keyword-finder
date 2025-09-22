@@ -6,7 +6,7 @@ import { WeekdaySearchRatios } from '../../../../database/entities/weekday-searc
 import { GenderSearchRatios } from '../../../../database/entities/gender-search-ratios.entity';
 import { IssueAnalysis } from '../../../../database/entities/issue-analysis.entity';
 import { IntentAnalysis } from '../../../../database/entities/intent-analysis.entity';
-import { Keyword, AnalysisDate, SearchVolume } from '../value-objects';
+import { Keyword, AnalysisDate } from '../value-objects';
 
 // 키워드 분석 집합체 - 키워드 분석과 관련된 모든 데이터를 하나의 단위로 관리
 export class KeywordAnalysisAggregate {
@@ -72,12 +72,25 @@ export class KeywordAnalysisAggregate {
     };
   }
 
-  // 검색량 정보 반환
-  get searchVolume(): SearchVolume {
-    return new SearchVolume(
-      this._analytics.monthlySearchPc,
-      this._analytics.monthlySearchMobile,
-    );
+  // 검색량 정보 반환 - 단순한 객체로 반환
+  get searchVolume(): {
+    pc: number;
+    mobile: number;
+    total: number;
+    pcRatio: number;
+    mobileRatio: number;
+  } {
+    const pc = this._analytics.monthlySearchPc;
+    const mobile = this._analytics.monthlySearchMobile;
+    const total = pc + mobile;
+    
+    return {
+      pc,
+      mobile,
+      total,
+      pcRatio: total > 0 ? Math.round((pc / total) * 100) : 0,
+      mobileRatio: total > 0 ? Math.round((mobile / total) * 100) : 0,
+    };
   }
 
   // 연관 키워드 개수

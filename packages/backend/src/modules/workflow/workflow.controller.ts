@@ -23,14 +23,17 @@ export class WorkflowController {
 
   @Post('complete/:query')
   @ApiOperation({
-    summary: '완전한 키워드 분석 워크플로우 실행',
+    summary: '완전한 키워드 분석 워크플로우 실행 (새로운 순서)',
     description: `
-    프론트엔드 검색창에서 키워드 입력 시 실행되는 완전한 워크플로우:
-    1. 네이버 API 호출 (블로그 검색 + 데이터랩 트렌드)
-    2. 병렬로 Playwright 스크래핑 실행 (자동완성, 연관검색어, 인기주제, 스마트블록)
-    3. 모든 데이터를 데이터베이스에 저장
-    4. 키워드 분석 데이터 생성
-    5. 통합된 결과를 프론트엔드에 반환
+    프론트엔드 검색창에서 키워드 입력 시 실행되는 새로운 워크플로우:
+    1. 스크래핑 실행 (스마트블록, 연관검색어)
+    2. 스크래핑 데이터를 데이터베이스에 저장
+    3. DB에서 rank 1-5 키워드 추출 (스마트블록 우선, 연관검색어 보완)
+    4. 네이버 API 3번 호출:
+       - API 호출 1: 원본 키워드(1개) 단독 호출
+       - API 호출 2: 추출된 키워드 첫 번째 배치(최대 5개) 데이터랩 조회
+       - API 호출 3: 추출된 키워드 두 번째 배치(추가 5개) 데이터랩 조회
+    5. 통합된 분석 결과를 프론트엔드에 반환
     `,
   })
   @ApiParam({
@@ -52,7 +55,20 @@ export class WorkflowController {
             query: { type: 'string', example: '맛집' },
             naverApiData: {
               type: 'object',
-              description: '네이버 API 데이터 (블로그 검색 + 데이터랩)',
+              properties: {
+                original: {
+                  type: 'object',
+                  description: '원본 키워드 네이버 API 데이터 (블로그 검색 + 데이터랩)',
+                },
+                firstBatch: {
+                  type: 'object',
+                  description: '추출된 키워드 첫 번째 배치(최대 5개) 데이터랩 트렌드 데이터',
+                },
+                secondBatch: {
+                  type: 'object',
+                  description: '추출된 키워드 두 번째 배치(추가 5개) 데이터랩 트렌드 데이터',
+                },
+              },
             },
             scrapingData: {
               type: 'object',
@@ -61,6 +77,32 @@ export class WorkflowController {
             analysisData: {
               type: 'object',
               description: '키워드 분석 결과',
+            },
+            topKeywords: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'DB에서 추출된 상위 5개 키워드',
+              example: ['맛집 추천', '맛집 리스트', '맛집 후기', '맛집 검색', '맛집 정보'],
+            },
+            keywordsWithRank: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  keyword: { type: 'string', example: '맛집 추천' },
+                  originalRank: { type: 'number', example: 1 },
+                  category: { type: 'string', example: 'smartblock' },
+                  source: { type: 'string', example: 'naver_smartblock' },
+                },
+              },
+              description: 'DB에서 추출된 키워드의 상세 rank 정보',
+              example: [
+                { keyword: '맛집 추천', originalRank: 1, category: 'smartblock', source: 'naver_smartblock' },
+                { keyword: '맛집 리스트', originalRank: 2, category: 'smartblock', source: 'naver_smartblock' },
+                { keyword: '맛집 후기', originalRank: 3, category: 'smartblock', source: 'naver_smartblock' },
+                { keyword: '서울 맛집', originalRank: 1, category: 'related_search', source: 'naver_related_search' },
+                { keyword: '부산 맛집', originalRank: 2, category: 'related_search', source: 'naver_related_search' },
+              ],
             },
             executionTime: { type: 'number', example: 15.2 },
             timestamp: { type: 'string', example: '2025-09-21T08:30:00.000Z' },

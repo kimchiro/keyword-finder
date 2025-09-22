@@ -30,7 +30,7 @@ export class ChartDataService {
     private dataSource: DataSource,
   ) {}
 
-  // 차트 데이터 저장
+  // 차트 데이터 저장 - 네이버 API 결과 직접 저장 (단순화)
   async saveChartData(
     keyword: Keyword,
     analysisDate: AnalysisDate,
@@ -47,54 +47,26 @@ export class ChartDataService {
       // 기존 차트 데이터 삭제
       await this.clearExistingChartData(keyword, analysisDate, queryRunner);
 
-      const searchTrends = [];
-      const monthlyRatios = [];
+      // 네이버 API 데이터를 직접 변환하여 저장
+      const chartDataToSave = this.extractChartDataFromNaverApi(keyword.value, analysisDate, naverApiData);
 
-      // 네이버 데이터랩 데이터 처리
-      if (naverApiData?.datalab?.results?.[0]?.data) {
-        const datalabData = naverApiData.datalab.results[0].data;
-        
-        for (const dataPoint of datalabData) {
-          // 검색 트렌드 데이터
-          searchTrends.push({
-            keyword: keyword.value,
-            periodType: PeriodType.MONTHLY,
-            periodValue: dataPoint.period,
-            searchVolume: dataPoint.ratio,
-            searchRatio: dataPoint.ratio,
-          });
+      // 배치 삽입
+      if (chartDataToSave.searchTrends.length > 0) {
+        await this.transactionService.batchInsert(
+          queryRunner,
+          SearchTrends,
+          chartDataToSave.searchTrends,
+          500
+        );
+      }
 
-          // 월별 검색 비율 데이터
-          const monthMatch = dataPoint.period.match(/-(\d{2})-/);
-          if (monthMatch) {
-            const monthNumber = parseInt(monthMatch[1]);
-            monthlyRatios.push({
-              keyword: keyword.value,
-              monthNumber,
-              searchRatio: dataPoint.ratio,
-              analysisYear: analysisDate.year,
-            });
-          }
-        }
-
-        // 배치 삽입
-        if (searchTrends.length > 0) {
-          await this.transactionService.batchInsert(
-            queryRunner,
-            SearchTrends,
-            searchTrends,
-            500
-          );
-        }
-
-        if (monthlyRatios.length > 0) {
-          await this.transactionService.batchInsert(
-            queryRunner,
-            MonthlySearchRatios,
-            monthlyRatios,
-            500
-          );
-        }
+      if (chartDataToSave.monthlyRatios.length > 0) {
+        await this.transactionService.batchInsert(
+          queryRunner,
+          MonthlySearchRatios,
+          chartDataToSave.monthlyRatios,
+          500
+        );
       }
 
       // 저장된 데이터 조회
@@ -216,5 +188,55 @@ export class ChartDataService {
       this.transactionService.batchDelete(queryRunner, IssueAnalysis, { keyword: keyword.value, analysisDate: analysisDate.value }),
       this.transactionService.batchDelete(queryRunner, IntentAnalysis, { keyword: keyword.value, analysisDate: analysisDate.value }),
     ]);
+  }
+
+  // 네이버 API 데이터에서 차트 데이터 추출
+  private extractChartDataFromNaverApi(
+    keyword: string,
+    analysisDate: AnalysisDate,
+    naverApiData?: any,
+  ): {
+    searchTrends: any[];
+    monthlyRatios: any[];
+  } {
+    const searchTrends: any[] = [];
+    const monthlyRatios: any[] = [];
+
+    try {
+      // 네이버 데이터랩 데이터 처리
+      if (naverApiData?.datalab?.results?.[0]?.data) {
+        const datalabData = naverApiData.datalab.results[0].data;
+        
+        for (const dataPoint of datalabData) {
+          // 검색 트렌드 데이터 - 네이버 API 결과 직접 사용
+          searchTrends.push({
+            keyword,
+            periodType: PeriodType.MONTHLY,
+            periodValue: dataPoint.period,
+            searchVolume: dataPoint.ratio,
+            searchRatio: dataPoint.ratio,
+          });
+
+          // 월별 검색 비율 데이터
+          const monthMatch = dataPoint.period.match(/-(\d{2})-/);
+          if (monthMatch) {
+            const monthNumber = parseInt(monthMatch[1]);
+            monthlyRatios.push({
+              keyword,
+              monthNumber,
+              searchRatio: dataPoint.ratio,
+              analysisYear: analysisDate.year,
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('❌ 네이버 API 차트 데이터 추출 오류:', error);
+    }
+
+    return {
+      searchTrends,
+      monthlyRatios,
+    };
   }
 }

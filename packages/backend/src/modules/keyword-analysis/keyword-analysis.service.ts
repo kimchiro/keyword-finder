@@ -56,4 +56,28 @@ export class KeywordAnalysisService {
       throw error;
     }
   }
+
+  /**
+   * 스크래핑 데이터를 데이터베이스에 저장
+   */
+  async saveScrapingData(query: string, scrapingData: any) {
+    try {
+      return await this.keywordAnalysisDomainService.saveScrapingData(query, scrapingData);
+    } catch (error) {
+      console.error('❌ KeywordAnalysisService.saveScrapingData 오류:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 저장된 스크래핑 키워드 조회
+   */
+  async getScrapedKeywords(query: string) {
+    try {
+      return await this.keywordAnalysisDomainService.getScrapedKeywords(query);
+    } catch (error) {
+      console.error('❌ KeywordAnalysisService.getScrapedKeywords 오류:', error);
+      throw error;
+    }
+  }
 }
