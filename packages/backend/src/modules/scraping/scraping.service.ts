@@ -148,11 +148,11 @@ export class ScrapingService {
       // maxResults 제한 적용
       const limitedKeywords = scrapingResult.keywords.slice(0, maxResults);
       
-      // 데이터베이스 저장 형식으로 변환 (순위를 1부터 재정렬)
-      const formattedKeywords = limitedKeywords.map((keyword, index) => ({
+      // 데이터베이스 저장 형식으로 변환 (카테고리별 원본 순위 유지)
+      const formattedKeywords = limitedKeywords.map((keyword) => ({
         keyword: keyword.keyword,
         category: keyword.category,
-        rank: index + 1, // 수집된 순서대로 1부터 순위 재정렬
+        rank: keyword.rank, // 스크래퍼에서 설정한 원본 순위 유지 (카테고리별 독립적)
         source: keyword.source,
         competition: keyword.competition || 'medium',
         similarity: keyword.similarity || 'medium',

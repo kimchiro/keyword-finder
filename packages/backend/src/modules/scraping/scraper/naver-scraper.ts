@@ -121,13 +121,17 @@ export class NaverScraper {
         }
       }
 
-      // 중복 제거 및 최대 10개로 제한 (순위 유지)
+      // 중복 제거 및 최대 10개로 제한 후 순위 재정렬
       const uniqueKeywords = keywords
         .filter((keyword, index, self) => {
           const firstIndex = self.findIndex(k => k.keyword === keyword.keyword);
           return firstIndex === index;
         })
-        .slice(0, SCRAPING_DEFAULTS.MAX_KEYWORDS_PER_TYPE);
+        .slice(0, SCRAPING_DEFAULTS.MAX_KEYWORDS_PER_TYPE)
+        .map((keyword, index) => ({
+          ...keyword,
+          rank: index + 1 // 중복 제거 후 순위를 1부터 재정렬
+        }));
 
       if (uniqueKeywords.length === 0) {
         console.log('⚠️ 유효한 키워드를 찾을 수 없습니다');
@@ -167,7 +171,12 @@ export class NaverScraper {
       const page2Results = await this.scrapeRelatedFromPage(query, 2);
       
       if (page2Results.status === 'success' && page2Results.keywords.length > 0) {
-        const limitedKeywords = page2Results.keywords.slice(0, maxResults);
+        const limitedKeywords = page2Results.keywords
+          .slice(0, maxResults)
+          .map((keyword, index) => ({
+            ...keyword,
+            rank: index + 1 // 제한 후 순위를 1부터 재정렬
+          }));
         console.log(`✅ 연관검색어 ${limitedKeywords.length}개 수집 완료 (2페이지)`);
         return {
           keywords: limitedKeywords,
@@ -287,16 +296,16 @@ export class NaverScraper {
             
             // 연관검색어 특별 검증 (더 엄격한 필터링)
             if (this.isValidRelatedKeyword(cleanKeyword, query)) {
-              const relativeRank = relatedKeywords.length + 1; // 상대적 순위 (수집된 순서대로)
+              const rank = relatedKeywords.length + 1; // 연관검색어 카테고리 내 독립적인 순위 (1부터 시작)
               relatedKeywords.push({
                 keyword: cleanKeyword,
                 category: 'related_search',
-                rank: relativeRank, // 상대적 순위 설정
+                rank: rank, // 연관검색어 카테고리 내 독립적인 순위 설정
                 competition: this.estimateCompetition(cleanKeyword),
                 similarity: this.calculateSimilarity(query, cleanKeyword),
               });
               
-              console.log(`✅ 연관검색어 수집: "${cleanKeyword}" (상대순위: ${relativeRank}, 페이지: ${page})`);
+              console.log(`✅ 연관검색어 수집: "${cleanKeyword}" (순위: ${rank}, 페이지: ${page})`);
             } else {
               console.log(`❌ 연관검색어 필터링됨: "${cleanKeyword}"`);
             }

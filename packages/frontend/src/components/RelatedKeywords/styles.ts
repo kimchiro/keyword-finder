@@ -17,8 +17,10 @@ export const Title = styled.h2`
   border-bottom: 2px solid #f0f0f0;
 `;
 
-export const ScrollContainer = styled.div`
+export const TableContainer = styled.div`
   overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
   
   /* 스크롤바 스타일링 */
   &::-webkit-scrollbar {
@@ -40,126 +42,127 @@ export const ScrollContainer = styled.div`
   }
 `;
 
-export const KeywordList = styled.div`
-  display: flex;
-  gap: 16px;
-  min-width: max-content;
-  padding-bottom: 8px;
+export const Table = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  min-width: 600px;
+`;
+
+export const TableHeader = styled.thead`
+  background: #f8f9fa;
+`;
+
+export const TableBody = styled.tbody``;
+
+export const TableRow = styled.tr`
+  border-bottom: 1px solid #e5e7eb;
+  transition: background-color 0.2s ease;
   
-  @media (max-width: 768px) {
-    gap: 12px;
+  &:hover {
+    background: #f8f9fa;
+  }
+  
+  &:last-child {
+    border-bottom: none;
   }
 `;
 
-export const KeywordItem = styled.div`
-  display: flex;
-  flex-direction: column;
-  min-width: 250px;
-  flex-shrink: 0;
-  padding: 20px;
-  background: #f8f9fa;
-  border-radius: 12px;
-  border: 1px solid #e9ecef;
-  position: relative;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: #e9ecef;
-    transform: translateY(-4px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+export const TableHeaderCell = styled.th`
+  padding: 16px 20px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 2px solid #e5e7eb;
+  white-space: nowrap;
+  
+  &:first-of-type {
+    width: 80px;
+    text-align: center;
   }
+  
+  &:nth-of-type(2) {
+    min-width: 200px;
+  }
+  
+  &:nth-of-type(3) {
+    width: 120px;
+  }
+  
+  &:nth-of-type(4) {
+    width: 100px;
+    text-align: center;
+  }
+  
+  &:nth-of-type(5) {
+    width: 100px;
+    text-align: center;
+  }
+`;
 
-  @media (max-width: 768px) {
-    min-width: 220px;
-    padding: 16px;
+export const TableCell = styled.td`
+  padding: 16px 20px;
+  font-size: 14px;
+  color: #374151;
+  vertical-align: middle;
+  
+  &:first-of-type {
+    text-align: center;
+  }
+  
+  &:nth-of-type(4) {
+    text-align: center;
+    font-weight: 500;
+  }
+  
+  &:nth-of-type(5) {
+    text-align: center;
   }
 `;
 
 export const RankBadge = styled.div<{ rank: number }>`
-  position: absolute;
-  top: -8px;
-  right: -8px;
   background: ${props => {
     if (props.rank <= 3) return '#ffd700'; // 금색
     if (props.rank <= 10) return '#2563eb'; // 파란색
     return '#666'; // 회색
   }};
   color: ${props => props.rank <= 3 ? '#333' : 'white'};
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  z-index: 10;
-`;
-
-export const KeywordRank = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 32px;
   height: 32px;
-  background: #2563eb;
-  color: white;
   border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 12px;
-  font-weight: 600;
-  flex-shrink: 0;
+  font-weight: 700;
+  margin: 0 auto;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
+
 
 export const KeywordText = styled.div`
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: #1f2937;
-  margin: 12px 0 16px 0;
-  text-align: center;
   word-break: break-word;
-  line-height: 1.3;
+  line-height: 1.4;
 `;
 
-export const KeywordStats = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-`;
 
-export const StatItem = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  background: white;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
-`;
 
-export const StatLabel = styled.div`
-  font-size: 11px;
-  color: #666;
-  font-weight: 500;
-`;
 
-export const StatValue = styled.div`
-  font-size: 14px;
-  font-weight: 600;
-  color: #1f2937;
-`;
 
 export const SimilarityBadge = styled.div<{ color: string }>`
   background: ${props => props.color};
   color: white;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 12px;
   font-weight: 600;
   text-align: center;
-  min-width: 40px;
+  min-width: 50px;
+  display: inline-block;
 `;
 
 export const EmptyState = styled.div`

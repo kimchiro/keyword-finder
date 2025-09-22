@@ -5,17 +5,17 @@ import { RelatedKeywordsProps } from './types';
 import {
   Container,
   Title,
-  ScrollContainer,
-  KeywordList,
-  KeywordItem,
+  TableContainer,
+  Table,
+  TableHeader,
+  TableHeaderCell,
+  TableBody,
+  TableRow,
+  TableCell,
+  RankBadge,
   KeywordText,
-  KeywordStats,
-  StatItem,
-  StatLabel,
-  StatValue,
   SimilarityBadge,
   EmptyState,
-  RankBadge,
 } from './styles';
 
 export const RelatedKeywords: React.FC<RelatedKeywordsProps> = ({ keywords }) => {
@@ -70,36 +70,42 @@ export const RelatedKeywords: React.FC<RelatedKeywordsProps> = ({ keywords }) =>
   return (
     <Container>
       <Title>연관 키워드 (상위 {keywords.length}개)</Title>
-      <ScrollContainer>
-        <KeywordList>
-          {keywords.map((keyword, index) => (
-            <KeywordItem key={`${keyword.keyword}-${index}`}>
-              <RankBadge rank={keyword.rank}>#{keyword.rank}</RankBadge>
-              
-              <KeywordText>{keyword.keyword}</KeywordText>
-              
-              <KeywordStats>
-                <StatItem>
-                  <StatLabel>카테고리</StatLabel>
-                  <StatValue>{keyword.category === 'related_search' ? '연관검색어' : keyword.category}</StatValue>
-                </StatItem>
-                
-                <StatItem>
-                  <StatLabel>경쟁도</StatLabel>
-                  <StatValue>{getCompetitionText(keyword.competition)}</StatValue>
-                </StatItem>
-                
-                <StatItem>
-                  <StatLabel>유사도</StatLabel>
+      <TableContainer>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHeaderCell>순위</TableHeaderCell>
+              <TableHeaderCell>키워드</TableHeaderCell>
+              <TableHeaderCell>카테고리</TableHeaderCell>
+              <TableHeaderCell>경쟁도</TableHeaderCell>
+              <TableHeaderCell>유사도</TableHeaderCell>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {keywords.map((keyword, index) => (
+              <TableRow key={`${keyword.keyword}-${index}`}>
+                <TableCell>
+                  <RankBadge rank={keyword.rank}>#{keyword.rank}</RankBadge>
+                </TableCell>
+                <TableCell>
+                  <KeywordText>{keyword.keyword}</KeywordText>
+                </TableCell>
+                <TableCell>
+                  {keyword.category === 'related_search' ? '연관검색어' : keyword.category}
+                </TableCell>
+                <TableCell>
+                  {getCompetitionText(keyword.competition)}
+                </TableCell>
+                <TableCell>
                   <SimilarityBadge color={getSimilarityColor(keyword.similarity)}>
                     {getSimilarityText(keyword.similarity)}
                   </SimilarityBadge>
-                </StatItem>
-              </KeywordStats>
-            </KeywordItem>
-          ))}
-        </KeywordList>
-      </ScrollContainer>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Container>
   );
 };

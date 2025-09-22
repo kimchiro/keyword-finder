@@ -3,16 +3,16 @@ import { SmartBlockProps } from './types';
 import {
   SmartBlockContainer,
   SmartBlockTitle,
-  SmartBlockScrollContainer,
-  SmartBlockGrid,
-  SmartBlockItem,
-  KeywordText,
-  KeywordStats,
-  StatItem,
-  StatLabel,
-  StatValue,
-  SimilarityBadge,
+  TableContainer,
+  Table,
+  TableHeader,
+  TableHeaderCell,
+  TableBody,
+  TableRow,
+  TableCell,
   RankBadge,
+  KeywordText,
+  SimilarityBadge,
 } from './styles';
 
 export const SmartBlock: React.FC<SmartBlockProps> = ({ keywords }) => {
@@ -77,36 +77,42 @@ export const SmartBlock: React.FC<SmartBlockProps> = ({ keywords }) => {
     <SmartBlockContainer>
       <SmartBlockTitle>🧠 스마트블록 키워드 (상위 {smartBlockKeywords.length}개)</SmartBlockTitle>
       
-      <SmartBlockScrollContainer>
-        <SmartBlockGrid>
-          {smartBlockKeywords.map((keyword, index) => (
-            <SmartBlockItem key={`smartblock-${keyword.keyword}-${index}`}>
-              <RankBadge rank={keyword.rank}>#{keyword.rank}</RankBadge>
-              
-              <KeywordText>{keyword.keyword}</KeywordText>
-              
-              <KeywordStats>
-                <StatItem>
-                  <StatLabel>카테고리</StatLabel>
-                  <StatValue>스마트블록</StatValue>
-                </StatItem>
-                
-                <StatItem>
-                  <StatLabel>경쟁도</StatLabel>
-                  <StatValue>{getCompetitionText(keyword.competition)}</StatValue>
-                </StatItem>
-                
-                <StatItem>
-                  <StatLabel>유사도</StatLabel>
+      <TableContainer>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHeaderCell>순위</TableHeaderCell>
+              <TableHeaderCell>키워드</TableHeaderCell>
+              <TableHeaderCell>카테고리</TableHeaderCell>
+              <TableHeaderCell>경쟁도</TableHeaderCell>
+              <TableHeaderCell>유사도</TableHeaderCell>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {smartBlockKeywords.map((keyword, index) => (
+              <TableRow key={`smartblock-${keyword.keyword}-${index}`}>
+                <TableCell>
+                  <RankBadge rank={keyword.rank}>#{keyword.rank}</RankBadge>
+                </TableCell>
+                <TableCell>
+                  <KeywordText>{keyword.keyword}</KeywordText>
+                </TableCell>
+                <TableCell>
+                  스마트블록
+                </TableCell>
+                <TableCell>
+                  {getCompetitionText(keyword.competition)}
+                </TableCell>
+                <TableCell>
                   <SimilarityBadge color={getSimilarityColor(keyword.similarity)}>
                     {getSimilarityText(keyword.similarity)}
                   </SimilarityBadge>
-                </StatItem>
-              </KeywordStats>
-            </SmartBlockItem>
-          ))}
-        </SmartBlockGrid>
-      </SmartBlockScrollContainer>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </SmartBlockContainer>
   );
 };
