@@ -30,21 +30,33 @@ export const useWorkflow = () => {
     setState(prev => ({ ...prev, loading: true, error: null }));
     
     try {
+      console.log(`🚀 useWorkflow: 완전한 워크플로우 시작 - ${query}`);
       const response = await runCompleteWorkflow(query);
       
-      if (response.success) {
+      console.log(`📊 useWorkflow: API 응답 받음`, { 
+        success: response?.success, 
+        hasData: !!response?.data,
+        message: response?.message 
+      });
+      
+      if (response && response.success) {
         setState(prev => ({ 
           ...prev, 
           loading: false, 
           data: response.data,
           error: null 
         }));
+        console.log(`✅ useWorkflow: 완전한 워크플로우 성공 - ${query}`);
         return response.data;
       } else {
-        throw new Error(response.message || '워크플로우 실행 중 오류가 발생했습니다.');
+        const errorMsg = response?.message || '워크플로우 실행 중 오류가 발생했습니다.';
+        console.error(`❌ useWorkflow: API 응답 실패`, { response, errorMsg });
+        throw new Error(errorMsg);
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '워크플로우 실행 실패';
+      console.error(`❌ useWorkflow: 완전한 워크플로우 실패 - ${query}:`, error);
+      
       setState(prev => ({ 
         ...prev, 
         loading: false, 

@@ -38,9 +38,25 @@ const ErrorMessage = styled.div`
   background: #fee;
   border: 1px solid #fcc;
   color: #c33;
-  padding: 12px;
+  padding: 16px;
   border-radius: 8px;
   margin: 16px 0;
+  font-size: 14px;
+  line-height: 1.5;
+  
+  strong {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  
+  .error-details {
+    font-size: 12px;
+    color: #999;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #fdd;
+  }
 `;
 
 export default function SearchPage() {
@@ -53,11 +69,14 @@ export default function SearchPage() {
   } = useWorkflow();
 
   const handleSearch = async (query: string) => {
+    console.log(`🔍 SearchPage: 검색 시작 - "${query}"`);
     reset();
     try {
-      await runComplete(query);
+      const result = await runComplete(query);
+      console.log(`✅ SearchPage: 검색 완료 - "${query}"`, result);
     } catch (error) {
-      console.error('워크플로우 실행 실패:', error);
+      console.error(`❌ SearchPage: 검색 실패 - "${query}":`, error);
+      // 에러는 이미 useWorkflow에서 상태로 관리되므로 추가 처리 불필요
     }
   };
 
@@ -74,7 +93,11 @@ export default function SearchPage() {
         {/* 에러 메시지 표시 */}
         {error && (
           <ErrorMessage>
+            <strong>⚠️ 오류가 발생했습니다</strong>
             {error}
+            <div className="error-details">
+              문제가 지속되면 페이지를 새로고침하거나 잠시 후 다시 시도해주세요.
+            </div>
           </ErrorMessage>
         )}
 
