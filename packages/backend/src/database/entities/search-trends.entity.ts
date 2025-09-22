@@ -18,27 +18,23 @@ export enum PeriodType {
 }
 
 @Entity('search_trends')
-@Unique(['keywordId', 'periodType', 'periodValue'])
-@Index(['keywordId'])
+@Unique(['keyword', 'periodType', 'periodValue']) // keyword 문자열 기반으로 변경
+@Index(['keyword']) // keyword 문자열 인덱스
 @Index(['periodType'])
 @Index(['periodValue'])
-@Index(['keywordId', 'periodType']) // 복합 인덱스 추가
+@Index(['keyword', 'periodType']) // 복합 인덱스 변경
 export class SearchTrends {
   @ApiProperty({ description: '고유 ID' })
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ApiProperty({ description: '키워드 ID' })
-  @Column({ name: 'keyword_id', type: 'int' })
-  keywordId: number;
+  @ApiProperty({ description: '키워드 ID (선택적)' })
+  @Column({ name: 'keyword_id', type: 'int', nullable: true })
+  keywordId?: number;
 
   @ApiProperty({ description: '키워드' })
   @Column({ type: 'varchar', length: 255 })
   keyword: string;
-
-  @ManyToOne(() => Keyword, (keyword) => keyword.searchTrends, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'keyword_id' })
-  keywordEntity: Keyword;
 
   @ApiProperty({ description: '기간 타입', enum: PeriodType })
   @Column({

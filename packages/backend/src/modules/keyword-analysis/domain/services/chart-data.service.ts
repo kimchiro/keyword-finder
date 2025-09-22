@@ -44,27 +44,44 @@ export class ChartDataService {
     intentAnalysis: IntentAnalysis | null;
   }> {
     return await this.transactionService.runInTransaction(async (queryRunner) => {
+      // 키워드 엔티티 조회 또는 생성
+      const KeywordEntity = await import('../../../../database/entities/keyword.entity').then(m => m.Keyword);
+      let keywordEntity = await queryRunner.manager.getRepository(KeywordEntity).findOne({
+        where: { keyword: keyword.value }
+      });
+
+      if (!keywordEntity) {
+        keywordEntity = await queryRunner.manager.getRepository(KeywordEntity).save({
+          keyword: keyword.value,
+          status: 'active',
+        });
+      }
+
       // 기존 차트 데이터 삭제
       await this.clearExistingChartData(keyword, analysisDate, queryRunner);
 
-      // 네이버 API 데이터를 직접 변환하여 저장
-      const chartDataToSave = this.extractChartDataFromNaverApi(keyword.value, analysisDate, naverApiData);
+      // 네이버 API 데이터를 직접 변환하여 저장 (keywordId 포함)
+      const chartDataToSave = this.extractChartDataFromNaverApi(keyword.value, analysisDate, naverApiData, keywordEntity.id);
 
-      // 배치 삽입
+      // 배치 UPSERT (중복 키 처리)
       if (chartDataToSave.searchTrends.length > 0) {
-        await this.transactionService.batchInsert(
+        await this.transactionService.batchUpsert(
           queryRunner,
           SearchTrends,
           chartDataToSave.searchTrends,
+          ['keyword_id', 'keyword', 'period_type', 'period_value'], // 중복 감지 컬럼 (DB 컬럼명)
+          ['search_volume', 'search_ratio'], // 업데이트할 컬럼 (DB 컬럼명)
           500
         );
       }
 
       if (chartDataToSave.monthlyRatios.length > 0) {
-        await this.transactionService.batchInsert(
+        await this.transactionService.batchUpsert(
           queryRunner,
           MonthlySearchRatios,
           chartDataToSave.monthlyRatios,
+          ['keyword_id', 'keyword', 'month_number', 'analysis_year'], // 중복 감지 컬럼 (DB 컬럼명)
+          ['search_ratio'], // 업데이트할 컬럼 (DB 컬럼명)
           500
         );
       }
@@ -72,11 +89,11 @@ export class ChartDataService {
       // 저장된 데이터 조회
       const [savedSearchTrends, savedMonthlyRatios] = await Promise.all([
         queryRunner.manager.getRepository(SearchTrends).find({
-          where: { keyword: keyword.value, periodType: PeriodType.MONTHLY },
+          where: { keywordId: keywordEntity.id, keyword: keyword.value, periodType: PeriodType.MONTHLY },
           order: { periodValue: 'ASC' },
         }),
         queryRunner.manager.getRepository(MonthlySearchRatios).find({
-          where: { keyword: keyword.value, analysisYear: analysisDate.year },
+          where: { keywordId: keywordEntity.id, keyword: keyword.value, analysisYear: analysisDate.year },
           order: { monthNumber: 'ASC' },
         }),
       ]);
@@ -101,6 +118,24 @@ export class ChartDataService {
     issueAnalysis: IssueAnalysis | null;
     intentAnalysis: IntentAnalysis | null;
   }> {
+    // 키워드 엔티티 조회
+    const KeywordEntity = await import('../../../../database/entities/keyword.entity').then(m => m.Keyword);
+    const keywordEntity = await this.dataSource.getRepository(KeywordEntity).findOne({
+      where: { keyword: keyword.value }
+    });
+
+    if (!keywordEntity) {
+      // 키워드가 없으면 빈 데이터 반환
+      return {
+        searchTrends: [],
+        monthlyRatios: [],
+        weekdayRatios: [],
+        genderRatios: null,
+        issueAnalysis: null,
+        intentAnalysis: null,
+      };
+    }
+
     const analysisDateStr = analysisDate.dateString;
     
     const [
@@ -114,9 +149,9 @@ export class ChartDataService {
       this.dataSource
         .getRepository(SearchTrends)
         .createQueryBuilder('st')
-        .select(['st.id', 'st.periodValue', 'st.searchVolume', 'st.searchRatio'])
-        .where('st.keyword = :keyword AND st.periodType = :periodType')
-        .setParameters({ keyword: keyword.value, periodType: PeriodType.MONTHLY })
+        .select(['st.id', 'st.keywordId', 'st.keyword', 'st.periodType', 'st.periodValue', 'st.searchVolume', 'st.searchRatio', 'st.createdAt'])
+        .where('st.keywordId = :keywordId AND st.keyword = :keyword AND st.periodType = :periodType')
+        .setParameters({ keywordId: keywordEntity.id, keyword: keyword.value, periodType: PeriodType.MONTHLY })
         .orderBy('st.periodValue', 'ASC')
         .limit(12)
         .getMany(),
@@ -124,9 +159,9 @@ export class ChartDataService {
       this.dataSource
         .getRepository(MonthlySearchRatios)
         .createQueryBuilder('msr')
-        .select(['msr.id', 'msr.monthNumber', 'msr.searchRatio'])
-        .where('msr.keyword = :keyword AND msr.analysisYear = :analysisYear')
-        .setParameters({ keyword: keyword.value, analysisYear: analysisDate.year })
+        .select(['msr.id', 'msr.keywordId', 'msr.keyword', 'msr.monthNumber', 'msr.searchRatio', 'msr.analysisYear', 'msr.createdAt'])
+        .where('msr.keywordId = :keywordId AND msr.keyword = :keyword AND msr.analysisYear = :analysisYear')
+        .setParameters({ keywordId: keywordEntity.id, keyword: keyword.value, analysisYear: analysisDate.year })
         .orderBy('msr.monthNumber', 'ASC')
         .getMany(),
 
@@ -195,6 +230,7 @@ export class ChartDataService {
     keyword: string,
     analysisDate: AnalysisDate,
     naverApiData?: any,
+    keywordId?: number,
   ): {
     searchTrends: any[];
     monthlyRatios: any[];
@@ -210,6 +246,7 @@ export class ChartDataService {
         for (const dataPoint of datalabData) {
           // 검색 트렌드 데이터 - 네이버 API 결과 직접 사용
           searchTrends.push({
+            keywordId, // keywordId 추가
             keyword,
             periodType: PeriodType.MONTHLY,
             periodValue: dataPoint.period,
@@ -222,6 +259,7 @@ export class ChartDataService {
           if (monthMatch) {
             const monthNumber = parseInt(monthMatch[1]);
             monthlyRatios.push({
+              keywordId, // keywordId 추가
               keyword,
               monthNumber,
               searchRatio: dataPoint.ratio,

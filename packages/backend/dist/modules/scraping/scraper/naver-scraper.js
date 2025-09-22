@@ -25,26 +25,28 @@ class NaverScraper {
         }
         return this.session.page;
     }
-    async scrapeTrendingKeywords(query) {
-        console.log(`📈 인기주제 키워드 수집 시작: ${query}`);
+    async scrapeSmartBlockData(query) {
+        console.log(`🧠 스마트블록 데이터 수집 시작: ${query}`);
         try {
             await this.page.goto(`https://search.naver.com/search.naver?query=${encodeURIComponent(query)}`, {
                 waitUntil: 'networkidle',
             });
             await this.page.waitForTimeout(2000);
-            const trendingSelectors = [
-                '.trend_keyword', '.popular_keyword', '.issue_keyword', '.hot_keyword',
-                '.realtime_keyword', '.trending_search', '.keyword_trend', '.popular_search'
+            const popularTopicSelectors = [
+                '.api_subject_bx',
+                '.fds-comps-keyword-chip-text',
+                '.sds-comps-vertical-layout.sds-comps-full-layout.fds-collection-root'
             ];
-            let trendingExists = false;
-            for (const selector of trendingSelectors) {
+            let popularTopicExists = false;
+            for (const selector of popularTopicSelectors) {
                 const element = await this.page.$(selector);
                 if (element) {
-                    trendingExists = true;
+                    popularTopicExists = true;
+                    console.log(`✅ 인기주제 영역 발견: ${selector}`);
                     break;
                 }
             }
-            if (!trendingExists) {
+            if (!popularTopicExists) {
                 console.log('⚠️ 인기주제 영역이 존재하지 않습니다');
                 return {
                     keywords: [],
@@ -53,46 +55,46 @@ class NaverScraper {
                     count: 0
                 };
             }
-            const trendingKeywords = [];
-            const selectors = [
-                '.trend_keyword a',
-                '.popular_keyword a',
-                '.issue_keyword a',
-                '.hot_keyword a',
-                '.realtime_keyword a',
-                '.trending_search a',
-                '.keyword_trend a',
-                '.popular_search a',
-                '.api_subject_bx .elss',
-                '.related_srch .keyword',
-            ];
-            for (const selector of selectors) {
+            const keywords = [];
+            const keywordElements = await this.page.$$('.fds-comps-keyword-chip-text');
+            console.log(`🔍 발견된 키워드 요소 수: ${keywordElements.length}`);
+            for (let i = 0; i < keywordElements.length; i++) {
                 try {
-                    const elements = await this.page.$$(selector);
-                    for (const element of elements) {
-                        const text = await element.textContent();
-                        if (text && text.trim()) {
-                            const cleanText = text.trim().replace(/[\n\r\t]/g, ' ').replace(/\s+/g, ' ');
-                            if (this.isValidKeyword(cleanText, query)) {
-                                trendingKeywords.push({
-                                    keyword: cleanText,
-                                    category: 'trending',
-                                    source: 'naver_search_trending',
-                                    searchVolume: Math.floor(Math.random() * scraping_constants_1.SEARCH_VOLUME.DEFAULT_RANGE.MAX) + scraping_constants_1.SEARCH_VOLUME.DEFAULT_RANGE.MIN,
-                                    competition: this.estimateCompetition(cleanText),
-                                    similarity: this.calculateSimilarity(query, cleanText),
-                                });
-                            }
+                    const element = keywordElements[i];
+                    const keywordText = await element.textContent();
+                    if (keywordText && keywordText.trim()) {
+                        const cleanKeyword = keywordText.trim();
+                        if (this.isValidKeyword(cleanKeyword, query)) {
+                            keywords.push({
+                                keyword: cleanKeyword,
+                                category: 'smartblock',
+                                rank: i + 1,
+                                competition: this.estimateCompetition(cleanKeyword),
+                                similarity: this.calculateSimilarity(query, cleanKeyword),
+                            });
+                            console.log(`📝 키워드 수집: ${cleanKeyword} (순위: ${i + 1})`);
                         }
                     }
                 }
-                catch (error) {
-                    console.warn(`인기주제 키워드 선택자 실패 (${selector}):`, error.message);
+                catch (elementError) {
+                    console.warn('키워드 요소 처리 중 오류:', elementError);
                 }
             }
-            const uniqueKeywords = trendingKeywords
-                .filter((keyword, index, self) => self.findIndex(k => k.keyword === keyword.keyword) === index)
+            const uniqueKeywords = keywords
+                .filter((keyword, index, self) => {
+                const firstIndex = self.findIndex(k => k.keyword === keyword.keyword);
+                return firstIndex === index;
+            })
                 .slice(0, scraping_constants_1.SCRAPING_DEFAULTS.MAX_KEYWORDS_PER_TYPE);
+            if (uniqueKeywords.length === 0) {
+                console.log('⚠️ 유효한 키워드를 찾을 수 없습니다');
+                return {
+                    keywords: [],
+                    message: `"${query}" 키워드에 대한 유효한 인기주제 데이터를 찾을 수 없습니다`,
+                    status: 'no_content',
+                    count: 0
+                };
+            }
             console.log(`✅ 인기주제 키워드 ${uniqueKeywords.length}개 수집 완료`);
             return {
                 keywords: uniqueKeywords,
@@ -102,7 +104,7 @@ class NaverScraper {
             };
         }
         catch (error) {
-            console.error('❌ 인기주제 키워드 수집 실패:', error);
+            console.error('❌ 인기주제 데이터 수집 실패:', error);
             return {
                 keywords: [],
                 message: `인기주제 수집 중 오류 발생: ${error.message}`,
@@ -111,114 +113,28 @@ class NaverScraper {
             };
         }
     }
-    async scrapeSmartBlockData(query) {
-        console.log(`🧠 스마트블록 데이터 수집 시작: ${query}`);
+    async scrapeRelatedSearchKeywords(query, maxResults = scraping_constants_1.SCRAPING_DEFAULTS.MAX_KEYWORDS_PER_TYPE) {
+        console.log(`🔗 연관검색어 수집 시작: ${query} (2페이지에서만)`);
         try {
-            await this.page.goto(`https://search.naver.com/search.naver?query=${encodeURIComponent(query)}`, {
-                waitUntil: 'networkidle',
-            });
-            const smartBlockSelectors = [
-                '.api_subject_bx', '.smartblock', '.knowledge_box',
-                '._related_box', '.sds-comps-vertical-layout.sds-comps-full-layout.fds-collection-root'
-            ];
-            let smartBlockExists = false;
-            for (const selector of smartBlockSelectors) {
-                const element = await this.page.$(selector);
-                if (element) {
-                    smartBlockExists = true;
-                    break;
-                }
-            }
-            if (!smartBlockExists) {
-                console.log('⚠️ 스마트블록 영역이 존재하지 않습니다');
+            console.log('📄 2페이지에서 연관검색어 수집...');
+            const page2Results = await this.scrapeRelatedFromPage(query, 2);
+            if (page2Results.status === 'success' && page2Results.keywords.length > 0) {
+                const limitedKeywords = page2Results.keywords.slice(0, maxResults);
+                console.log(`✅ 연관검색어 ${limitedKeywords.length}개 수집 완료 (2페이지)`);
                 return {
-                    keywords: [],
-                    message: `"${query}" 키워드에 대한 스마트블록 데이터가 존재하지 않습니다`,
-                    status: 'no_content',
-                    count: 0
+                    keywords: limitedKeywords,
+                    message: `연관검색어 ${limitedKeywords.length}개 수집 완료 (2페이지)`,
+                    status: 'success',
+                    count: limitedKeywords.length,
+                    pages: [2]
                 };
             }
-            const allowedSelectorsString = scraping_constants_1.KEYWORD_FILTERING.ALLOWED_SELECTORS.join(', ');
-            const smartBlocks = await this.page.locator(allowedSelectorsString).all();
-            const keywords = [];
-            for (const block of smartBlocks) {
-                try {
-                    const blockKeywords = await block.locator('a, .keyword, .tag').allTextContents();
-                    blockKeywords
-                        .filter(keyword => this.isValidKeyword(keyword.trim(), query))
-                        .slice(0, 5)
-                        .forEach(keyword => {
-                        keywords.push({
-                            keyword: keyword.trim(),
-                            category: 'smartblock',
-                            source: 'naver_smartblock',
-                            competition: this.estimateCompetition(keyword),
-                            similarity: this.calculateSimilarity(query, keyword),
-                        });
-                    });
-                }
-                catch (blockError) {
-                    console.warn('스마트블록 처리 중 오류:', blockError);
-                }
-            }
-            const uniqueKeywords = keywords
-                .filter((keyword, index, self) => self.findIndex(k => k.keyword === keyword.keyword) === index)
-                .slice(0, scraping_constants_1.SCRAPING_DEFAULTS.MAX_KEYWORDS_PER_TYPE);
-            console.log(`✅ 스마트블록 키워드 ${uniqueKeywords.length}개 수집 완료`);
-            return {
-                keywords: uniqueKeywords,
-                message: `스마트블록 키워드 ${uniqueKeywords.length}개 수집 완료`,
-                status: 'success',
-                count: uniqueKeywords.length
-            };
-        }
-        catch (error) {
-            console.error('❌ 스마트블록 데이터 수집 실패:', error);
             return {
                 keywords: [],
-                message: `스마트블록 수집 중 오류 발생: ${error.message}`,
-                status: 'error',
-                count: 0
-            };
-        }
-    }
-    async scrapeRelatedSearchKeywords(query, maxResults = scraping_constants_1.SCRAPING_DEFAULTS.MAX_KEYWORDS_PER_TYPE) {
-        console.log(`🔗 연관검색어 수집 시작: ${query}`);
-        const allKeywords = [];
-        const pagesScraped = [];
-        try {
-            const page1Results = await this.scrapeRelatedFromPage(query, 1);
-            if (page1Results.status === 'success') {
-                allKeywords.push(...page1Results.keywords);
-                pagesScraped.push(1);
-            }
-            if (allKeywords.length < maxResults && allKeywords.length > 0) {
-                console.log('🔄 연관검색어 추가 수집을 위해 2페이지로 이동');
-                const page2Results = await this.scrapeRelatedFromPage(query, 2);
-                if (page2Results.status === 'success') {
-                    allKeywords.push(...page2Results.keywords);
-                    pagesScraped.push(2);
-                }
-            }
-            const uniqueKeywords = allKeywords
-                .filter((keyword, index, self) => self.findIndex(k => k.keyword === keyword.keyword) === index)
-                .slice(0, maxResults);
-            if (uniqueKeywords.length === 0) {
-                return {
-                    keywords: [],
-                    message: `"${query}" 키워드에 대한 연관검색어가 존재하지 않습니다`,
-                    status: 'no_content',
-                    count: 0,
-                    pages: []
-                };
-            }
-            console.log(`✅ 연관검색어 ${uniqueKeywords.length}개 수집 완료 (${pagesScraped.join(', ')}페이지)`);
-            return {
-                keywords: uniqueKeywords,
-                message: `연관검색어 ${uniqueKeywords.length}개 수집 완료 (${pagesScraped.join('-')}페이지)`,
-                status: 'success',
-                count: uniqueKeywords.length,
-                pages: pagesScraped
+                message: `"${query}" 키워드에 대한 연관검색어가 존재하지 않습니다 (2페이지)`,
+                status: 'no_content',
+                count: 0,
+                pages: [2]
             };
         }
         catch (error) {
@@ -228,49 +144,98 @@ class NaverScraper {
                 message: `연관검색어 수집 중 오류 발생: ${error.message}`,
                 status: 'error',
                 count: 0,
-                pages: pagesScraped
+                pages: [2]
             };
         }
     }
     async scrapeRelatedFromPage(query, page) {
         try {
-            const start = (page - 1) * 10;
-            const searchUrl = `https://search.naver.com/search.naver?query=${encodeURIComponent(query)}&start=${start}`;
+            let searchUrl;
+            if (page === 1) {
+                searchUrl = `https://search.naver.com/search.naver?query=${encodeURIComponent(query)}&where=web`;
+            }
+            else {
+                const start = page - 1;
+                searchUrl = `https://search.naver.com/search.naver?nso=&page=${page}&query=${encodeURIComponent(query)}&sm=tab_pge&start=${start}&where=web`;
+            }
             console.log(`📄 ${page}페이지 연관검색어 수집: ${searchUrl}`);
             await this.page.goto(searchUrl, { waitUntil: 'networkidle' });
-            await this.page.waitForTimeout(2000);
+            await this.page.waitForTimeout(5000);
             const relatedKeywords = [];
+            await this.page.evaluate(() => {
+                window.scrollTo(0, document.body.scrollHeight);
+            });
+            await this.page.waitForTimeout(3000);
+            try {
+                const pageContent = await this.page.content();
+                const hasRelatedSection = pageContent.includes('related_srch') || pageContent.includes('lst_related_srch');
+                console.log(`🔍 ${page}페이지 디버깅 정보:`);
+                console.log(`  - 연관검색어 클래스 존재: ${hasRelatedSection}`);
+            }
+            catch (error) {
+                console.warn('페이지 디버깅 중 오류:', error.message);
+            }
             const selectors = [
-                '.related_srch .keyword',
-                '.lst_related_srch a',
-                '.related_keyword a',
-                '.api_subject_bx .elss',
+                '.related_srch .lst_related_srch .item .keyword .tit',
+                '.lst_related_srch .item .keyword .tit',
+                '.related_srch .item .keyword .tit',
+                '.lst_related_srch .keyword .tit',
+                '.related_srch .tit',
+                '.lst_related_srch .tit',
             ];
+            let keywordElements = [];
+            let usedSelector = '';
             for (const selector of selectors) {
                 try {
-                    const elements = await this.page.$$(selector);
-                    for (const element of elements) {
-                        const text = await element.textContent();
-                        if (text && text.trim()) {
-                            const cleanText = text.trim().replace(/[\n\r\t]/g, ' ').replace(/\s+/g, ' ');
-                            if (this.isValidKeyword(cleanText, query)) {
-                                relatedKeywords.push({
-                                    keyword: cleanText,
-                                    category: 'related_search',
-                                    source: `naver_related_search_page${page}`,
-                                    searchVolume: Math.floor(Math.random() * scraping_constants_1.SEARCH_VOLUME.DEFAULT_RANGE.MAX) + scraping_constants_1.SEARCH_VOLUME.DEFAULT_RANGE.MIN,
-                                    competition: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)],
-                                    similarity: 'medium',
-                                });
-                            }
+                    keywordElements = await this.page.$$(selector);
+                    console.log(`🔍 선택자 "${selector}": ${keywordElements.length}개 요소`);
+                    if (keywordElements.length > 0) {
+                        usedSelector = selector;
+                        console.log(`✅ ${page}페이지에서 선택자 "${selector}"로 ${keywordElements.length}개 요소 발견`);
+                        break;
+                    }
+                }
+                catch (error) {
+                    console.warn(`선택자 "${selector}" 실패:`, error.message);
+                }
+            }
+            if (keywordElements.length === 0) {
+                console.log(`📄 ${page}페이지에 연관검색어를 찾을 수 없습니다`);
+                return {
+                    keywords: [],
+                    message: `${page}페이지에 연관검색어 없음`,
+                    status: 'no_content',
+                    count: 0
+                };
+            }
+            console.log(`📄 ${page}페이지에서 ${keywordElements.length}개 연관검색어 요소 발견`);
+            for (let i = 0; i < keywordElements.length; i++) {
+                try {
+                    const element = keywordElements[i];
+                    const text = await element.textContent();
+                    if (text && text.trim()) {
+                        const cleanKeyword = text.trim();
+                        if (this.isValidRelatedKeyword(cleanKeyword, query)) {
+                            const globalRank = (page - 1) * 10 + i + 1;
+                            relatedKeywords.push({
+                                keyword: cleanKeyword,
+                                category: 'related_search',
+                                rank: globalRank,
+                                competition: this.estimateCompetition(cleanKeyword),
+                                similarity: this.calculateSimilarity(query, cleanKeyword),
+                            });
+                            console.log(`✅ 연관검색어 수집: "${cleanKeyword}" (순위: ${globalRank})`);
+                        }
+                        else {
+                            console.log(`❌ 연관검색어 필터링됨: "${cleanKeyword}"`);
                         }
                     }
                 }
                 catch (error) {
-                    console.warn(`연관검색어 선택자 실패 (${selector}):`, error.message);
+                    console.warn(`연관검색어 요소 ${i} 처리 실패:`, error.message);
                 }
             }
-            console.log(`📄 ${page}페이지에서 ${relatedKeywords.length}개 연관검색어 수집`);
+            console.log(`📄 ${page}페이지에서 ${relatedKeywords.length}개 연관검색어 수집 완료`);
             return {
                 keywords: relatedKeywords,
                 message: `${page}페이지에서 ${relatedKeywords.length}개 수집`,
@@ -292,16 +257,6 @@ class NaverScraper {
         console.log(`🚀 키워드 수집 시작: ${query}, 타입: ${types.join(', ')}`);
         const collectionDetails = {};
         const allKeywords = [];
-        if (types.includes('trending')) {
-            console.log('📈 인기주제 키워드 수집 중...');
-            const trendingResult = await this.scrapeTrendingKeywords(query);
-            collectionDetails.trending = {
-                status: trendingResult.status,
-                message: trendingResult.message,
-                count: trendingResult.count || 0,
-            };
-            allKeywords.push(...trendingResult.keywords);
-        }
         if (types.includes('smartblock')) {
             console.log('🧠 스마트블록 데이터 수집 중...');
             const smartblockResult = await this.scrapeSmartBlockData(query);
@@ -323,7 +278,10 @@ class NaverScraper {
             };
             allKeywords.push(...relatedResult.keywords);
         }
-        const uniqueKeywords = allKeywords.filter((keyword, index, self) => self.findIndex(k => k.keyword === keyword.keyword) === index);
+        const uniqueKeywords = allKeywords.filter((keyword, index, self) => {
+            const firstIndex = self.findIndex(k => k.keyword === keyword.keyword);
+            return firstIndex === index;
+        });
         console.log(`✅ 전체 키워드 수집 완료: ${uniqueKeywords.length}개`);
         console.log('📊 수집 상세 정보:', JSON.stringify(collectionDetails, null, 2));
         return {
@@ -411,6 +369,33 @@ class NaverScraper {
         const distance = matrix[len1][len2];
         const maxLen = Math.max(len1, len2);
         return 1 - (distance / maxLen);
+    }
+    isValidRelatedKeyword(keyword, originalQuery) {
+        if (!this.isValidKeyword(keyword, originalQuery))
+            return false;
+        const excludePatterns = [
+            /컨텍스트/i,
+            /자동완성/i,
+            /기간/i,
+            /특별한/i,
+            /추석/i,
+            /더보기/i,
+            /열기/i,
+            /닫기/i,
+            /도움말/i,
+            /신고/i,
+            /^[0-9]+$/,
+            /^\s*$/,
+        ];
+        for (const pattern of excludePatterns) {
+            if (pattern.test(keyword)) {
+                return false;
+            }
+        }
+        const queryChars = originalQuery.toLowerCase().split('');
+        const keywordChars = keyword.toLowerCase().split('');
+        const hasCommonChar = queryChars.some(char => keywordChars.includes(char));
+        return hasCommonChar || keyword.length >= 3;
     }
 }
 exports.NaverScraper = NaverScraper;

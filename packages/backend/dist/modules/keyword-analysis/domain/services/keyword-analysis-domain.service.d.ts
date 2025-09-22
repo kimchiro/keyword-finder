@@ -11,7 +11,7 @@ export declare class KeywordAnalysisDomainService {
         data: KeywordAnalysisAggregate | null;
     }>;
     getAnalyzedKeywords(): Promise<any[]>;
-    private extractSearchVolume;
-    private safeParseNumber;
+    saveScrapingData(query: string, scrapingData: any): Promise<void>;
+    getScrapedKeywords(query: string): Promise<any[]>;
     private getExistingAnalysis;
 }

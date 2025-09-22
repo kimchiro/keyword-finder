@@ -36,44 +36,31 @@ let ChartDataService = class ChartDataService {
     }
     async saveChartData(keyword, analysisDate, naverApiData) {
         return await this.transactionService.runInTransaction(async (queryRunner) => {
+            const KeywordEntity = await Promise.resolve().then(() => require('../../../../database/entities/keyword.entity')).then(m => m.Keyword);
+            let keywordEntity = await queryRunner.manager.getRepository(KeywordEntity).findOne({
+                where: { keyword: keyword.value }
+            });
+            if (!keywordEntity) {
+                keywordEntity = await queryRunner.manager.getRepository(KeywordEntity).save({
+                    keyword: keyword.value,
+                    status: 'active',
+                });
+            }
             await this.clearExistingChartData(keyword, analysisDate, queryRunner);
-            const searchTrends = [];
-            const monthlyRatios = [];
-            if (naverApiData?.datalab?.results?.[0]?.data) {
-                const datalabData = naverApiData.datalab.results[0].data;
-                for (const dataPoint of datalabData) {
-                    searchTrends.push({
-                        keyword: keyword.value,
-                        periodType: search_trends_entity_1.PeriodType.MONTHLY,
-                        periodValue: dataPoint.period,
-                        searchVolume: dataPoint.ratio,
-                        searchRatio: dataPoint.ratio,
-                    });
-                    const monthMatch = dataPoint.period.match(/-(\d{2})-/);
-                    if (monthMatch) {
-                        const monthNumber = parseInt(monthMatch[1]);
-                        monthlyRatios.push({
-                            keyword: keyword.value,
-                            monthNumber,
-                            searchRatio: dataPoint.ratio,
-                            analysisYear: analysisDate.year,
-                        });
-                    }
-                }
-                if (searchTrends.length > 0) {
-                    await this.transactionService.batchInsert(queryRunner, search_trends_entity_1.SearchTrends, searchTrends, 500);
-                }
-                if (monthlyRatios.length > 0) {
-                    await this.transactionService.batchInsert(queryRunner, monthly_search_ratios_entity_1.MonthlySearchRatios, monthlyRatios, 500);
-                }
+            const chartDataToSave = this.extractChartDataFromNaverApi(keyword.value, analysisDate, naverApiData, keywordEntity.id);
+            if (chartDataToSave.searchTrends.length > 0) {
+                await this.transactionService.batchUpsert(queryRunner, search_trends_entity_1.SearchTrends, chartDataToSave.searchTrends, ['keyword_id', 'keyword', 'period_type', 'period_value'], ['search_volume', 'search_ratio'], 500);
+            }
+            if (chartDataToSave.monthlyRatios.length > 0) {
+                await this.transactionService.batchUpsert(queryRunner, monthly_search_ratios_entity_1.MonthlySearchRatios, chartDataToSave.monthlyRatios, ['keyword_id', 'keyword', 'month_number', 'analysis_year'], ['search_ratio'], 500);
             }
             const [savedSearchTrends, savedMonthlyRatios] = await Promise.all([
                 queryRunner.manager.getRepository(search_trends_entity_1.SearchTrends).find({
-                    where: { keyword: keyword.value, periodType: search_trends_entity_1.PeriodType.MONTHLY },
+                    where: { keywordId: keywordEntity.id, keyword: keyword.value, periodType: search_trends_entity_1.PeriodType.MONTHLY },
                     order: { periodValue: 'ASC' },
                 }),
                 queryRunner.manager.getRepository(monthly_search_ratios_entity_1.MonthlySearchRatios).find({
-                    where: { keyword: keyword.value, analysisYear: analysisDate.year },
+                    where: { keywordId: keywordEntity.id, keyword: keyword.value, analysisYear: analysisDate.year },
                     order: { monthNumber: 'ASC' },
                 }),
             ]);
@@ -88,23 +75,37 @@ let ChartDataService = class ChartDataService {
         });
     }
     async getChartData(keyword, analysisDate) {
+        const KeywordEntity = await Promise.resolve().then(() => require('../../../../database/entities/keyword.entity')).then(m => m.Keyword);
+        const keywordEntity = await this.dataSource.getRepository(KeywordEntity).findOne({
+            where: { keyword: keyword.value }
+        });
+        if (!keywordEntity) {
+            return {
+                searchTrends: [],
+                monthlyRatios: [],
+                weekdayRatios: [],
+                genderRatios: null,
+                issueAnalysis: null,
+                intentAnalysis: null,
+            };
+        }
         const analysisDateStr = analysisDate.dateString;
         const [searchTrends, monthlyRatios, weekdayRatios, genderRatios, issueAnalysis, intentAnalysis,] = await Promise.all([
             this.dataSource
                 .getRepository(search_trends_entity_1.SearchTrends)
                 .createQueryBuilder('st')
-                .select(['st.id', 'st.periodValue', 'st.searchVolume', 'st.searchRatio'])
-                .where('st.keyword = :keyword AND st.periodType = :periodType')
-                .setParameters({ keyword: keyword.value, periodType: search_trends_entity_1.PeriodType.MONTHLY })
+                .select(['st.id', 'st.keywordId', 'st.keyword', 'st.periodType', 'st.periodValue', 'st.searchVolume', 'st.searchRatio', 'st.createdAt'])
+                .where('st.keywordId = :keywordId AND st.keyword = :keyword AND st.periodType = :periodType')
+                .setParameters({ keywordId: keywordEntity.id, keyword: keyword.value, periodType: search_trends_entity_1.PeriodType.MONTHLY })
                 .orderBy('st.periodValue', 'ASC')
                 .limit(12)
                 .getMany(),
             this.dataSource
                 .getRepository(monthly_search_ratios_entity_1.MonthlySearchRatios)
                 .createQueryBuilder('msr')
-                .select(['msr.id', 'msr.monthNumber', 'msr.searchRatio'])
-                .where('msr.keyword = :keyword AND msr.analysisYear = :analysisYear')
-                .setParameters({ keyword: keyword.value, analysisYear: analysisDate.year })
+                .select(['msr.id', 'msr.keywordId', 'msr.keyword', 'msr.monthNumber', 'msr.searchRatio', 'msr.analysisYear', 'msr.createdAt'])
+                .where('msr.keywordId = :keywordId AND msr.keyword = :keyword AND msr.analysisYear = :analysisYear')
+                .setParameters({ keywordId: keywordEntity.id, keyword: keyword.value, analysisYear: analysisDate.year })
                 .orderBy('msr.monthNumber', 'ASC')
                 .getMany(),
             this.dataSource
@@ -155,6 +156,43 @@ let ChartDataService = class ChartDataService {
             this.transactionService.batchDelete(queryRunner, issue_analysis_entity_1.IssueAnalysis, { keyword: keyword.value, analysisDate: analysisDate.value }),
             this.transactionService.batchDelete(queryRunner, intent_analysis_entity_1.IntentAnalysis, { keyword: keyword.value, analysisDate: analysisDate.value }),
         ]);
+    }
+    extractChartDataFromNaverApi(keyword, analysisDate, naverApiData, keywordId) {
+        const searchTrends = [];
+        const monthlyRatios = [];
+        try {
+            if (naverApiData?.datalab?.results?.[0]?.data) {
+                const datalabData = naverApiData.datalab.results[0].data;
+                for (const dataPoint of datalabData) {
+                    searchTrends.push({
+                        keywordId,
+                        keyword,
+                        periodType: search_trends_entity_1.PeriodType.MONTHLY,
+                        periodValue: dataPoint.period,
+                        searchVolume: dataPoint.ratio,
+                        searchRatio: dataPoint.ratio,
+                    });
+                    const monthMatch = dataPoint.period.match(/-(\d{2})-/);
+                    if (monthMatch) {
+                        const monthNumber = parseInt(monthMatch[1]);
+                        monthlyRatios.push({
+                            keywordId,
+                            keyword,
+                            monthNumber,
+                            searchRatio: dataPoint.ratio,
+                            analysisYear: analysisDate.year,
+                        });
+                    }
+                }
+            }
+        }
+        catch (error) {
+            console.error('❌ 네이버 API 차트 데이터 추출 오류:', error);
+        }
+        return {
+            searchTrends,
+            monthlyRatios,
+        };
     }
 };
 exports.ChartDataService = ChartDataService;

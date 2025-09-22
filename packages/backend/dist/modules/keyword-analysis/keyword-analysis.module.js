@@ -22,6 +22,7 @@ const weekday_search_ratios_entity_1 = require("../../database/entities/weekday-
 const gender_search_ratios_entity_1 = require("../../database/entities/gender-search-ratios.entity");
 const issue_analysis_entity_1 = require("../../database/entities/issue-analysis.entity");
 const intent_analysis_entity_1 = require("../../database/entities/intent-analysis.entity");
+const keyword_collection_logs_entity_1 = require("../../database/entities/keyword-collection-logs.entity");
 const services_1 = require("./domain/services");
 let KeywordAnalysisModule = class KeywordAnalysisModule {
 };
@@ -39,6 +40,7 @@ exports.KeywordAnalysisModule = KeywordAnalysisModule = __decorate([
                 gender_search_ratios_entity_1.GenderSearchRatios,
                 issue_analysis_entity_1.IssueAnalysis,
                 intent_analysis_entity_1.IntentAnalysis,
+                keyword_collection_logs_entity_1.KeywordCollectionLogs,
             ]),
         ],
         controllers: [keyword_analysis_controller_1.KeywordAnalysisController],

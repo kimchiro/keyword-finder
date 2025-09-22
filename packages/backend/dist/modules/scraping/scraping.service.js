@@ -20,7 +20,6 @@ const keyword_entity_1 = require("../../database/entities/keyword.entity");
 const keyword_collection_logs_entity_1 = require("../../database/entities/keyword-collection-logs.entity");
 const browser_pool_service_1 = require("../../common/services/browser-pool.service");
 const app_config_1 = require("../../config/app.config");
-const scraping_constants_1 = require("../../constants/scraping.constants");
 let ScrapingService = class ScrapingService {
     constructor(keywordRepository, keywordCollectionLogsRepository, browserPoolService, appConfig) {
         this.keywordRepository = keywordRepository;
@@ -131,9 +130,8 @@ let ScrapingService = class ScrapingService {
             const formattedKeywords = limitedKeywords.map((keyword, index) => ({
                 keyword: keyword.keyword,
                 category: keyword.category,
-                rank: index + 1,
+                rank: keyword.rank || (index + 1),
                 source: keyword.source,
-                searchVolume: keyword.searchVolume || Math.floor(Math.random() * scraping_constants_1.SEARCH_VOLUME.DEFAULT_RANGE.MAX) + scraping_constants_1.SEARCH_VOLUME.DEFAULT_RANGE.MIN,
                 competition: keyword.competition || 'medium',
                 similarity: keyword.similarity || 'medium',
             }));

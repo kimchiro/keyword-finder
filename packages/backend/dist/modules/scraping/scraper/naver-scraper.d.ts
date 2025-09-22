@@ -1,10 +1,10 @@
 import { BrowserPoolService } from '../../../common/services/browser-pool.service';
 export interface ScrapedKeyword {
     keyword: string;
-    category: 'autosuggest' | 'related' | 'trending' | 'smartblock' | 'related_search';
-    searchVolume?: number;
+    category: 'autosuggest' | 'related' | 'smartblock' | 'related_search';
+    rank?: number;
     competition?: 'low' | 'medium' | 'high';
-    source: string;
+    source?: string;
     similarity?: 'low' | 'medium' | 'high';
     relatedData?: any;
 }
@@ -22,7 +22,6 @@ export declare class NaverScraper {
     initialize(): Promise<void>;
     close(): Promise<void>;
     private get page();
-    scrapeTrendingKeywords(query: string): Promise<ScrapingResult>;
     scrapeSmartBlockData(query: string): Promise<ScrapingResult>;
     scrapeRelatedSearchKeywords(query: string, maxResults?: number): Promise<ScrapingResult>;
     private scrapeRelatedFromPage;
@@ -42,4 +41,5 @@ export declare class NaverScraper {
     private isValidKeyword;
     private isBlacklistedKeyword;
     private calculateSimilarityScore;
+    private isValidRelatedKeyword;
 }

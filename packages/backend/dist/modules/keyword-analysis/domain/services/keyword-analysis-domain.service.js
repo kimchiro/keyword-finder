@@ -29,8 +29,7 @@ let KeywordAnalysisDomainService = class KeywordAnalysisDomainService {
             console.log(`⚠️ 키워드 '${keywordValue}'에 대한 분석 데이터가 이미 존재합니다. 기존 데이터를 반환합니다.`);
             return await this.getExistingAnalysis(keyword, analysisDate);
         }
-        const searchVolume = this.extractSearchVolume(naverApiData);
-        const analytics = await this.keywordDataService.saveKeywordAnalytics(keyword, analysisDate, searchVolume, naverApiData);
+        const analytics = await this.keywordDataService.saveKeywordAnalytics(keyword, analysisDate, naverApiData);
         const relatedKeywords = await this.keywordDataService.saveRelatedKeywords(keyword, analysisDate, relatedKeywordsData || []);
         const chartData = await this.chartDataService.saveChartData(keyword, analysisDate, naverApiData);
         console.log(`✅ 키워드 분석 완료: ${keywordValue}`);
@@ -68,36 +67,31 @@ let KeywordAnalysisDomainService = class KeywordAnalysisDomainService {
             throw error;
         }
     }
-    extractSearchVolume(naverApiData) {
-        if (!naverApiData?.datalab?.results?.[0]?.data) {
-            console.log('⚠️ 네이버 데이터랩 응답 데이터가 없습니다. 기본값 반환');
-            return value_objects_1.SearchVolume.zero();
+    async saveScrapingData(query, scrapingData) {
+        try {
+            console.log(`💾 스크래핑 데이터 저장 시작: ${query}`);
+            const keyword = new value_objects_1.Keyword(query);
+            const analysisDate = new value_objects_1.AnalysisDate();
+            await this.keywordDataService.saveScrapedKeywords(keyword, analysisDate, scrapingData);
+            console.log(`✅ 스크래핑 데이터 저장 완료: ${query}`);
         }
-        const datalabData = naverApiData.datalab.results[0].data;
-        if (datalabData.length >= 2) {
-            const pcRatio = this.safeParseNumber(datalabData[0]?.ratio, 0);
-            const mobileRatio = this.safeParseNumber(datalabData[1]?.ratio, 0);
-            console.log(`📊 PC/모바일 분리 데이터: PC=${pcRatio}, Mobile=${mobileRatio}`);
-            return new value_objects_1.SearchVolume(pcRatio, mobileRatio);
+        catch (error) {
+            console.error('❌ KeywordAnalysisDomainService.saveScrapingData 오류:', error);
+            throw error;
         }
-        if (datalabData.length === 1) {
-            const totalRatio = this.safeParseNumber(datalabData[0]?.ratio, 0);
-            console.log(`📊 통합 데이터: Total=${totalRatio}`);
-            return value_objects_1.SearchVolume.fromTotal(totalRatio, 50);
-        }
-        console.log('⚠️ 유효한 데이터랩 데이터가 없습니다. 기본값 반환');
-        return value_objects_1.SearchVolume.zero();
     }
-    safeParseNumber(value, defaultValue = 0) {
-        if (value === null || value === undefined) {
-            return defaultValue;
+    async getScrapedKeywords(query) {
+        try {
+            console.log(`🔍 스크래핑 키워드 조회: ${query}`);
+            const keyword = new value_objects_1.Keyword(query);
+            const result = await this.keywordDataService.findScrapedKeywords(keyword);
+            console.log(`✅ 스크래핑 키워드 조회 완료: ${result.length}개`);
+            return result;
         }
-        const parsed = typeof value === 'number' ? value : parseFloat(value);
-        if (isNaN(parsed) || !isFinite(parsed)) {
-            console.warn(`⚠️ 유효하지 않은 숫자 값: ${value}, 기본값 ${defaultValue} 사용`);
-            return defaultValue;
+        catch (error) {
+            console.error('❌ KeywordAnalysisDomainService.getScrapedKeywords 오류:', error);
+            throw error;
         }
-        return parsed;
     }
     async getExistingAnalysis(keyword, analysisDate) {
         const [analytics, relatedKeywords, chartData] = await Promise.all([

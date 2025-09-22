@@ -79,6 +79,63 @@ let NaverApiController = class NaverApiController {
             }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    async getSingleKeywordFullData(request) {
+        try {
+            console.log(`🔍 단일 키워드 전체 데이터 조회: ${request.keyword}`);
+            const result = await this.naverApiService.getSingleKeywordFullData(request);
+            return {
+                success: true,
+                message: '단일 키워드 전체 데이터 조회가 완료되었습니다.',
+                data: result.data,
+            };
+        }
+        catch (error) {
+            console.error('❌ 단일 키워드 전체 데이터 조회 실패:', error);
+            throw new common_1.HttpException({
+                success: false,
+                message: '단일 키워드 전체 데이터 조회 중 오류가 발생했습니다.',
+                error: error.message,
+            }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    async getMultipleKeywordsLimitedData(request) {
+        try {
+            console.log(`📊 다중 키워드 제한 데이터 조회: ${request.keywords.join(', ')}`);
+            const result = await this.naverApiService.getMultipleKeywordsLimitedData(request);
+            return {
+                success: true,
+                message: '다중 키워드 제한 데이터 조회가 완료되었습니다.',
+                data: result.data,
+            };
+        }
+        catch (error) {
+            console.error('❌ 다중 키워드 제한 데이터 조회 실패:', error);
+            throw new common_1.HttpException({
+                success: false,
+                message: '다중 키워드 제한 데이터 조회 중 오류가 발생했습니다.',
+                error: error.message,
+            }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    async processBatchRequest(request) {
+        try {
+            console.log('🚀 배치 요청 처리 시작');
+            const result = await this.naverApiService.processBatchRequest(request);
+            return {
+                success: true,
+                message: '배치 요청 처리가 완료되었습니다.',
+                data: result.data,
+            };
+        }
+        catch (error) {
+            console.error('❌ 배치 요청 처리 실패:', error);
+            throw new common_1.HttpException({
+                success: false,
+                message: '배치 요청 처리 중 오류가 발생했습니다.',
+                error: error.message,
+            }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 };
 exports.NaverApiController = NaverApiController;
 __decorate([
@@ -184,6 +241,84 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], NaverApiController.prototype, "getIntegratedData", null);
+__decorate([
+    (0, common_1.Post)('single-keyword-full-data'),
+    (0, rate_limit_guard_1.NaverApiRateLimit)(10, 60000),
+    (0, swagger_1.ApiOperation)({
+        summary: '단일 키워드 전체 데이터 조회',
+        description: '1개 키워드의 모든 데이터를 조회합니다. 블로그 검색(최신 5개), 트렌드(작년 어제~어제), 연관 검색어를 포함합니다.'
+    }),
+    (0, swagger_1.ApiBody)({ type: naver_api_dto_1.SingleKeywordFullDataDto }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: '단일 키워드 전체 데이터 조회 성공',
+        type: naver_api_dto_1.SingleKeywordFullDataResponseDto,
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: '잘못된 요청',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 500,
+        description: '서버 오류',
+    }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [naver_api_dto_1.SingleKeywordFullDataDto]),
+    __metadata("design:returntype", Promise)
+], NaverApiController.prototype, "getSingleKeywordFullData", null);
+__decorate([
+    (0, common_1.Post)('multiple-keywords-limited-data'),
+    (0, rate_limit_guard_1.NaverApiRateLimit)(15, 60000),
+    (0, swagger_1.ApiOperation)({
+        summary: '다중 키워드 제한 데이터 조회',
+        description: '최대 5개 키워드의 월간검색량, 누적발행량, 성비율, 디바이스 데이터를 조회합니다.'
+    }),
+    (0, swagger_1.ApiBody)({ type: naver_api_dto_1.MultipleKeywordsLimitedDataDto }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: '다중 키워드 제한 데이터 조회 성공',
+        type: naver_api_dto_1.MultipleKeywordsLimitedDataResponseDto,
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: '잘못된 요청',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 500,
+        description: '서버 오류',
+    }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [naver_api_dto_1.MultipleKeywordsLimitedDataDto]),
+    __metadata("design:returntype", Promise)
+], NaverApiController.prototype, "getMultipleKeywordsLimitedData", null);
+__decorate([
+    (0, common_1.Post)('batch-request'),
+    (0, rate_limit_guard_1.NaverApiRateLimit)(5, 60000),
+    (0, swagger_1.ApiOperation)({
+        summary: '배치 요청 처리',
+        description: '3개의 요청을 배치로 처리합니다: 1) 단일 키워드 전체 데이터, 2) 5개 키워드 제한 데이터, 3) 5개 키워드 제한 데이터'
+    }),
+    (0, swagger_1.ApiBody)({ type: naver_api_dto_1.BatchRequestDto }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: '배치 요청 처리 성공',
+        type: naver_api_dto_1.BatchResponseDto,
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: '잘못된 요청',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 500,
+        description: '서버 오류',
+    }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [naver_api_dto_1.BatchRequestDto]),
+    __metadata("design:returntype", Promise)
+], NaverApiController.prototype, "processBatchRequest", null);
 exports.NaverApiController = NaverApiController = __decorate([
     (0, swagger_1.ApiTags)('naver-api'),
     (0, common_1.Controller)('naver'),

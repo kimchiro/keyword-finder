@@ -53,14 +53,12 @@ export class Keyword {
   @OneToMany(() => RelatedKeywords, (related) => related.baseKeywordEntity)
   relatedKeywords: RelatedKeywords[];
 
-  @OneToMany(() => SearchTrends, (trends) => trends.keywordEntity)
-  searchTrends: SearchTrends[];
+  // searchTrends 관계 제거 - keyword 문자열로 직접 조회
 
   @OneToMany(() => GenderSearchRatios, (ratios) => ratios.keywordEntity)
   genderSearchRatios: GenderSearchRatios[];
 
-  @OneToMany(() => MonthlySearchRatios, (ratios) => ratios.keywordEntity)
-  monthlySearchRatios: MonthlySearchRatios[];
+  // monthlySearchRatios 관계 제거 - keyword 문자열로 직접 조회
 
   @OneToMany(() => WeekdaySearchRatios, (ratios) => ratios.keywordEntity)
   weekdaySearchRatios: WeekdaySearchRatios[];

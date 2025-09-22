@@ -107,6 +107,222 @@ let NaverApiService = class NaverApiService {
             throw error;
         }
     }
+    async getSingleKeywordFullData(request) {
+        try {
+            console.log(`🔍 단일 키워드 전체 데이터 조회 시작: ${request.keyword}`);
+            const { startDate, endDate } = this.getDateRange();
+            console.log(`📅 검색 기간: ${startDate} ~ ${endDate}`);
+            const [blogSearchResult, datalabResult, relatedKeywordsResult] = await Promise.all([
+                this.searchBlogs(request.keyword, 5, 1, 'date'),
+                this.getDatalab({
+                    startDate,
+                    endDate,
+                    timeUnit: 'month',
+                    keywordGroups: [
+                        {
+                            groupName: request.keyword,
+                            keywords: [request.keyword],
+                        },
+                    ],
+                }),
+                this.getRelatedKeywords(request.keyword),
+            ]);
+            console.log(`✅ 단일 키워드 전체 데이터 조회 완료: ${request.keyword}`);
+            return {
+                success: true,
+                data: {
+                    keyword: request.keyword,
+                    blogSearch: blogSearchResult.data,
+                    datalab: datalabResult.data,
+                    relatedKeywords: relatedKeywordsResult.data,
+                    searchPeriod: { startDate, endDate },
+                    timestamp: new Date().toISOString(),
+                },
+            };
+        }
+        catch (error) {
+            console.error('❌ NaverApiService.getSingleKeywordFullData 오류:', error);
+            throw error;
+        }
+    }
+    async getMultipleKeywordsLimitedData(request) {
+        try {
+            console.log(`📊 다중 키워드 제한 데이터 조회 시작: ${request.keywords.join(', ')}`);
+            if (request.keywords.length > 5) {
+                throw new Error('키워드는 최대 5개까지만 요청할 수 있습니다.');
+            }
+            const startDate = request.startDate || this.appConfig.defaultStartDate;
+            const endDate = request.endDate || this.appConfig.defaultEndDate;
+            const keywordResults = await Promise.all(request.keywords.map(async (keyword) => {
+                try {
+                    const datalabResult = await this.getDatalab({
+                        startDate,
+                        endDate,
+                        timeUnit: 'month',
+                        keywordGroups: [
+                            {
+                                groupName: keyword,
+                                keywords: [keyword],
+                            },
+                        ],
+                    });
+                    const blogSearchResult = await this.searchBlogs(keyword, 1, 1);
+                    const processedData = this.processLimitedKeywordData(keyword, datalabResult.data, blogSearchResult.data);
+                    return processedData;
+                }
+                catch (error) {
+                    console.error(`❌ 키워드 "${keyword}" 처리 중 오류:`, error);
+                    return {
+                        keyword,
+                        monthlySearchVolume: 0,
+                        cumulativePublications: 0,
+                        genderRatio: { male: 50, female: 50 },
+                        deviceData: { pc: 50, mobile: 50 },
+                        error: error.message,
+                    };
+                }
+            }));
+            console.log(`✅ 다중 키워드 제한 데이터 조회 완료: ${request.keywords.length}개 키워드`);
+            return {
+                success: true,
+                data: {
+                    keywords: request.keywords,
+                    results: keywordResults,
+                    timestamp: new Date().toISOString(),
+                },
+            };
+        }
+        catch (error) {
+            console.error('❌ NaverApiService.getMultipleKeywordsLimitedData 오류:', error);
+            throw error;
+        }
+    }
+    async processBatchRequest(request) {
+        try {
+            console.log('🚀 배치 요청 처리 시작');
+            const startTime = Date.now();
+            const [firstResult, secondResult, thirdResult] = await Promise.all([
+                this.getSingleKeywordFullData(request.firstRequest),
+                this.getMultipleKeywordsLimitedData(request.secondRequest),
+                this.getMultipleKeywordsLimitedData(request.thirdRequest),
+            ]);
+            const endTime = Date.now();
+            const totalProcessingTime = endTime - startTime;
+            console.log(`✅ 배치 요청 처리 완료 (${totalProcessingTime}ms)`);
+            return {
+                success: true,
+                data: {
+                    firstResult: firstResult.data,
+                    secondResult: secondResult.data,
+                    thirdResult: thirdResult.data,
+                    totalProcessingTime,
+                    timestamp: new Date().toISOString(),
+                },
+            };
+        }
+        catch (error) {
+            console.error('❌ NaverApiService.processBatchRequest 오류:', error);
+            throw error;
+        }
+    }
+    async getRelatedKeywords(keyword) {
+        try {
+            console.log(`🔗 연관 검색어 조회: ${keyword}`);
+            return {
+                success: true,
+                data: {
+                    keyword,
+                    relatedKeywords: [],
+                    timestamp: new Date().toISOString(),
+                },
+            };
+        }
+        catch (error) {
+            console.error('❌ 연관 검색어 조회 오류:', error);
+            return {
+                success: false,
+                data: {
+                    keyword,
+                    relatedKeywords: [],
+                    timestamp: new Date().toISOString(),
+                },
+            };
+        }
+    }
+    processLimitedKeywordData(keyword, datalabData, blogSearchData) {
+        try {
+            const monthlySearchVolume = this.calculateMonthlySearchVolume(datalabData);
+            const cumulativePublications = blogSearchData.total || 0;
+            const genderRatio = this.extractGenderRatio(datalabData);
+            const deviceData = this.extractDeviceData(datalabData);
+            return {
+                keyword,
+                monthlySearchVolume,
+                cumulativePublications,
+                genderRatio,
+                deviceData,
+            };
+        }
+        catch (error) {
+            console.error(`❌ 키워드 데이터 가공 오류 (${keyword}):`, error);
+            return {
+                keyword,
+                monthlySearchVolume: 0,
+                cumulativePublications: 0,
+                genderRatio: { male: 50, female: 50 },
+                deviceData: { pc: 50, mobile: 50 },
+            };
+        }
+    }
+    calculateMonthlySearchVolume(datalabData) {
+        try {
+            if (datalabData.results && datalabData.results.length > 0) {
+                const latestData = datalabData.results[0].data;
+                if (latestData && latestData.length > 0) {
+                    return latestData[latestData.length - 1].ratio * 100;
+                }
+            }
+            return 0;
+        }
+        catch (error) {
+            console.error('❌ 월간검색량 계산 오류:', error);
+            return 0;
+        }
+    }
+    extractGenderRatio(datalabData) {
+        try {
+            return { male: 50, female: 50 };
+        }
+        catch (error) {
+            console.error('❌ 성비율 데이터 추출 오류:', error);
+            return { male: 50, female: 50 };
+        }
+    }
+    extractDeviceData(datalabData) {
+        try {
+            return { pc: 50, mobile: 50 };
+        }
+        catch (error) {
+            console.error('❌ 디바이스 데이터 추출 오류:', error);
+            return { pc: 50, mobile: 50 };
+        }
+    }
+    getDateRange() {
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        const lastYearYesterday = new Date(yesterday);
+        lastYearYesterday.setFullYear(yesterday.getFullYear() - 1);
+        const formatDate = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+        const startDate = formatDate(lastYearYesterday);
+        const endDate = formatDate(yesterday);
+        return { startDate, endDate };
+    }
 };
 exports.NaverApiService = NaverApiService;
 exports.NaverApiService = NaverApiService = __decorate([

@@ -6,7 +6,7 @@ import { WeekdaySearchRatios } from '../../../../database/entities/weekday-searc
 import { GenderSearchRatios } from '../../../../database/entities/gender-search-ratios.entity';
 import { IssueAnalysis } from '../../../../database/entities/issue-analysis.entity';
 import { IntentAnalysis } from '../../../../database/entities/intent-analysis.entity';
-import { Keyword, AnalysisDate, SearchVolume } from '../value-objects';
+import { Keyword, AnalysisDate } from '../value-objects';
 export declare class KeywordAnalysisAggregate {
     private readonly _keyword;
     private readonly _analysisDate;
@@ -33,7 +33,13 @@ export declare class KeywordAnalysisAggregate {
         issueAnalysis: IssueAnalysis;
         intentAnalysis: IntentAnalysis;
     };
-    get searchVolume(): SearchVolume;
+    get searchVolume(): {
+        pc: number;
+        mobile: number;
+        total: number;
+        pcRatio: number;
+        mobileRatio: number;
+    };
     get relatedKeywordCount(): number;
     getTopRelatedKeywords(limit?: number): RelatedKeywords[];
     getMonthlyTrendSummary(): {

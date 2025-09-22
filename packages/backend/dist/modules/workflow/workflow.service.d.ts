@@ -9,6 +9,13 @@ export interface WorkflowResult {
         naverApiData: any;
         scrapingData: any;
         analysisData: any;
+        topKeywords?: string[];
+        keywordsWithRank?: Array<{
+            keyword: string;
+            originalRank: number;
+            category: string;
+            source: string;
+        }>;
         executionTime: number;
         timestamp: string;
     };
@@ -21,6 +28,7 @@ export declare class WorkflowService {
     private readonly appConfig;
     constructor(naverApiService: NaverApiService, scrapingService: ScrapingService, keywordAnalysisService: KeywordAnalysisService, appConfig: AppConfigService);
     executeCompleteWorkflow(query: string): Promise<WorkflowResult>;
+    private extractTopKeywordsFromDB;
     executeQuickAnalysis(query: string): Promise<WorkflowResult>;
     executeScrapingOnly(query: string): Promise<WorkflowResult>;
     checkWorkflowHealth(): Promise<{

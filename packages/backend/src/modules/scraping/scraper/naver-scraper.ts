@@ -5,6 +5,7 @@ import { SCRAPING_DEFAULTS, KEYWORD_FILTERING } from '../../../constants/scrapin
 export interface ScrapedKeyword {
   keyword: string;
   category: 'autosuggest' | 'related' | 'smartblock' | 'related_search';
+  rank?: number;
   competition?: 'low' | 'medium' | 'high';
   source?: string;
   similarity?: 'low' | 'medium' | 'high';
@@ -97,8 +98,9 @@ export class NaverScraper {
       const keywordElements = await this.page.$$('.fds-comps-keyword-chip-text');
       console.log(`🔍 발견된 키워드 요소 수: ${keywordElements.length}`);
       
-      for (const element of keywordElements) {
+      for (let i = 0; i < keywordElements.length; i++) {
         try {
+          const element = keywordElements[i];
           const keywordText = await element.textContent();
           if (keywordText && keywordText.trim()) {
             const cleanKeyword = keywordText.trim();
@@ -107,10 +109,11 @@ export class NaverScraper {
               keywords.push({
                 keyword: cleanKeyword,
                 category: 'smartblock' as const,
+                rank: i + 1, // 순위 설정 (1부터 시작)
                 competition: this.estimateCompetition(cleanKeyword),
                 similarity: this.calculateSimilarity(query, cleanKeyword),
               });
-              console.log(`📝 키워드 수집: ${cleanKeyword}`);
+              console.log(`📝 키워드 수집: ${cleanKeyword} (순위: ${i + 1})`);
             }
           }
         } catch (elementError) {
@@ -118,11 +121,12 @@ export class NaverScraper {
         }
       }
 
-      // 중복 제거 및 최대 10개로 제한
+      // 중복 제거 및 최대 10개로 제한 (순위 유지)
       const uniqueKeywords = keywords
-        .filter((keyword, index, self) => 
-          self.findIndex(k => k.keyword === keyword.keyword) === index
-        )
+        .filter((keyword, index, self) => {
+          const firstIndex = self.findIndex(k => k.keyword === keyword.keyword);
+          return firstIndex === index;
+        })
         .slice(0, SCRAPING_DEFAULTS.MAX_KEYWORDS_PER_TYPE);
 
       if (uniqueKeywords.length === 0) {
@@ -283,14 +287,16 @@ export class NaverScraper {
             
             // 연관검색어 특별 검증 (더 엄격한 필터링)
             if (this.isValidRelatedKeyword(cleanKeyword, query)) {
+              const globalRank = (page - 1) * 10 + i + 1; // 페이지별 전역 순위 계산
               relatedKeywords.push({
                 keyword: cleanKeyword,
                 category: 'related_search',
+                rank: globalRank, // 순위 설정
                 competition: this.estimateCompetition(cleanKeyword),
                 similarity: this.calculateSimilarity(query, cleanKeyword),
               });
               
-              console.log(`✅ 연관검색어 수집: "${cleanKeyword}"`);
+              console.log(`✅ 연관검색어 수집: "${cleanKeyword}" (순위: ${globalRank})`);
             } else {
               console.log(`❌ 연관검색어 필터링됨: "${cleanKeyword}"`);
             }
@@ -364,10 +370,11 @@ export class NaverScraper {
       allKeywords.push(...relatedResult.keywords);
     }
     
-    // 중복 제거
-    const uniqueKeywords = allKeywords.filter((keyword, index, self) => 
-      self.findIndex(k => k.keyword === keyword.keyword) === index
-    );
+    // 중복 제거 (순위가 낮은 것 우선 유지)
+    const uniqueKeywords = allKeywords.filter((keyword, index, self) => {
+      const firstIndex = self.findIndex(k => k.keyword === keyword.keyword);
+      return firstIndex === index;
+    });
     
     console.log(`✅ 전체 키워드 수집 완료: ${uniqueKeywords.length}개`);
     console.log('📊 수집 상세 정보:', JSON.stringify(collectionDetails, null, 2));

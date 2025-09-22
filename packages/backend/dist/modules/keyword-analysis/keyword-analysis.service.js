@@ -54,6 +54,24 @@ let KeywordAnalysisService = class KeywordAnalysisService {
             throw error;
         }
     }
+    async saveScrapingData(query, scrapingData) {
+        try {
+            return await this.keywordAnalysisDomainService.saveScrapingData(query, scrapingData);
+        }
+        catch (error) {
+            console.error('❌ KeywordAnalysisService.saveScrapingData 오류:', error);
+            throw error;
+        }
+    }
+    async getScrapedKeywords(query) {
+        try {
+            return await this.keywordAnalysisDomainService.getScrapedKeywords(query);
+        }
+        catch (error) {
+            console.error('❌ KeywordAnalysisService.getScrapedKeywords 오류:', error);
+            throw error;
+        }
+    }
 };
 exports.KeywordAnalysisService = KeywordAnalysisService;
 exports.KeywordAnalysisService = KeywordAnalysisService = __decorate([

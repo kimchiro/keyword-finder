@@ -14,9 +14,7 @@ const typeorm_1 = require("typeorm");
 const swagger_1 = require("@nestjs/swagger");
 const keyword_analytics_entity_1 = require("./keyword-analytics.entity");
 const related_keywords_entity_1 = require("./related-keywords.entity");
-const search_trends_entity_1 = require("./search-trends.entity");
 const gender_search_ratios_entity_1 = require("./gender-search-ratios.entity");
-const monthly_search_ratios_entity_1 = require("./monthly-search-ratios.entity");
 const weekday_search_ratios_entity_1 = require("./weekday-search-ratios.entity");
 const intent_analysis_entity_1 = require("./intent-analysis.entity");
 const issue_analysis_entity_1 = require("./issue-analysis.entity");
@@ -63,17 +61,9 @@ __decorate([
     __metadata("design:type", Array)
 ], Keyword.prototype, "relatedKeywords", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => search_trends_entity_1.SearchTrends, (trends) => trends.keywordEntity),
-    __metadata("design:type", Array)
-], Keyword.prototype, "searchTrends", void 0);
-__decorate([
     (0, typeorm_1.OneToMany)(() => gender_search_ratios_entity_1.GenderSearchRatios, (ratios) => ratios.keywordEntity),
     __metadata("design:type", Array)
 ], Keyword.prototype, "genderSearchRatios", void 0);
-__decorate([
-    (0, typeorm_1.OneToMany)(() => monthly_search_ratios_entity_1.MonthlySearchRatios, (ratios) => ratios.keywordEntity),
-    __metadata("design:type", Array)
-], Keyword.prototype, "monthlySearchRatios", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => weekday_search_ratios_entity_1.WeekdaySearchRatios, (ratios) => ratios.keywordEntity),
     __metadata("design:type", Array)

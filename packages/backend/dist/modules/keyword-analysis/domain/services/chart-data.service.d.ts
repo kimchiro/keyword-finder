@@ -34,4 +34,5 @@ export declare class ChartDataService {
         intentAnalysis: IntentAnalysis | null;
     }>;
     private clearExistingChartData;
+    private extractChartDataFromNaverApi;
 }

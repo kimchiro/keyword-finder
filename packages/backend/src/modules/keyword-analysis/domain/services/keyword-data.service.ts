@@ -31,31 +31,44 @@ export class KeywordDataService {
   ): Promise<KeywordAnalytics> {
     // 네이버 API에서 이미 계산된 값들을 직접 사용
     const processedData = this.extractNaverApiData(naverApiData);
-    
-    const analyticsData = {
-      keyword: keyword.value,
-      monthlySearchPc: processedData.monthlySearchPc,
-      monthlySearchMobile: processedData.monthlySearchMobile,
-      monthlySearchTotal: processedData.monthlySearchTotal,
-      monthlyContentBlog: processedData.monthlyContentBlog,
-      monthlyContentCafe: 0,
-      monthlyContentAll: processedData.monthlyContentBlog,
-      estimatedSearchYesterday: 0,
-      estimatedSearchEndMonth: 0,
-      saturationIndexBlog: 0,
-      saturationIndexCafe: 0,
-      saturationIndexAll: 0,
-      analysisDate: analysisDate.value,
-    };
 
     return await this.transactionService.runInTransaction(async (queryRunner) => {
+      // 먼저 Keyword 엔티티를 저장하거나 조회
+      let keywordEntity = await queryRunner.manager.getRepository(KeywordEntity).findOne({
+        where: { keyword: keyword.value }
+      });
+
+      if (!keywordEntity) {
+        keywordEntity = await queryRunner.manager.getRepository(KeywordEntity).save({
+          keyword: keyword.value,
+          status: 'active',
+        });
+      }
+      
+      const analyticsData = {
+        keywordId: keywordEntity.id, // keywordId 추가
+        keyword: keyword.value,
+        monthlySearchPc: processedData.monthlySearchPc,
+        monthlySearchMobile: processedData.monthlySearchMobile,
+        monthlySearchTotal: processedData.monthlySearchTotal,
+        monthlyContentBlog: processedData.monthlyContentBlog,
+        monthlyContentCafe: 0,
+        monthlyContentAll: processedData.monthlyContentBlog,
+        estimatedSearchYesterday: 0,
+        estimatedSearchEndMonth: 0,
+        saturationIndexBlog: 0,
+        saturationIndexCafe: 0,
+        saturationIndexAll: 0,
+        analysisDate: analysisDate.value,
+      };
+
       await this.transactionService.batchUpsert(
         queryRunner,
         KeywordAnalytics,
         [analyticsData],
-        ['keyword', 'analysis_date'],
+        ['keyword_id', 'analysis_date'], // keywordId 기준으로 upsert
         [
-          'monthly_search_pc', 'monthly_search_mobile', 'monthly_search_total',
+          'keyword', 'monthly_search_pc', 'monthly_search_mobile', 'monthly_search_total',
           'monthly_content_blog', 'monthly_content_cafe', 'monthly_content_all',
           'estimated_search_yesterday', 'estimated_search_end_month',
           'saturation_index_blog', 'saturation_index_cafe', 'saturation_index_all',
@@ -64,7 +77,7 @@ export class KeywordDataService {
       );
 
       return await queryRunner.manager.getRepository(KeywordAnalytics).findOne({
-        where: { keyword: keyword.value, analysisDate: analysisDate.value }
+        where: { keywordId: keywordEntity.id, analysisDate: analysisDate.value }
       });
     });
   }
@@ -80,35 +93,66 @@ export class KeywordDataService {
     }
 
     return await this.transactionService.runInTransaction(async (queryRunner) => {
+      // 기준 키워드 엔티티 저장하거나 조회
+      let baseKeywordEntity = await queryRunner.manager.getRepository(KeywordEntity).findOne({
+        where: { keyword: baseKeyword.value }
+      });
+
+      if (!baseKeywordEntity) {
+        baseKeywordEntity = await queryRunner.manager.getRepository(KeywordEntity).save({
+          keyword: baseKeyword.value,
+          status: 'active',
+        });
+      }
+
       // 기존 연관 키워드 데이터 삭제
       await this.transactionService.batchDelete(
         queryRunner,
         RelatedKeywords,
-        { baseKeyword: baseKeyword.value, analysisDate: analysisDate.value }
+        { baseKeywordId: baseKeywordEntity.id, analysisDate: analysisDate.value }
       );
 
-      // 새로운 연관 키워드 데이터 준비
-      const relatedKeywords = relatedKeywordsData.map((item, index) => ({
-        baseKeyword: baseKeyword.value,
-        relatedKeyword: item.keyword,
-        monthlySearchVolume: item.monthlySearchVolume || 0,
-        blogCumulativePosts: 0,
-        similarityScore: SimilarityScore.MEDIUM,
-        rankPosition: index + 1,
-        analysisDate: analysisDate.value,
-      }));
+      // 연관 키워드들도 저장하거나 조회하여 ID 매핑
+      const relatedKeywords = [];
+      
+      for (const [index, item] of relatedKeywordsData.entries()) {
+        let relatedKeywordEntity = await queryRunner.manager.getRepository(KeywordEntity).findOne({
+          where: { keyword: item.keyword }
+        });
 
-      // 배치 삽입
-      await this.transactionService.batchInsert(
+        if (!relatedKeywordEntity) {
+          relatedKeywordEntity = await queryRunner.manager.getRepository(KeywordEntity).save({
+            keyword: item.keyword,
+            status: 'active',
+          });
+        }
+
+        relatedKeywords.push({
+          baseKeywordId: baseKeywordEntity.id,
+          relatedKeywordId: relatedKeywordEntity.id,
+          baseKeyword: baseKeyword.value,
+          relatedKeyword: item.keyword,
+          monthlySearchVolume: item.monthlySearchVolume || 0,
+          blogCumulativePosts: 0,
+          similarityScore: SimilarityScore.MEDIUM,
+          rankPosition: index + 1,
+          analysisDate: analysisDate.value,
+        });
+      }
+
+      // 배치 UPSERT (중복 키 처리)
+      await this.transactionService.batchUpsert(
         queryRunner,
         RelatedKeywords,
         relatedKeywords,
+        ['base_keyword_id', 'related_keyword_id', 'analysis_date'], // 중복 감지 컬럼
+        ['monthly_search_volume', 'blog_cumulative_posts', 'similarity_score', 'rank_position'], // 업데이트할 컬럼
         500
       );
 
       // 저장된 데이터 조회하여 반환
       return await queryRunner.manager.getRepository(RelatedKeywords).find({
-        where: { baseKeyword: baseKeyword.value, analysisDate: analysisDate.value },
+        where: { baseKeywordId: baseKeywordEntity.id, analysisDate: analysisDate.value },
         order: { rankPosition: 'ASC' },
       });
     });
@@ -116,8 +160,17 @@ export class KeywordDataService {
 
   // 키워드 분석 데이터 조회
   async findKeywordAnalytics(keyword: Keyword): Promise<KeywordAnalytics | null> {
+    // 먼저 Keyword 엔티티를 조회
+    const keywordEntity = await this.keywordRepository.findOne({
+      where: { keyword: keyword.value }
+    });
+
+    if (!keywordEntity) {
+      return null;
+    }
+
     return await this.keywordAnalyticsRepository.findOne({
-      where: { keyword: keyword.value },
+      where: { keywordId: keywordEntity.id },
       order: { analysisDate: 'DESC' },
     });
   }
@@ -127,8 +180,17 @@ export class KeywordDataService {
     keyword: Keyword,
     analysisDate: AnalysisDate,
   ): Promise<KeywordAnalytics | null> {
+    // 먼저 Keyword 엔티티를 조회
+    const keywordEntity = await this.keywordRepository.findOne({
+      where: { keyword: keyword.value }
+    });
+
+    if (!keywordEntity) {
+      return null;
+    }
+
     return await this.keywordAnalyticsRepository.findOne({
-      where: { keyword: keyword.value, analysisDate: analysisDate.value },
+      where: { keywordId: keywordEntity.id, analysisDate: analysisDate.value },
     });
   }
 
@@ -137,8 +199,17 @@ export class KeywordDataService {
     keyword: Keyword,
     analysisDate: AnalysisDate,
   ): Promise<RelatedKeywords[]> {
+    // 먼저 Keyword 엔티티를 조회
+    const keywordEntity = await this.keywordRepository.findOne({
+      where: { keyword: keyword.value }
+    });
+
+    if (!keywordEntity) {
+      return [];
+    }
+
     return await this.relatedKeywordsRepository.find({
-      where: { baseKeyword: keyword.value, analysisDate: analysisDate.value },
+      where: { baseKeywordId: keywordEntity.id, analysisDate: analysisDate.value },
       order: { rankPosition: 'ASC' },
     });
   }

@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DatabaseConfig = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
+const keyword_entity_1 = require("../database/entities/keyword.entity");
 const keyword_analytics_entity_1 = require("../database/entities/keyword-analytics.entity");
 const related_keywords_entity_1 = require("../database/entities/related-keywords.entity");
 const search_trends_entity_1 = require("../database/entities/search-trends.entity");
@@ -35,6 +36,7 @@ let DatabaseConfig = class DatabaseConfig {
             database: this.configService.get('MYSQL_DATABASE', 'keyword_finder'),
             charset: 'utf8mb4',
             entities: [
+                keyword_entity_1.Keyword,
                 keyword_analytics_entity_1.KeywordAnalytics,
                 related_keywords_entity_1.RelatedKeywords,
                 search_trends_entity_1.SearchTrends,

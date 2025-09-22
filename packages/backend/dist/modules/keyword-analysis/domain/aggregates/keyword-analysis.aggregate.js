@@ -33,7 +33,16 @@ class KeywordAnalysisAggregate {
         };
     }
     get searchVolume() {
-        return new value_objects_1.SearchVolume(this._analytics.monthlySearchPc, this._analytics.monthlySearchMobile);
+        const pc = this._analytics.monthlySearchPc;
+        const mobile = this._analytics.monthlySearchMobile;
+        const total = pc + mobile;
+        return {
+            pc,
+            mobile,
+            total,
+            pcRatio: total > 0 ? Math.round((pc / total) * 100) : 0,
+            mobileRatio: total > 0 ? Math.round((mobile / total) * 100) : 0,
+        };
     }
     get relatedKeywordCount() {
         return this._relatedKeywords.length;
