@@ -3,7 +3,6 @@ import { RelatedKeywords } from '../../../../database/entities/related-keywords.
 import { SearchTrends } from '../../../../database/entities/search-trends.entity';
 import { MonthlySearchRatios } from '../../../../database/entities/monthly-search-ratios.entity';
 import { WeekdaySearchRatios } from '../../../../database/entities/weekday-search-ratios.entity';
-import { GenderSearchRatios } from '../../../../database/entities/gender-search-ratios.entity';
 import { IssueAnalysis } from '../../../../database/entities/issue-analysis.entity';
 import { IntentAnalysis } from '../../../../database/entities/intent-analysis.entity';
 import { Keyword, AnalysisDate } from '../value-objects';
@@ -17,7 +16,6 @@ export declare class KeywordAnalysisAggregate {
         searchTrends: SearchTrends[];
         monthlyRatios: MonthlySearchRatios[];
         weekdayRatios: WeekdaySearchRatios[];
-        genderRatios: GenderSearchRatios | null;
         issueAnalysis: IssueAnalysis | null;
         intentAnalysis: IntentAnalysis | null;
     });
@@ -29,7 +27,6 @@ export declare class KeywordAnalysisAggregate {
         searchTrends: SearchTrends[];
         monthlyRatios: MonthlySearchRatios[];
         weekdayRatios: WeekdaySearchRatios[];
-        genderRatios: GenderSearchRatios;
         issueAnalysis: IssueAnalysis;
         intentAnalysis: IntentAnalysis;
     };
@@ -55,7 +52,6 @@ export declare class KeywordAnalysisAggregate {
             searchTrends: SearchTrends[];
             monthlyRatios: MonthlySearchRatios[];
             weekdayRatios: WeekdaySearchRatios[];
-            genderRatios: GenderSearchRatios | null;
             issueAnalysis: IssueAnalysis | null;
             intentAnalysis: IntentAnalysis | null;
         };

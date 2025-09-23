@@ -1,13 +1,19 @@
 import { ConfigService } from '@nestjs/config';
 import { ApiRetryService } from '../../common/services/api-retry.service';
 import { AppConfigService } from '../../config/app.config';
+import { KeywordDataService } from '../keyword-analysis/domain/services/keyword-data.service';
 import { SingleKeywordFullDataDto, MultipleKeywordsLimitedDataDto, BatchRequestDto } from './dto/naver-api.dto';
 export declare class NaverApiService {
     private configService;
     private apiRetryService;
     private appConfig;
-    constructor(configService: ConfigService, apiRetryService: ApiRetryService, appConfig: AppConfigService);
+    private keywordDataService;
+    constructor(configService: ConfigService, apiRetryService: ApiRetryService, appConfig: AppConfigService, keywordDataService: KeywordDataService);
     searchBlogs(query: string, display?: number, start?: number, sort?: string): Promise<{
+        success: boolean;
+        data: any;
+    }>;
+    searchCafes(query: string, display?: number, start?: number, sort?: string): Promise<{
         success: boolean;
         data: any;
     }>;
@@ -50,26 +56,10 @@ export declare class NaverApiService {
                 keyword: string;
                 monthlySearchVolume: number;
                 cumulativePublications: any;
-                genderRatio: {
-                    male: number;
-                    female: number;
-                };
-                deviceData: {
-                    pc: number;
-                    mobile: number;
-                };
             } | {
                 keyword: string;
                 monthlySearchVolume: number;
                 cumulativePublications: number;
-                genderRatio: {
-                    male: number;
-                    female: number;
-                };
-                deviceData: {
-                    pc: number;
-                    mobile: number;
-                };
                 error: any;
             })[];
             timestamp: string;
@@ -99,26 +89,10 @@ export declare class NaverApiService {
                     keyword: string;
                     monthlySearchVolume: number;
                     cumulativePublications: any;
-                    genderRatio: {
-                        male: number;
-                        female: number;
-                    };
-                    deviceData: {
-                        pc: number;
-                        mobile: number;
-                    };
                 } | {
                     keyword: string;
                     monthlySearchVolume: number;
                     cumulativePublications: number;
-                    genderRatio: {
-                        male: number;
-                        female: number;
-                    };
-                    deviceData: {
-                        pc: number;
-                        mobile: number;
-                    };
                     error: any;
                 })[];
                 timestamp: string;
@@ -129,26 +103,10 @@ export declare class NaverApiService {
                     keyword: string;
                     monthlySearchVolume: number;
                     cumulativePublications: any;
-                    genderRatio: {
-                        male: number;
-                        female: number;
-                    };
-                    deviceData: {
-                        pc: number;
-                        mobile: number;
-                    };
                 } | {
                     keyword: string;
                     monthlySearchVolume: number;
                     cumulativePublications: number;
-                    genderRatio: {
-                        male: number;
-                        female: number;
-                    };
-                    deviceData: {
-                        pc: number;
-                        mobile: number;
-                    };
                     error: any;
                 })[];
                 timestamp: string;
@@ -160,7 +118,37 @@ export declare class NaverApiService {
     private getRelatedKeywords;
     private processLimitedKeywordData;
     private calculateMonthlySearchVolume;
-    private extractGenderRatio;
-    private extractDeviceData;
+    getContentCounts(query: string): Promise<{
+        success: boolean;
+        data: {
+            keyword: string;
+            searchedAt: Date;
+            counts: {
+                blogs: any;
+                cafes: any;
+                total: any;
+            };
+        };
+    }>;
+    getContentCountsAndSave(query: string): Promise<{
+        success: boolean;
+        data: {
+            keyword: string;
+            searchedAt: Date;
+            counts: {
+                blogs: any;
+                cafes: any;
+                total: any;
+            };
+            savedToDatabase: {
+                id: number;
+                analysisDate: Date;
+                monthlyContentBlog: number;
+                monthlyContentCafe: number;
+                monthlyContentAll: number;
+            };
+        };
+        message: string;
+    }>;
     private getDateRange;
 }

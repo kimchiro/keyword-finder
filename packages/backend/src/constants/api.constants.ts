@@ -78,30 +78,6 @@ export const SEARCH_TREND_API = {
     MONTH: 'month',
   },
   
-  /** 지원되는 디바이스 타입 */
-  DEVICE_TYPES: {
-    PC: 'pc',
-    MOBILE: 'mo',
-    ALL: '',
-  },
-  
-  /** 지원되는 성별 */
-  GENDERS: {
-    MALE: 'm',
-    FEMALE: 'f',
-    ALL: '',
-  },
-  
-  /** 지원되는 연령대 */
-  AGE_GROUPS: {
-    ALL: '',
-    TEENS: '1',
-    TWENTIES: '2',
-    THIRTIES: '3',
-    FORTIES: '4',
-    FIFTIES: '5',
-    SIXTIES_PLUS: '6',
-  },
   
   /** 카테고리 */
   CATEGORIES: {
@@ -294,7 +270,4 @@ export const VALIDATION = {
  * 타입 정의를 위한 유틸리티
  */
 export type TimeUnit = typeof SEARCH_TREND_API.TIME_UNITS[keyof typeof SEARCH_TREND_API.TIME_UNITS];
-export type DeviceType = typeof SEARCH_TREND_API.DEVICE_TYPES[keyof typeof SEARCH_TREND_API.DEVICE_TYPES];
-export type Gender = typeof SEARCH_TREND_API.GENDERS[keyof typeof SEARCH_TREND_API.GENDERS];
-export type AgeGroup = typeof SEARCH_TREND_API.AGE_GROUPS[keyof typeof SEARCH_TREND_API.AGE_GROUPS];
 export type Category = typeof SEARCH_TREND_API.CATEGORIES[keyof typeof SEARCH_TREND_API.CATEGORIES];

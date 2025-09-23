@@ -127,10 +127,10 @@ let ScrapingService = class ScrapingService {
             await scraper.initialize();
             const scrapingResult = await scraper.scrapeAllKeywords(query, types);
             const limitedKeywords = scrapingResult.keywords.slice(0, maxResults);
-            const formattedKeywords = limitedKeywords.map((keyword, index) => ({
+            const formattedKeywords = limitedKeywords.map((keyword) => ({
                 keyword: keyword.keyword,
                 category: keyword.category,
-                rank: keyword.rank || (index + 1),
+                rank: keyword.rank,
                 source: keyword.source,
                 competition: keyword.competition || 'medium',
                 similarity: keyword.similarity || 'medium',

@@ -12,7 +12,6 @@ export declare class KeywordAnalysisResponseDto {
             searchTrends: any[];
             monthlyRatios: any[];
             weekdayRatios: any[];
-            genderRatios: any;
             issueAnalysis: any;
             intentAnalysis: any;
         };

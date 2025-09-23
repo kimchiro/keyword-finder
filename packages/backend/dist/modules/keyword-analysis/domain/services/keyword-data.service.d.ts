@@ -21,4 +21,9 @@ export declare class KeywordDataService {
     private extractNaverApiData;
     saveScrapedKeywords(keyword: Keyword, analysisDate: AnalysisDate, scrapingData: any): Promise<void>;
     findScrapedKeywords(keyword: Keyword): Promise<any[]>;
+    saveContentCounts(keyword: Keyword, analysisDate: AnalysisDate, contentData: {
+        blogs: number;
+        cafes: number;
+        total: number;
+    }): Promise<KeywordAnalytics>;
 }

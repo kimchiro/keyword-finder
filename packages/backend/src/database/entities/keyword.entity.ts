@@ -11,7 +11,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { KeywordAnalytics } from './keyword-analytics.entity';
 import { RelatedKeywords } from './related-keywords.entity';
 import { SearchTrends } from './search-trends.entity';
-import { GenderSearchRatios } from './gender-search-ratios.entity';
 import { MonthlySearchRatios } from './monthly-search-ratios.entity';
 import { WeekdaySearchRatios } from './weekday-search-ratios.entity';
 import { IntentAnalysis } from './intent-analysis.entity';
@@ -55,8 +54,6 @@ export class Keyword {
 
   // searchTrends 관계 제거 - keyword 문자열로 직접 조회
 
-  @OneToMany(() => GenderSearchRatios, (ratios) => ratios.keywordEntity)
-  genderSearchRatios: GenderSearchRatios[];
 
   // monthlySearchRatios 관계 제거 - keyword 문자열로 직접 조회
 

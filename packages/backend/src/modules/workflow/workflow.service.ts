@@ -86,9 +86,11 @@ export class WorkflowService {
         this.naverApiService.getContentCounts(query)
       ]);
       
-      // 4-2: 추출된 키워드 5개로 2번의 API 호출
+      // 4-2: 추출된 키워드 5개로 2번의 API 호출 (각 카테고리별 데이터 수집)
       let firstBatchApiResult = null;
       let secondBatchApiResult = null;
+      let firstBatchDemographicData = null;
+      let secondBatchDemographicData = null;
       
       if (topKeywords.length > 0) {
         // 첫 번째 배치 (최대 5개 키워드)
@@ -101,12 +103,58 @@ export class WorkflowService {
             keywords: [keyword],
           }));
 
-          firstBatchApiResult = await this.naverApiService.getDatalab({
-            startDate: this.appConfig.defaultStartDate,
-            endDate: this.appConfig.defaultEndDate,
-            timeUnit: 'month',
-            keywordGroups: keywordGroups1,
-          });
+          // 일반 트렌드 데이터와 인구통계학적 데이터를 병렬로 수집
+          const [generalResult, genderResult, deviceResult, ageResult] = await Promise.all([
+            // 일반 트렌드 데이터
+            this.naverApiService.getDatalab({
+              startDate: this.appConfig.defaultStartDate,
+              endDate: this.appConfig.defaultEndDate,
+              timeUnit: 'month',
+              keywordGroups: keywordGroups1,
+            }),
+            // 성별 데이터
+            this.naverApiService.getDatalab({
+              startDate: this.appConfig.defaultStartDate,
+              endDate: this.appConfig.defaultEndDate,
+              timeUnit: 'month',
+              category: 'gender',
+              keywordGroups: keywordGroups1,
+            }).catch(error => {
+              console.warn(`⚠️ 첫 번째 배치 성별 데이터 수집 실패:`, error.message);
+              return null;
+            }),
+            // 디바이스 데이터
+            this.naverApiService.getDatalab({
+              startDate: this.appConfig.defaultStartDate,
+              endDate: this.appConfig.defaultEndDate,
+              timeUnit: 'month',
+              category: 'device',
+              keywordGroups: keywordGroups1,
+            }).catch(error => {
+              console.warn(`⚠️ 첫 번째 배치 디바이스 데이터 수집 실패:`, error.message);
+              return null;
+            }),
+            // 연령 데이터
+            this.naverApiService.getDatalab({
+              startDate: this.appConfig.defaultStartDate,
+              endDate: this.appConfig.defaultEndDate,
+              timeUnit: 'month',
+              category: 'age',
+              keywordGroups: keywordGroups1,
+            }).catch(error => {
+              console.warn(`⚠️ 첫 번째 배치 연령 데이터 수집 실패:`, error.message);
+              return null;
+            }),
+          ]);
+
+          firstBatchApiResult = generalResult;
+          firstBatchDemographicData = {
+            gender: genderResult,
+            device: deviceResult,
+            age: ageResult,
+          };
+
+          console.log(`✅ 첫 번째 배치 데이터 수집 완료 - 일반: ${generalResult ? '성공' : '실패'}, 성별: ${genderResult ? '성공' : '실패'}, 디바이스: ${deviceResult ? '성공' : '실패'}, 연령: ${ageResult ? '성공' : '실패'}`);
         }
 
         // 두 번째 배치 (추가 키워드가 있다면)
@@ -119,12 +167,18 @@ export class WorkflowService {
             keywords: [keyword],
           }));
 
-          secondBatchApiResult = await this.naverApiService.getDatalab({
+          // 일반 트렌드 데이터 수집
+          const generalResult = await this.naverApiService.getDatalab({
             startDate: this.appConfig.defaultStartDate,
             endDate: this.appConfig.defaultEndDate,
             timeUnit: 'month',
             keywordGroups: keywordGroups2,
           });
+
+          secondBatchApiResult = generalResult;
+          secondBatchDemographicData = null;
+
+          console.log(`✅ 두 번째 배치 데이터 수집 완료 - 일반: ${generalResult ? '성공' : '실패'}`);
         }
       }
       
@@ -158,10 +212,19 @@ export class WorkflowService {
         };
       });
 
+      // 인구통계학적 데이터를 포함한 분석 데이터 생성
+      const enhancedNaverApiData = {
+        ...originalKeywordApiResult.data,
+        demographicData: {
+          firstBatch: firstBatchDemographicData,
+          secondBatch: secondBatchDemographicData,
+        }
+      };
+
       const analysisData = await this.keywordAnalysisService.analyzeKeyword(
         query, 
         undefined, 
-        originalKeywordApiResult.data, 
+        enhancedNaverApiData, 
         relatedKeywordsData
       );
 
@@ -177,6 +240,10 @@ export class WorkflowService {
             original: originalKeywordApiResult.data,
             firstBatch: firstBatchApiResult?.data || null,
             secondBatch: secondBatchApiResult?.data || null,
+            demographicData: {
+              firstBatch: firstBatchDemographicData,
+              secondBatch: secondBatchDemographicData,
+            },
           },
           contentCounts: contentCountsResult.data, // 🆕 콘텐츠 수 데이터 추가
           scrapingData: scrapingResult,

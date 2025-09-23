@@ -7,6 +7,7 @@ export interface WorkflowResult {
     data: {
         query: string;
         naverApiData: any;
+        contentCounts?: any;
         scrapingData: any;
         analysisData: any;
         topKeywords?: string[];

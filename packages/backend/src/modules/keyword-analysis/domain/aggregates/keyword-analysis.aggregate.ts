@@ -3,7 +3,6 @@ import { RelatedKeywords } from '../../../../database/entities/related-keywords.
 import { SearchTrends } from '../../../../database/entities/search-trends.entity';
 import { MonthlySearchRatios } from '../../../../database/entities/monthly-search-ratios.entity';
 import { WeekdaySearchRatios } from '../../../../database/entities/weekday-search-ratios.entity';
-import { GenderSearchRatios } from '../../../../database/entities/gender-search-ratios.entity';
 import { IssueAnalysis } from '../../../../database/entities/issue-analysis.entity';
 import { IntentAnalysis } from '../../../../database/entities/intent-analysis.entity';
 import { Keyword, AnalysisDate } from '../value-objects';
@@ -18,7 +17,6 @@ export class KeywordAnalysisAggregate {
     searchTrends: SearchTrends[];
     monthlyRatios: MonthlySearchRatios[];
     weekdayRatios: WeekdaySearchRatios[];
-    genderRatios: GenderSearchRatios | null;
     issueAnalysis: IssueAnalysis | null;
     intentAnalysis: IntentAnalysis | null;
   };
@@ -32,7 +30,6 @@ export class KeywordAnalysisAggregate {
       searchTrends: SearchTrends[];
       monthlyRatios: MonthlySearchRatios[];
       weekdayRatios: WeekdaySearchRatios[];
-      genderRatios: GenderSearchRatios | null;
       issueAnalysis: IssueAnalysis | null;
       intentAnalysis: IntentAnalysis | null;
     },
@@ -66,7 +63,6 @@ export class KeywordAnalysisAggregate {
       searchTrends: [...this._chartData.searchTrends],
       monthlyRatios: [...this._chartData.monthlyRatios],
       weekdayRatios: [...this._chartData.weekdayRatios],
-      genderRatios: this._chartData.genderRatios,
       issueAnalysis: this._chartData.issueAnalysis,
       intentAnalysis: this._chartData.intentAnalysis,
     };
@@ -156,7 +152,6 @@ export class KeywordAnalysisAggregate {
       searchTrends: SearchTrends[];
       monthlyRatios: MonthlySearchRatios[];
       weekdayRatios: WeekdaySearchRatios[];
-      genderRatios: GenderSearchRatios | null;
       issueAnalysis: IssueAnalysis | null;
       intentAnalysis: IntentAnalysis | null;
     };

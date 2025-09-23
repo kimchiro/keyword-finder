@@ -247,22 +247,6 @@ export class MultipleKeywordsLimitedDataResponseDto {
       keyword: string;
       monthlySearchVolume: number;
       cumulativePublications: number;
-      genderRatio: {
-        male: number;
-        female: number;
-      };
-      deviceData: {
-        pc: number;
-        mobile: number;
-      };
-      ageData: {
-        '10s': number;
-        '20s': number;
-        '30s': number;
-        '40s': number;
-        '50s': number;
-        '60+': number;
-      };
     }>;
     timestamp: string;
   };

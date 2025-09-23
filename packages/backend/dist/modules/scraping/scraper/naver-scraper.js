@@ -85,7 +85,11 @@ class NaverScraper {
                 const firstIndex = self.findIndex(k => k.keyword === keyword.keyword);
                 return firstIndex === index;
             })
-                .slice(0, scraping_constants_1.SCRAPING_DEFAULTS.MAX_KEYWORDS_PER_TYPE);
+                .slice(0, scraping_constants_1.SCRAPING_DEFAULTS.MAX_KEYWORDS_PER_TYPE)
+                .map((keyword, index) => ({
+                ...keyword,
+                rank: index + 1
+            }));
             if (uniqueKeywords.length === 0) {
                 console.log('⚠️ 유효한 키워드를 찾을 수 없습니다');
                 return {
@@ -119,7 +123,12 @@ class NaverScraper {
             console.log('📄 2페이지에서 연관검색어 수집...');
             const page2Results = await this.scrapeRelatedFromPage(query, 2);
             if (page2Results.status === 'success' && page2Results.keywords.length > 0) {
-                const limitedKeywords = page2Results.keywords.slice(0, maxResults);
+                const limitedKeywords = page2Results.keywords
+                    .slice(0, maxResults)
+                    .map((keyword, index) => ({
+                    ...keyword,
+                    rank: index + 1
+                }));
                 console.log(`✅ 연관검색어 ${limitedKeywords.length}개 수집 완료 (2페이지)`);
                 return {
                     keywords: limitedKeywords,
@@ -216,15 +225,15 @@ class NaverScraper {
                     if (text && text.trim()) {
                         const cleanKeyword = text.trim();
                         if (this.isValidRelatedKeyword(cleanKeyword, query)) {
-                            const globalRank = (page - 1) * 10 + i + 1;
+                            const rank = relatedKeywords.length + 1;
                             relatedKeywords.push({
                                 keyword: cleanKeyword,
                                 category: 'related_search',
-                                rank: globalRank,
+                                rank: rank,
                                 competition: this.estimateCompetition(cleanKeyword),
                                 similarity: this.calculateSimilarity(query, cleanKeyword),
                             });
-                            console.log(`✅ 연관검색어 수집: "${cleanKeyword}" (순위: ${globalRank})`);
+                            console.log(`✅ 연관검색어 수집: "${cleanKeyword}" (순위: ${rank}, 페이지: ${page})`);
                         }
                         else {
                             console.log(`❌ 연관검색어 필터링됨: "${cleanKeyword}"`);
@@ -371,31 +380,45 @@ class NaverScraper {
         return 1 - (distance / maxLen);
     }
     isValidRelatedKeyword(keyword, originalQuery) {
-        if (!this.isValidKeyword(keyword, originalQuery))
+        if (!keyword || !keyword.trim() || keyword.trim() === originalQuery) {
             return false;
+        }
+        keyword = keyword.trim();
+        if (keyword.length < 2 || keyword.length > 50) {
+            return false;
+        }
         const excludePatterns = [
-            /컨텍스트/i,
-            /자동완성/i,
-            /기간/i,
-            /특별한/i,
-            /추석/i,
-            /더보기/i,
-            /열기/i,
-            /닫기/i,
-            /도움말/i,
-            /신고/i,
+            /^더보기$/i,
+            /^열기$/i,
+            /^닫기$/i,
+            /^도움말$/i,
+            /^신고$/i,
+            /^광고$/i,
+            /^네이버$/i,
+            /^NAVER$/i,
             /^[0-9]+$/,
             /^\s*$/,
+            /^\.+$/,
+            /^-+$/,
         ];
         for (const pattern of excludePatterns) {
             if (pattern.test(keyword)) {
                 return false;
             }
         }
-        const queryChars = originalQuery.toLowerCase().split('');
-        const keywordChars = keyword.toLowerCase().split('');
+        if (/(http|www|\.com|\.kr|\.net|\.org)/i.test(keyword)) {
+            return false;
+        }
+        if (!/^[가-힣a-zA-Z0-9\s\-_()]+$/.test(keyword)) {
+            return false;
+        }
+        const queryLower = originalQuery.toLowerCase();
+        const keywordLower = keyword.toLowerCase();
+        const queryChars = queryLower.split('');
+        const keywordChars = keywordLower.split('');
         const hasCommonChar = queryChars.some(char => keywordChars.includes(char));
-        return hasCommonChar || keyword.length >= 3;
+        const hasSubstring = keywordLower.includes(queryLower) || queryLower.includes(keywordLower);
+        return hasCommonChar || hasSubstring || keyword.length >= 3;
     }
 }
 exports.NaverScraper = NaverScraper;

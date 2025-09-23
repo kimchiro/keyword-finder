@@ -27,7 +27,6 @@ class KeywordAnalysisAggregate {
             searchTrends: [...this._chartData.searchTrends],
             monthlyRatios: [...this._chartData.monthlyRatios],
             weekdayRatios: [...this._chartData.weekdayRatios],
-            genderRatios: this._chartData.genderRatios,
             issueAnalysis: this._chartData.issueAnalysis,
             intentAnalysis: this._chartData.intentAnalysis,
         };

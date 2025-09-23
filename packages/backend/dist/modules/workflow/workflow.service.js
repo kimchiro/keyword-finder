@@ -46,10 +46,15 @@ let WorkflowService = class WorkflowService {
                 console.warn('⚠️ 추출된 키워드가 없습니다. 원본 키워드만 사용합니다.');
             }
             console.log(`🌐 Phase 4: 네이버 API 호출 시작`);
-            console.log(`📞 API 호출 1: 원본 키워드 "${query}"`);
-            const originalKeywordApiResult = await this.naverApiService.getIntegratedData(query);
+            console.log(`📞 API 호출 1: 원본 키워드 "${query}" (통합 데이터 + 콘텐츠 수)`);
+            const [originalKeywordApiResult, contentCountsResult] = await Promise.all([
+                this.naverApiService.getIntegratedData(query),
+                this.naverApiService.getContentCounts(query)
+            ]);
             let firstBatchApiResult = null;
             let secondBatchApiResult = null;
+            let firstBatchDemographicData = null;
+            let secondBatchDemographicData = null;
             if (topKeywords.length > 0) {
                 const firstBatch = topKeywords.slice(0, 5);
                 if (firstBatch.length > 0) {
@@ -58,12 +63,51 @@ let WorkflowService = class WorkflowService {
                         groupName: `키워드${index + 1}`,
                         keywords: [keyword],
                     }));
-                    firstBatchApiResult = await this.naverApiService.getDatalab({
-                        startDate: this.appConfig.defaultStartDate,
-                        endDate: this.appConfig.defaultEndDate,
-                        timeUnit: 'month',
-                        keywordGroups: keywordGroups1,
-                    });
+                    const [generalResult, genderResult, deviceResult, ageResult] = await Promise.all([
+                        this.naverApiService.getDatalab({
+                            startDate: this.appConfig.defaultStartDate,
+                            endDate: this.appConfig.defaultEndDate,
+                            timeUnit: 'month',
+                            keywordGroups: keywordGroups1,
+                        }),
+                        this.naverApiService.getDatalab({
+                            startDate: this.appConfig.defaultStartDate,
+                            endDate: this.appConfig.defaultEndDate,
+                            timeUnit: 'month',
+                            category: 'gender',
+                            keywordGroups: keywordGroups1,
+                        }).catch(error => {
+                            console.warn(`⚠️ 첫 번째 배치 성별 데이터 수집 실패:`, error.message);
+                            return null;
+                        }),
+                        this.naverApiService.getDatalab({
+                            startDate: this.appConfig.defaultStartDate,
+                            endDate: this.appConfig.defaultEndDate,
+                            timeUnit: 'month',
+                            category: 'device',
+                            keywordGroups: keywordGroups1,
+                        }).catch(error => {
+                            console.warn(`⚠️ 첫 번째 배치 디바이스 데이터 수집 실패:`, error.message);
+                            return null;
+                        }),
+                        this.naverApiService.getDatalab({
+                            startDate: this.appConfig.defaultStartDate,
+                            endDate: this.appConfig.defaultEndDate,
+                            timeUnit: 'month',
+                            category: 'age',
+                            keywordGroups: keywordGroups1,
+                        }).catch(error => {
+                            console.warn(`⚠️ 첫 번째 배치 연령 데이터 수집 실패:`, error.message);
+                            return null;
+                        }),
+                    ]);
+                    firstBatchApiResult = generalResult;
+                    firstBatchDemographicData = {
+                        gender: genderResult,
+                        device: deviceResult,
+                        age: ageResult,
+                    };
+                    console.log(`✅ 첫 번째 배치 데이터 수집 완료 - 일반: ${generalResult ? '성공' : '실패'}, 성별: ${genderResult ? '성공' : '실패'}, 디바이스: ${deviceResult ? '성공' : '실패'}, 연령: ${ageResult ? '성공' : '실패'}`);
                 }
                 const secondBatch = topKeywords.slice(5, 10);
                 if (secondBatch.length > 0) {
@@ -72,12 +116,15 @@ let WorkflowService = class WorkflowService {
                         groupName: `키워드${index + 6}`,
                         keywords: [keyword],
                     }));
-                    secondBatchApiResult = await this.naverApiService.getDatalab({
+                    const generalResult = await this.naverApiService.getDatalab({
                         startDate: this.appConfig.defaultStartDate,
                         endDate: this.appConfig.defaultEndDate,
                         timeUnit: 'month',
                         keywordGroups: keywordGroups2,
                     });
+                    secondBatchApiResult = generalResult;
+                    secondBatchDemographicData = null;
+                    console.log(`✅ 두 번째 배치 데이터 수집 완료 - 일반: ${generalResult ? '성공' : '실패'}`);
                 }
             }
             console.log(`✅ 네이버 API 호출 완료 - 총 ${topKeywords.length > 5 ? 3 : topKeywords.length > 0 ? 2 : 1}번 호출`);
@@ -98,7 +145,14 @@ let WorkflowService = class WorkflowService {
                     trendData: trendData?.data || []
                 };
             });
-            const analysisData = await this.keywordAnalysisService.analyzeKeyword(query, undefined, originalKeywordApiResult.data, relatedKeywordsData);
+            const enhancedNaverApiData = {
+                ...originalKeywordApiResult.data,
+                demographicData: {
+                    firstBatch: firstBatchDemographicData,
+                    secondBatch: secondBatchDemographicData,
+                }
+            };
+            const analysisData = await this.keywordAnalysisService.analyzeKeyword(query, undefined, enhancedNaverApiData, relatedKeywordsData);
             const executionTime = (Date.now() - startTime) / 1000;
             console.log(`✅ 새로운 워크플로우 완료: ${query} (${executionTime}초)`);
             return {
@@ -109,7 +163,12 @@ let WorkflowService = class WorkflowService {
                         original: originalKeywordApiResult.data,
                         firstBatch: firstBatchApiResult?.data || null,
                         secondBatch: secondBatchApiResult?.data || null,
+                        demographicData: {
+                            firstBatch: firstBatchDemographicData,
+                            secondBatch: secondBatchDemographicData,
+                        },
                     },
+                    contentCounts: contentCountsResult.data,
                     scrapingData: scrapingResult,
                     analysisData,
                     topKeywords,

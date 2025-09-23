@@ -8,7 +8,6 @@ import { ScrapingModule } from './modules/scraping/scraping.module';
 import { HealthModule } from './modules/health/health.module';
 import { WorkflowModule } from './modules/workflow/workflow.module';
 import { DatabaseConfig } from './config/database.config';
-import { AppConfigService } from './config/app.config';
 import { validateEnvironment } from './config/validation.schema';
 
 @Module({

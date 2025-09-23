@@ -33,25 +33,6 @@ export declare const SEARCH_TREND_API: {
         readonly WEEK: "week";
         readonly MONTH: "month";
     };
-    readonly DEVICE_TYPES: {
-        readonly PC: "pc";
-        readonly MOBILE: "mo";
-        readonly ALL: "";
-    };
-    readonly GENDERS: {
-        readonly MALE: "m";
-        readonly FEMALE: "f";
-        readonly ALL: "";
-    };
-    readonly AGE_GROUPS: {
-        readonly ALL: "";
-        readonly TEENS: "1";
-        readonly TWENTIES: "2";
-        readonly THIRTIES: "3";
-        readonly FORTIES: "4";
-        readonly FIFTIES: "5";
-        readonly SIXTIES_PLUS: "6";
-    };
     readonly CATEGORIES: {
         readonly ALL: 0;
         readonly POLITICS: 1;
@@ -186,7 +167,4 @@ export declare const VALIDATION: {
     };
 };
 export type TimeUnit = typeof SEARCH_TREND_API.TIME_UNITS[keyof typeof SEARCH_TREND_API.TIME_UNITS];
-export type DeviceType = typeof SEARCH_TREND_API.DEVICE_TYPES[keyof typeof SEARCH_TREND_API.DEVICE_TYPES];
-export type Gender = typeof SEARCH_TREND_API.GENDERS[keyof typeof SEARCH_TREND_API.GENDERS];
-export type AgeGroup = typeof SEARCH_TREND_API.AGE_GROUPS[keyof typeof SEARCH_TREND_API.AGE_GROUPS];
 export type Category = typeof SEARCH_TREND_API.CATEGORIES[keyof typeof SEARCH_TREND_API.CATEGORIES];

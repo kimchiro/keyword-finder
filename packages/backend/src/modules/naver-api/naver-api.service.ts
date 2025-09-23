@@ -198,53 +198,14 @@ export class NaverApiService {
       const { startDate, endDate } = this.getDateRange();
       console.log(`📅 검색 기간: ${startDate} ~ ${endDate}`);
 
-      // 블로그 검색, 데이터랩 트렌드(전체/성별/디바이스/연령), 연관 검색어를 병렬로 조회
-      const [blogSearchResult, generalDatalabResult, genderDatalabResult, deviceDatalabResult, ageDatalabResult, relatedKeywordsResult] = await Promise.all([
+      // 블로그 검색, 데이터랩 트렌드, 연관 검색어를 병렬로 조회
+      const [blogSearchResult, generalDatalabResult, relatedKeywordsResult] = await Promise.all([
         this.searchBlogs(request.keyword, 5, 1, 'date'), // 최신 5개 결과, 날짜순 정렬
         // 전체 트렌드 데이터
         this.getDatalab({
           startDate,
           endDate,
           timeUnit: 'month',
-          keywordGroups: [
-            {
-              groupName: request.keyword,
-              keywords: [request.keyword],
-            },
-          ],
-        }),
-        // 성별 데이터
-        this.getDatalab({
-          startDate,
-          endDate,
-          timeUnit: 'month',
-          category: 'gender',
-          keywordGroups: [
-            {
-              groupName: request.keyword,
-              keywords: [request.keyword],
-            },
-          ],
-        }),
-        // 디바이스 데이터
-        this.getDatalab({
-          startDate,
-          endDate,
-          timeUnit: 'month',
-          category: 'device',
-          keywordGroups: [
-            {
-              groupName: request.keyword,
-              keywords: [request.keyword],
-            },
-          ],
-        }),
-        // 연령 데이터
-        this.getDatalab({
-          startDate,
-          endDate,
-          timeUnit: 'month',
-          category: 'age',
           keywordGroups: [
             {
               groupName: request.keyword,
@@ -263,12 +224,7 @@ export class NaverApiService {
         data: {
           keyword: request.keyword,
           blogSearch: blogSearchResult.data,
-          datalab: {
-            general: generalDatalabResult.data,
-            gender: genderDatalabResult.data,
-            device: deviceDatalabResult.data,
-            age: ageDatalabResult.data,
-          },
+          datalab: generalDatalabResult.data,
           relatedKeywords: relatedKeywordsResult.data,
           searchPeriod: { startDate, endDate },
           timestamp: new Date().toISOString(),
@@ -296,52 +252,13 @@ export class NaverApiService {
       const keywordResults = await Promise.all(
         request.keywords.map(async (keyword) => {
           try {
-            // 전체, 성별, 디바이스, 연령 데이터를 병렬로 조회
-            const [generalResult, genderResult, deviceResult, ageResult, blogSearchResult] = await Promise.all([
+            // 전체 데이터와 블로그 검색을 병렬로 조회
+            const [generalResult, blogSearchResult] = await Promise.all([
               // 전체 트렌드 데이터
               this.getDatalab({
                 startDate,
                 endDate,
                 timeUnit: 'month',
-                keywordGroups: [
-                  {
-                    groupName: keyword,
-                    keywords: [keyword],
-                  },
-                ],
-              }),
-              // 성별 데이터
-              this.getDatalab({
-                startDate,
-                endDate,
-                timeUnit: 'month',
-                category: 'gender',
-                keywordGroups: [
-                  {
-                    groupName: keyword,
-                    keywords: [keyword],
-                  },
-                ],
-              }),
-              // 디바이스 데이터
-              this.getDatalab({
-                startDate,
-                endDate,
-                timeUnit: 'month',
-                category: 'device',
-                keywordGroups: [
-                  {
-                    groupName: keyword,
-                    keywords: [keyword],
-                  },
-                ],
-              }),
-              // 연령 데이터
-              this.getDatalab({
-                startDate,
-                endDate,
-                timeUnit: 'month',
-                category: 'age',
                 keywordGroups: [
                   {
                     groupName: keyword,
@@ -357,10 +274,7 @@ export class NaverApiService {
             const processedData = this.processLimitedKeywordData(
               keyword,
               generalResult.data,
-              blogSearchResult.data,
-              genderResult.data,
-              deviceResult.data,
-              ageResult.data
+              blogSearchResult.data
             );
 
             return processedData;
@@ -370,9 +284,6 @@ export class NaverApiService {
               keyword,
               monthlySearchVolume: 0,
               cumulativePublications: 0,
-              genderRatio: { male: 50, female: 50 },
-              deviceData: { pc: 50, mobile: 50 },
-              ageData: { '10s': 16.7, '20s': 16.7, '30s': 16.7, '40s': 16.7, '50s': 16.7, '60+': 16.5 },
               error: error.message,
             };
           }
@@ -461,10 +372,7 @@ export class NaverApiService {
   private processLimitedKeywordData(
     keyword: string, 
     generalData: any, 
-    blogSearchData: any, 
-    genderData?: any, 
-    deviceData?: any,
-    ageData?: any
+    blogSearchData: any
   ) {
     try {
       // 월간검색량 계산 (데이터랩 트렌드 데이터에서 추출)
@@ -472,31 +380,16 @@ export class NaverApiService {
       
       // 누적발행량 추정 (블로그 검색 결과 total 값 활용)
       const cumulativePublications = blogSearchData.total || 0;
-      
-      // 성비율 데이터 (category='gender'로 조회한 데이터 사용)
-      const genderRatio = this.extractGenderRatioFromCategoryData(genderData);
-      
-      // 디바이스 데이터 (category='device'로 조회한 데이터 사용)
-      const deviceRatio = this.extractDeviceDataFromCategoryData(deviceData);
-
-      // 연령 데이터 (category='age'로 조회한 데이터 사용)
-      const ageRatio = this.extractAgeDataFromCategoryData(ageData);
 
       console.log(`📊 키워드 "${keyword}" 데이터 가공 완료:`, {
         monthlySearchVolume,
         cumulativePublications,
-        genderRatio,
-        deviceRatio,
-        ageRatio,
       });
 
       return {
         keyword,
         monthlySearchVolume,
         cumulativePublications,
-        genderRatio,
-        deviceData: deviceRatio,
-        ageData: ageRatio,
       };
     } catch (error) {
       console.error(`❌ 키워드 데이터 가공 오류 (${keyword}):`, error);
@@ -504,9 +397,6 @@ export class NaverApiService {
         keyword,
         monthlySearchVolume: 0,
         cumulativePublications: 0,
-        genderRatio: { male: 50, female: 50 },
-        deviceData: { pc: 50, mobile: 50 },
-        ageData: { '10s': 16.7, '20s': 16.7, '30s': 16.7, '40s': 16.7, '50s': 16.7, '60+': 16.5 },
       };
     }
   }
@@ -528,283 +418,10 @@ export class NaverApiService {
     }
   }
 
-  // 성비율 데이터 추출 (1년치 평균 계산)
-  private extractGenderRatio(naverApiData: any): { male: number; female: number } {
-    try {
-      // 네이버 API에서 성별 데이터 추출
-      if (naverApiData?.genderData) {
-        const maleData = naverApiData.genderData.male;
-        const femaleData = naverApiData.genderData.female;
-        
-        if (maleData?.results?.[0]?.data && femaleData?.results?.[0]?.data) {
-          // 1년치 데이터의 평균 계산
-          const maleRatios = maleData.results[0].data.map(item => item.ratio || 0);
-          const femaleRatios = femaleData.results[0].data.map(item => item.ratio || 0);
-          
-          const maleAverage = maleRatios.reduce((sum, ratio) => sum + ratio, 0) / maleRatios.length;
-          const femaleAverage = femaleRatios.reduce((sum, ratio) => sum + ratio, 0) / femaleRatios.length;
-          
-          const total = maleAverage + femaleAverage;
-          if (total > 0) {
-            const malePercentage = (maleAverage / total) * 100;
-            const femalePercentage = (femaleAverage / total) * 100;
-            
-            console.log(`📊 성별 비율 (1년 평균): 남성 ${malePercentage.toFixed(1)}%, 여성 ${femalePercentage.toFixed(1)}%`);
-            
-            return {
-              male: Math.round(malePercentage * 10) / 10, // 소수점 1자리
-              female: Math.round(femalePercentage * 10) / 10,
-            };
-          }
-        }
-      }
-      
-      console.log('⚠️ 성별 데이터를 찾을 수 없어 기본값 사용');
-      return { male: 50.0, female: 50.0 };
-    } catch (error) {
-      console.error('❌ 성비율 데이터 추출 오류:', error);
-      return { male: 50.0, female: 50.0 };
-    }
-  }
 
-  // 디바이스 데이터 추출 (1년치 평균 계산)
-  private extractDeviceData(naverApiData: any): { pc: number; mobile: number } {
-    try {
-      // 네이버 API에서 디바이스 데이터 추출
-      if (naverApiData?.deviceData) {
-        const pcData = naverApiData.deviceData.pc;
-        const mobileData = naverApiData.deviceData.mobile;
-        
-        if (pcData?.results?.[0]?.data && mobileData?.results?.[0]?.data) {
-          // 1년치 데이터의 평균 계산
-          const pcRatios = pcData.results[0].data.map(item => item.ratio || 0);
-          const mobileRatios = mobileData.results[0].data.map(item => item.ratio || 0);
-          
-          const pcAverage = pcRatios.reduce((sum, ratio) => sum + ratio, 0) / pcRatios.length;
-          const mobileAverage = mobileRatios.reduce((sum, ratio) => sum + ratio, 0) / mobileRatios.length;
-          
-          const total = pcAverage + mobileAverage;
-          if (total > 0) {
-            const pcPercentage = (pcAverage / total) * 100;
-            const mobilePercentage = (mobileAverage / total) * 100;
-            
-            console.log(`💻 디바이스 비율 (1년 평균): PC ${pcPercentage.toFixed(1)}%, 모바일 ${mobilePercentage.toFixed(1)}%`);
-            
-            return {
-              pc: Math.round(pcPercentage * 10) / 10, // 소수점 1자리
-              mobile: Math.round(mobilePercentage * 10) / 10,
-            };
-          }
-        }
-      }
-      
-      console.log('⚠️ 디바이스 데이터를 찾을 수 없어 기본값 사용');
-      return { pc: 50.0, mobile: 50.0 };
-    } catch (error) {
-      console.error('❌ 디바이스 데이터 추출 오류:', error);
-      return { pc: 50.0, mobile: 50.0 };
-    }
-  }
 
-  // category='gender'로 조회한 성별 데이터 추출
-  private extractGenderRatioFromCategoryData(genderData: any): { male: number; female: number } {
-    try {
-      console.log('🔍 성별 카테고리 데이터 분석:', JSON.stringify(genderData, null, 2));
-      
-      if (genderData?.results && genderData.results.length >= 2) {
-        // 네이버 데이터랩 category='gender' 응답에서는 results 배열에 남성/여성 데이터가 분리되어 옴
-        const results = genderData.results;
-        
-        // 각 결과의 title로 남성/여성 구분 (또는 순서로 구분)
-        let maleData = null;
-        let femaleData = null;
-        
-        for (const result of results) {
-          if (result.title?.includes('남') || result.title?.includes('male') || result.title?.includes('M')) {
-            maleData = result;
-          } else if (result.title?.includes('여') || result.title?.includes('female') || result.title?.includes('F')) {
-            femaleData = result;
-          }
-        }
-        
-        // title로 구분이 안되면 순서로 구분 (보통 첫 번째가 남성, 두 번째가 여성)
-        if (!maleData && !femaleData && results.length >= 2) {
-          maleData = results[0];
-          femaleData = results[1];
-        }
-        
-        if (maleData?.data && femaleData?.data) {
-          // 1년치 데이터의 평균 계산
-          const maleRatios = maleData.data.map(item => item.ratio || 0);
-          const femaleRatios = femaleData.data.map(item => item.ratio || 0);
-          
-          const maleAverage = maleRatios.reduce((sum, ratio) => sum + ratio, 0) / maleRatios.length;
-          const femaleAverage = femaleRatios.reduce((sum, ratio) => sum + ratio, 0) / femaleRatios.length;
-          
-          const total = maleAverage + femaleAverage;
-          if (total > 0) {
-            const malePercentage = (maleAverage / total) * 100;
-            const femalePercentage = (femaleAverage / total) * 100;
-            
-            console.log(`👥 성별 비율 (카테고리 데이터): 남성 ${malePercentage.toFixed(1)}%, 여성 ${femalePercentage.toFixed(1)}%`);
-            
-            return {
-              male: Math.round(malePercentage * 10) / 10,
-              female: Math.round(femalePercentage * 10) / 10,
-            };
-          }
-        }
-      }
-      
-      console.log('⚠️ 성별 카테고리 데이터를 찾을 수 없어 기본값 사용');
-      return { male: 50.0, female: 50.0 };
-    } catch (error) {
-      console.error('❌ 성별 카테고리 데이터 추출 오류:', error);
-      return { male: 50.0, female: 50.0 };
-    }
-  }
 
-  // category='device'로 조회한 디바이스 데이터 추출
-  private extractDeviceDataFromCategoryData(deviceData: any): { pc: number; mobile: number } {
-    try {
-      console.log('🔍 디바이스 카테고리 데이터 분석:', JSON.stringify(deviceData, null, 2));
-      
-      if (deviceData?.results && deviceData.results.length >= 2) {
-        // 네이버 데이터랩 category='device' 응답에서는 results 배열에 PC/모바일 데이터가 분리되어 옴
-        const results = deviceData.results;
-        
-        // 각 결과의 title로 PC/모바일 구분
-        let pcData = null;
-        let mobileData = null;
-        
-        for (const result of results) {
-          if (result.title?.includes('PC') || result.title?.includes('pc') || result.title?.includes('데스크')) {
-            pcData = result;
-          } else if (result.title?.includes('모바일') || result.title?.includes('mobile') || result.title?.includes('Mobile')) {
-            mobileData = result;
-          }
-        }
-        
-        // title로 구분이 안되면 순서로 구분 (보통 첫 번째가 PC, 두 번째가 모바일)
-        if (!pcData && !mobileData && results.length >= 2) {
-          pcData = results[0];
-          mobileData = results[1];
-        }
-        
-        if (pcData?.data && mobileData?.data) {
-          // 1년치 데이터의 평균 계산
-          const pcRatios = pcData.data.map(item => item.ratio || 0);
-          const mobileRatios = mobileData.data.map(item => item.ratio || 0);
-          
-          const pcAverage = pcRatios.reduce((sum, ratio) => sum + ratio, 0) / pcRatios.length;
-          const mobileAverage = mobileRatios.reduce((sum, ratio) => sum + ratio, 0) / mobileRatios.length;
-          
-          const total = pcAverage + mobileAverage;
-          if (total > 0) {
-            const pcPercentage = (pcAverage / total) * 100;
-            const mobilePercentage = (mobileAverage / total) * 100;
-            
-            console.log(`💻 디바이스 비율 (카테고리 데이터): PC ${pcPercentage.toFixed(1)}%, 모바일 ${mobilePercentage.toFixed(1)}%`);
-            
-            return {
-              pc: Math.round(pcPercentage * 10) / 10,
-              mobile: Math.round(mobilePercentage * 10) / 10,
-            };
-          }
-        }
-      }
-      
-      console.log('⚠️ 디바이스 카테고리 데이터를 찾을 수 없어 기본값 사용');
-      return { pc: 50.0, mobile: 50.0 };
-    } catch (error) {
-      console.error('❌ 디바이스 카테고리 데이터 추출 오류:', error);
-      return { pc: 50.0, mobile: 50.0 };
-    }
-  }
 
-  // category='age'로 조회한 연령 데이터 추출
-  private extractAgeDataFromCategoryData(ageData: any): { '10s': number; '20s': number; '30s': number; '40s': number; '50s': number; '60+': number } {
-    try {
-      console.log('🔍 연령 카테고리 데이터 분석:', JSON.stringify(ageData, null, 2));
-      
-      if (ageData?.results && ageData.results.length > 0) {
-        // 네이버 데이터랩 category='age' 응답에서는 results 배열에 연령대별 데이터가 분리되어 옴
-        const results = ageData.results;
-        
-        // 연령대별 데이터 매핑
-        const ageGroups = {
-          '10s': null,
-          '20s': null,
-          '30s': null,
-          '40s': null,
-          '50s': null,
-          '60+': null,
-        };
-        
-        // 각 결과의 title로 연령대 구분
-        for (const result of results) {
-          const title = result.title?.toLowerCase() || '';
-          
-          if (title.includes('10') || title.includes('십대') || title.includes('10대')) {
-            ageGroups['10s'] = result;
-          } else if (title.includes('20') || title.includes('이십대') || title.includes('20대')) {
-            ageGroups['20s'] = result;
-          } else if (title.includes('30') || title.includes('삼십대') || title.includes('30대')) {
-            ageGroups['30s'] = result;
-          } else if (title.includes('40') || title.includes('사십대') || title.includes('40대')) {
-            ageGroups['40s'] = result;
-          } else if (title.includes('50') || title.includes('오십대') || title.includes('50대')) {
-            ageGroups['50s'] = result;
-          } else if (title.includes('60') || title.includes('육십대') || title.includes('60대') || title.includes('60+') || title.includes('이상')) {
-            ageGroups['60+'] = result;
-          }
-        }
-        
-        // title로 구분이 안되면 순서로 구분 (보통 10대부터 60대 이상 순서)
-        if (Object.values(ageGroups).every(group => group === null) && results.length >= 6) {
-          ageGroups['10s'] = results[0];
-          ageGroups['20s'] = results[1];
-          ageGroups['30s'] = results[2];
-          ageGroups['40s'] = results[3];
-          ageGroups['50s'] = results[4];
-          ageGroups['60+'] = results[5];
-        }
-        
-        // 각 연령대별 평균 비율 계산
-        const ageRatios: Record<string, number> = {};
-        let totalRatio = 0;
-        
-        for (const [ageGroup, data] of Object.entries(ageGroups)) {
-          if (data?.data && data.data.length > 0) {
-            const ratios = data.data.map((item: any) => item.ratio || 0);
-            const average = ratios.reduce((sum: number, ratio: number) => sum + ratio, 0) / ratios.length;
-            ageRatios[ageGroup] = average;
-            totalRatio += average;
-          } else {
-            ageRatios[ageGroup] = 0;
-          }
-        }
-        
-        // 비율을 백분율로 변환
-        if (totalRatio > 0) {
-          const result: Record<string, number> = {};
-          for (const [ageGroup, ratio] of Object.entries(ageRatios)) {
-            const percentage = (ratio / totalRatio) * 100;
-            result[ageGroup] = Math.round(percentage * 10) / 10; // 소수점 1자리
-          }
-          
-          console.log(`👶 연령 비율 (카테고리 데이터):`, result);
-          return result as { '10s': number; '20s': number; '30s': number; '40s': number; '50s': number; '60+': number };
-        }
-      }
-      
-      console.log('⚠️ 연령 카테고리 데이터를 찾을 수 없어 기본값 사용');
-      return { '10s': 16.7, '20s': 16.7, '30s': 16.7, '40s': 16.7, '50s': 16.7, '60+': 16.5 };
-    } catch (error) {
-      console.error('❌ 연령 카테고리 데이터 추출 오류:', error);
-      return { '10s': 16.7, '20s': 16.7, '30s': 16.7, '40s': 16.7, '50s': 16.7, '60+': 16.5 };
-    }
-  }
 
   // 블로그와 카페 검색 결과 수 조회
   async getContentCounts(query: string) {

@@ -41,6 +41,63 @@ let NaverApiController = class NaverApiController {
             }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    async searchCafe(query, display, start, sort) {
+        try {
+            console.log(`☕ 네이버 카페 검색: ${query}`);
+            const result = await this.naverApiService.searchCafes(query, display, start, sort);
+            return {
+                success: true,
+                message: '카페 검색이 완료되었습니다.',
+                data: result.data,
+            };
+        }
+        catch (error) {
+            console.error('❌ 카페 검색 실패:', error);
+            throw new common_1.HttpException({
+                success: false,
+                message: '카페 검색 중 오류가 발생했습니다.',
+                error: error.message,
+            }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    async getContentCounts(query) {
+        try {
+            console.log(`📊 콘텐츠 수 조회: ${query}`);
+            const result = await this.naverApiService.getContentCounts(query);
+            return {
+                success: true,
+                message: `키워드 "${query}" 콘텐츠 수 조회가 완료되었습니다.`,
+                data: result.data,
+            };
+        }
+        catch (error) {
+            console.error('❌ 콘텐츠 수 조회 실패:', error);
+            throw new common_1.HttpException({
+                success: false,
+                message: '콘텐츠 수 조회 중 오류가 발생했습니다.',
+                error: error.message,
+            }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    async saveContentCounts(body) {
+        try {
+            console.log(`💾 콘텐츠 수 조회 및 저장: ${body.query}`);
+            const result = await this.naverApiService.getContentCountsAndSave(body.query);
+            return {
+                success: true,
+                message: result.message,
+                data: result.data,
+            };
+        }
+        catch (error) {
+            console.error('❌ 콘텐츠 수 조회 및 저장 실패:', error);
+            throw new common_1.HttpException({
+                success: false,
+                message: '콘텐츠 수 조회 및 저장 중 오류가 발생했습니다.',
+                error: error.message,
+            }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
     async getDatalabTrend(requestBody) {
         try {
             console.log(`📈 네이버 데이터랩 트렌드 조회:`, requestBody);
@@ -189,6 +246,122 @@ __decorate([
     __metadata("design:paramtypes", [String, Number, Number, String]),
     __metadata("design:returntype", Promise)
 ], NaverApiController.prototype, "searchBlog", null);
+__decorate([
+    (0, common_1.Get)('cafe-search'),
+    (0, rate_limit_guard_1.NaverApiRateLimit)(50, 60000),
+    (0, swagger_1.ApiOperation)({
+        summary: '네이버 카페 검색',
+        description: '네이버 카페 검색 API를 통해 카페 글을 검색합니다.'
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: 'query',
+        description: '검색어',
+        example: '맛집'
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: 'display',
+        description: '검색 결과 개수 (1-100)',
+        example: 10,
+        required: false
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: 'start',
+        description: '검색 시작 위치 (1-1000)',
+        example: 1,
+        required: false
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: 'sort',
+        description: '정렬 방식 (sim: 정확도순, date: 날짜순)',
+        example: 'sim',
+        required: false
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: '검색 성공',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: '잘못된 요청',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 500,
+        description: '서버 오류',
+    }),
+    __param(0, (0, common_1.Query)('query')),
+    __param(1, (0, common_1.Query)('display')),
+    __param(2, (0, common_1.Query)('start')),
+    __param(3, (0, common_1.Query)('sort')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Number, Number, String]),
+    __metadata("design:returntype", Promise)
+], NaverApiController.prototype, "searchCafe", null);
+__decorate([
+    (0, common_1.Get)('content-counts/:query'),
+    (0, rate_limit_guard_1.NaverApiRateLimit)(20, 60000),
+    (0, swagger_1.ApiOperation)({
+        summary: '블로그 및 카페 콘텐츠 수 조회',
+        description: '특정 키워드의 블로그 글 수와 카페 글 수를 조회합니다.'
+    }),
+    (0, swagger_1.ApiParam)({
+        name: 'query',
+        description: '검색할 키워드',
+        example: '다이어트'
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: '콘텐츠 수 조회 성공',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: '잘못된 요청',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 500,
+        description: '서버 오류',
+    }),
+    __param(0, (0, common_1.Param)('query')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], NaverApiController.prototype, "getContentCounts", null);
+__decorate([
+    (0, common_1.Post)('content-counts-save'),
+    (0, rate_limit_guard_1.NaverApiRateLimit)(10, 60000),
+    (0, swagger_1.ApiOperation)({
+        summary: '블로그 및 카페 콘텐츠 수 조회 및 저장',
+        description: '특정 키워드의 블로그 글 수와 카페 글 수를 조회하고 데이터베이스에 저장합니다.'
+    }),
+    (0, swagger_1.ApiBody)({
+        schema: {
+            type: 'object',
+            properties: {
+                query: {
+                    type: 'string',
+                    description: '검색할 키워드',
+                    example: '다이어트'
+                }
+            },
+            required: ['query']
+        }
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: '콘텐츠 수 조회 및 저장 성공',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: '잘못된 요청',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 500,
+        description: '서버 오류',
+    }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], NaverApiController.prototype, "saveContentCounts", null);
 __decorate([
     (0, common_1.Post)('datalab'),
     (0, rate_limit_guard_1.NaverApiRateLimit)(30, 60000),

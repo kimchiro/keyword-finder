@@ -106,14 +106,6 @@ export declare class MultipleKeywordsLimitedDataResponseDto {
             keyword: string;
             monthlySearchVolume: number;
             cumulativePublications: number;
-            genderRatio: {
-                male: number;
-                female: number;
-            };
-            deviceData: {
-                pc: number;
-                mobile: number;
-            };
         }>;
         timestamp: string;
     };

@@ -36,25 +36,6 @@ exports.SEARCH_TREND_API = {
         WEEK: 'week',
         MONTH: 'month',
     },
-    DEVICE_TYPES: {
-        PC: 'pc',
-        MOBILE: 'mo',
-        ALL: '',
-    },
-    GENDERS: {
-        MALE: 'm',
-        FEMALE: 'f',
-        ALL: '',
-    },
-    AGE_GROUPS: {
-        ALL: '',
-        TEENS: '1',
-        TWENTIES: '2',
-        THIRTIES: '3',
-        FORTIES: '4',
-        FIFTIES: '5',
-        SIXTIES_PLUS: '6',
-    },
     CATEGORIES: {
         ALL: 0,
         POLITICS: 1,

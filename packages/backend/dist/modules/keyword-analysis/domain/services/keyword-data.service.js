@@ -276,6 +276,64 @@ let KeywordDataService = class KeywordDataService {
             collectedAt: log.collectedAt,
         }));
     }
+    async saveContentCounts(keyword, analysisDate, contentData) {
+        return await this.transactionService.runInTransaction(async (queryRunner) => {
+            let keywordEntity = await queryRunner.manager.getRepository(keyword_entity_1.Keyword).findOne({
+                where: { keyword: keyword.value }
+            });
+            if (!keywordEntity) {
+                keywordEntity = await queryRunner.manager.getRepository(keyword_entity_1.Keyword).save({
+                    keyword: keyword.value,
+                    status: 'active',
+                });
+            }
+            const analysisDateString = analysisDate.value.toISOString().split('T')[0];
+            let existingAnalytics = await queryRunner.manager
+                .getRepository(keyword_analytics_entity_1.KeywordAnalytics)
+                .createQueryBuilder('analytics')
+                .where('analytics.keyword = :keyword', { keyword: keyword.value })
+                .andWhere('DATE(analytics.analysisDate) = :date', { date: analysisDateString })
+                .getOne();
+            console.log(`🔍 기존 데이터 검색: ${keyword.value} (${analysisDateString})`, existingAnalytics ? `찾음 (ID: ${existingAnalytics.id})` : '없음');
+            const analyticsData = {
+                keywordId: keywordEntity.id,
+                keyword: keyword.value,
+                monthlySearchPc: existingAnalytics?.monthlySearchPc || 0,
+                monthlySearchMobile: existingAnalytics?.monthlySearchMobile || 0,
+                monthlySearchTotal: existingAnalytics?.monthlySearchTotal || 0,
+                monthlyContentBlog: contentData.blogs,
+                monthlyContentCafe: contentData.cafes,
+                monthlyContentAll: contentData.total,
+                estimatedSearchYesterday: existingAnalytics?.estimatedSearchYesterday || 0,
+                estimatedSearchEndMonth: existingAnalytics?.estimatedSearchEndMonth || 0,
+                saturationIndexBlog: existingAnalytics?.saturationIndexBlog || 0,
+                saturationIndexCafe: existingAnalytics?.saturationIndexCafe || 0,
+                saturationIndexAll: existingAnalytics?.saturationIndexAll || 0,
+                analysisDate: new Date(analysisDateString),
+            };
+            console.log(`💾 콘텐츠 수 데이터 저장: ${keyword.value}`, {
+                blogs: contentData.blogs,
+                cafes: contentData.cafes,
+                total: contentData.total
+            });
+            if (existingAnalytics) {
+                console.log(`🔄 기존 데이터 업데이트: ${keyword.value} (ID: ${existingAnalytics.id})`);
+                await queryRunner.manager.getRepository(keyword_analytics_entity_1.KeywordAnalytics).update({ id: existingAnalytics.id }, {
+                    monthlyContentBlog: contentData.blogs,
+                    monthlyContentCafe: contentData.cafes,
+                    monthlyContentAll: contentData.total,
+                });
+                return await queryRunner.manager.getRepository(keyword_analytics_entity_1.KeywordAnalytics).findOne({
+                    where: { id: existingAnalytics.id }
+                });
+            }
+            else {
+                console.log(`➕ 새 데이터 생성: ${keyword.value}`);
+                const newAnalytics = await queryRunner.manager.getRepository(keyword_analytics_entity_1.KeywordAnalytics).save(analyticsData);
+                return newAnalytics;
+            }
+        });
+    }
 };
 exports.KeywordDataService = KeywordDataService;
 exports.KeywordDataService = KeywordDataService = __decorate([

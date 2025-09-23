@@ -14,7 +14,6 @@ const typeorm_1 = require("typeorm");
 const swagger_1 = require("@nestjs/swagger");
 const keyword_analytics_entity_1 = require("./keyword-analytics.entity");
 const related_keywords_entity_1 = require("./related-keywords.entity");
-const gender_search_ratios_entity_1 = require("./gender-search-ratios.entity");
 const weekday_search_ratios_entity_1 = require("./weekday-search-ratios.entity");
 const intent_analysis_entity_1 = require("./intent-analysis.entity");
 const issue_analysis_entity_1 = require("./issue-analysis.entity");
@@ -60,10 +59,6 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => related_keywords_entity_1.RelatedKeywords, (related) => related.baseKeywordEntity),
     __metadata("design:type", Array)
 ], Keyword.prototype, "relatedKeywords", void 0);
-__decorate([
-    (0, typeorm_1.OneToMany)(() => gender_search_ratios_entity_1.GenderSearchRatios, (ratios) => ratios.keywordEntity),
-    __metadata("design:type", Array)
-], Keyword.prototype, "genderSearchRatios", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => weekday_search_ratios_entity_1.WeekdaySearchRatios, (ratios) => ratios.keywordEntity),
     __metadata("design:type", Array)
