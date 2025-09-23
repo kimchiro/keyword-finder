@@ -42,7 +42,7 @@ export class ChartDataService {
       }
 
       // 기존 차트 데이터 삭제
-      await this.clearExistingChartData(keyword, analysisDate, queryRunner);
+      await this.clearExistingChartData(keywordEntity.id, analysisDate, queryRunner);
 
       // 네이버 API 데이터를 직접 변환하여 저장 (keywordId 포함)
       const chartDataToSave = this.extractChartDataFromNaverApi(keyword.value, analysisDate, naverApiData, keywordEntity.id);
@@ -53,7 +53,7 @@ export class ChartDataService {
           queryRunner,
           SearchTrends,
           chartDataToSave.searchTrends,
-          ['keyword_id', 'keyword', 'period_type', 'period_value'], // 중복 감지 컬럼 (DB 컬럼명)
+          ['keyword_id', 'period_type', 'period_value'], // 중복 감지 컬럼 (DB 컬럼명)
           ['search_volume', 'search_ratio'], // 업데이트할 컬럼 (DB 컬럼명)
           500
         );
@@ -64,7 +64,7 @@ export class ChartDataService {
           queryRunner,
           MonthlySearchRatios,
           chartDataToSave.monthlyRatios,
-          ['keyword_id', 'keyword', 'month_number', 'analysis_year'], // 중복 감지 컬럼 (DB 컬럼명)
+          ['keyword_id', 'month_number', 'analysis_year'], // 중복 감지 컬럼 (DB 컬럼명)
           ['search_ratio'], // 업데이트할 컬럼 (DB 컬럼명)
           500
         );
@@ -118,9 +118,9 @@ export class ChartDataService {
       this.dataSource
         .getRepository(SearchTrends)
         .createQueryBuilder('st')
-        .select(['st.id', 'st.keywordId', 'st.keyword', 'st.periodType', 'st.periodValue', 'st.searchVolume', 'st.searchRatio', 'st.createdAt'])
-        .where('st.keywordId = :keywordId AND st.keyword = :keyword AND st.periodType = :periodType')
-        .setParameters({ keywordId: keywordEntity.id, keyword: keyword.value, periodType: PeriodType.MONTHLY })
+        .select(['st.id', 'st.keywordId', 'st.periodType', 'st.periodValue', 'st.searchVolume', 'st.searchRatio', 'st.createdAt'])
+        .where('st.keywordId = :keywordId AND st.periodType = :periodType')
+        .setParameters({ keywordId: keywordEntity.id, periodType: PeriodType.MONTHLY })
         .orderBy('st.periodValue', 'ASC')
         .limit(12)
         .getMany(),
@@ -128,9 +128,9 @@ export class ChartDataService {
       this.dataSource
         .getRepository(MonthlySearchRatios)
         .createQueryBuilder('msr')
-        .select(['msr.id', 'msr.keywordId', 'msr.keyword', 'msr.monthNumber', 'msr.searchRatio', 'msr.analysisYear', 'msr.createdAt'])
-        .where('msr.keywordId = :keywordId AND msr.keyword = :keyword AND msr.analysisYear = :analysisYear')
-        .setParameters({ keywordId: keywordEntity.id, keyword: keyword.value, analysisYear: analysisDate.year })
+        .select(['msr.id', 'msr.keywordId', 'msr.monthNumber', 'msr.searchRatio', 'msr.analysisYear', 'msr.createdAt'])
+        .where('msr.keywordId = :keywordId AND msr.analysisYear = :analysisYear')
+        .setParameters({ keywordId: keywordEntity.id, analysisYear: analysisDate.year })
         .orderBy('msr.monthNumber', 'ASC')
         .getMany(),
 
@@ -144,13 +144,13 @@ export class ChartDataService {
 
   // 기존 차트 데이터 삭제
   private async clearExistingChartData(
-    keyword: Keyword,
+    keywordId: number,
     analysisDate: AnalysisDate,
     queryRunner: any,
   ): Promise<void> {
     await Promise.all([
-      this.transactionService.batchDelete(queryRunner, SearchTrends, { keyword: keyword.value }),
-      this.transactionService.batchDelete(queryRunner, MonthlySearchRatios, { keyword: keyword.value, analysisYear: analysisDate.year }),
+      this.transactionService.batchDelete(queryRunner, SearchTrends, { keywordId }),
+      this.transactionService.batchDelete(queryRunner, MonthlySearchRatios, { keywordId, analysisYear: analysisDate.year }),
     ]);
   }
 
@@ -175,8 +175,7 @@ export class ChartDataService {
         for (const dataPoint of datalabData) {
           // 검색 트렌드 데이터 - 네이버 API 결과 직접 사용
           searchTrends.push({
-            keywordId, // keywordId 추가
-            keyword,
+            keywordId,
             periodType: PeriodType.MONTHLY,
             periodValue: dataPoint.period,
             searchVolume: dataPoint.ratio,
@@ -188,8 +187,7 @@ export class ChartDataService {
           if (monthMatch) {
             const monthNumber = parseInt(monthMatch[1]);
             monthlyRatios.push({
-              keywordId, // keywordId 추가
-              keyword,
+              keywordId,
               monthNumber,
               searchRatio: dataPoint.ratio,
               analysisYear: analysisDate.year,

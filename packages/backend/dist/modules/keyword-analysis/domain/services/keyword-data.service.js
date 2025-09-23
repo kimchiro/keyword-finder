@@ -43,7 +43,6 @@ let KeywordDataService = class KeywordDataService {
             }
             const analyticsData = {
                 keywordId: keywordEntity.id,
-                keyword: keyword.value,
                 monthlySearchPc: processedData.monthlySearchPc,
                 monthlySearchMobile: processedData.monthlySearchMobile,
                 monthlySearchTotal: processedData.monthlySearchTotal,
@@ -58,7 +57,7 @@ let KeywordDataService = class KeywordDataService {
                 analysisDate: analysisDate.value,
             };
             await this.transactionService.batchUpsert(queryRunner, keyword_analytics_entity_1.KeywordAnalytics, [analyticsData], ['keyword_id', 'analysis_date'], [
-                'keyword', 'monthly_search_pc', 'monthly_search_mobile', 'monthly_search_total',
+                'monthly_search_pc', 'monthly_search_mobile', 'monthly_search_total',
                 'monthly_content_blog', 'monthly_content_cafe', 'monthly_content_all',
                 'estimated_search_yesterday', 'estimated_search_end_month',
                 'saturation_index_blog', 'saturation_index_cafe', 'saturation_index_all',
@@ -98,8 +97,6 @@ let KeywordDataService = class KeywordDataService {
                 relatedKeywords.push({
                     baseKeywordId: baseKeywordEntity.id,
                     relatedKeywordId: relatedKeywordEntity.id,
-                    baseKeyword: baseKeyword.value,
-                    relatedKeyword: item.keyword,
                     monthlySearchVolume: item.monthlySearchVolume || 0,
                     blogCumulativePosts: 0,
                     similarityScore: related_keywords_entity_1.SimilarityScore.MEDIUM,
@@ -152,8 +149,9 @@ let KeywordDataService = class KeywordDataService {
     async findAnalyzedKeywords() {
         return await this.keywordAnalyticsRepository
             .createQueryBuilder('analytics')
-            .select(['analytics.keyword', 'MAX(analytics.analysisDate) as latestDate'])
-            .groupBy('analytics.keyword')
+            .leftJoinAndSelect('analytics.keywordEntity', 'keyword')
+            .select(['keyword.keyword', 'MAX(analytics.analysisDate) as latestDate'])
+            .groupBy('keyword.keyword')
             .orderBy('latestDate', 'DESC')
             .getRawMany();
     }
@@ -261,6 +259,7 @@ let KeywordDataService = class KeywordDataService {
         }
         const collectionLogs = await this.keywordCollectionLogsRepository.find({
             where: { baseQueryId: baseKeywordEntity.id },
+            relations: ['collectedKeywordEntity'],
             order: {
                 collectionType: 'ASC',
                 rankPosition: 'ASC',
@@ -269,6 +268,7 @@ let KeywordDataService = class KeywordDataService {
         });
         return collectionLogs.map(log => ({
             keywordId: log.collectedKeywordId,
+            keyword: log.collectedKeywordEntity?.keyword || '',
             category: log.collectionType,
             rankPosition: log.rankPosition,
             collectedAt: log.collectedAt,
@@ -289,7 +289,8 @@ let KeywordDataService = class KeywordDataService {
             let existingAnalytics = await queryRunner.manager
                 .getRepository(keyword_analytics_entity_1.KeywordAnalytics)
                 .createQueryBuilder('analytics')
-                .where('analytics.keyword = :keyword', { keyword: keyword.value })
+                .leftJoin('analytics.keywordEntity', 'keyword')
+                .where('keyword.keyword = :keyword', { keyword: keyword.value })
                 .andWhere('DATE(analytics.analysisDate) = :date', { date: analysisDateString })
                 .getOne();
             console.log(`🔍 기존 데이터 검색: ${keyword.value} (${analysisDateString})`, existingAnalytics ? `찾음 (ID: ${existingAnalytics.id})` : '없음');
