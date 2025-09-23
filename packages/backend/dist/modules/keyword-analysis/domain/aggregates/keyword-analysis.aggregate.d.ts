@@ -2,9 +2,6 @@ import { KeywordAnalytics } from '../../../../database/entities/keyword-analytic
 import { RelatedKeywords } from '../../../../database/entities/related-keywords.entity';
 import { SearchTrends } from '../../../../database/entities/search-trends.entity';
 import { MonthlySearchRatios } from '../../../../database/entities/monthly-search-ratios.entity';
-import { WeekdaySearchRatios } from '../../../../database/entities/weekday-search-ratios.entity';
-import { IssueAnalysis } from '../../../../database/entities/issue-analysis.entity';
-import { IntentAnalysis } from '../../../../database/entities/intent-analysis.entity';
 import { Keyword, AnalysisDate } from '../value-objects';
 export declare class KeywordAnalysisAggregate {
     private readonly _keyword;
@@ -15,9 +12,6 @@ export declare class KeywordAnalysisAggregate {
     constructor(keyword: Keyword, analysisDate: AnalysisDate, analytics: KeywordAnalytics, relatedKeywords: RelatedKeywords[], chartData: {
         searchTrends: SearchTrends[];
         monthlyRatios: MonthlySearchRatios[];
-        weekdayRatios: WeekdaySearchRatios[];
-        issueAnalysis: IssueAnalysis | null;
-        intentAnalysis: IntentAnalysis | null;
     });
     get keyword(): Keyword;
     get analysisDate(): AnalysisDate;
@@ -26,9 +20,6 @@ export declare class KeywordAnalysisAggregate {
     get chartData(): {
         searchTrends: SearchTrends[];
         monthlyRatios: MonthlySearchRatios[];
-        weekdayRatios: WeekdaySearchRatios[];
-        issueAnalysis: IssueAnalysis;
-        intentAnalysis: IntentAnalysis;
     };
     get searchVolume(): {
         pc: number;
@@ -51,9 +42,6 @@ export declare class KeywordAnalysisAggregate {
         chartData: {
             searchTrends: SearchTrends[];
             monthlyRatios: MonthlySearchRatios[];
-            weekdayRatios: WeekdaySearchRatios[];
-            issueAnalysis: IssueAnalysis | null;
-            intentAnalysis: IntentAnalysis | null;
         };
     };
     validate(): boolean;

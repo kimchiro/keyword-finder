@@ -11,9 +11,6 @@ export declare class KeywordAnalysisResponseDto {
         chartData: {
             searchTrends: any[];
             monthlyRatios: any[];
-            weekdayRatios: any[];
-            issueAnalysis: any;
-            intentAnalysis: any;
         };
     };
 }

@@ -2,9 +2,6 @@ import { KeywordAnalytics } from '../../../../database/entities/keyword-analytic
 import { RelatedKeywords } from '../../../../database/entities/related-keywords.entity';
 import { SearchTrends } from '../../../../database/entities/search-trends.entity';
 import { MonthlySearchRatios } from '../../../../database/entities/monthly-search-ratios.entity';
-import { WeekdaySearchRatios } from '../../../../database/entities/weekday-search-ratios.entity';
-import { IssueAnalysis } from '../../../../database/entities/issue-analysis.entity';
-import { IntentAnalysis } from '../../../../database/entities/intent-analysis.entity';
 import { Keyword, AnalysisDate } from '../value-objects';
 
 // 키워드 분석 집합체 - 키워드 분석과 관련된 모든 데이터를 하나의 단위로 관리
@@ -16,9 +13,6 @@ export class KeywordAnalysisAggregate {
   private readonly _chartData: {
     searchTrends: SearchTrends[];
     monthlyRatios: MonthlySearchRatios[];
-    weekdayRatios: WeekdaySearchRatios[];
-    issueAnalysis: IssueAnalysis | null;
-    intentAnalysis: IntentAnalysis | null;
   };
 
   constructor(
@@ -29,9 +23,6 @@ export class KeywordAnalysisAggregate {
     chartData: {
       searchTrends: SearchTrends[];
       monthlyRatios: MonthlySearchRatios[];
-      weekdayRatios: WeekdaySearchRatios[];
-      issueAnalysis: IssueAnalysis | null;
-      intentAnalysis: IntentAnalysis | null;
     },
   ) {
     this._keyword = keyword;
@@ -62,9 +53,6 @@ export class KeywordAnalysisAggregate {
     return {
       searchTrends: [...this._chartData.searchTrends],
       monthlyRatios: [...this._chartData.monthlyRatios],
-      weekdayRatios: [...this._chartData.weekdayRatios],
-      issueAnalysis: this._chartData.issueAnalysis,
-      intentAnalysis: this._chartData.intentAnalysis,
     };
   }
 
@@ -95,7 +83,7 @@ export class KeywordAnalysisAggregate {
   }
 
   // 상위 연관 키워드 반환 (상위 N개)
-  getTopRelatedKeywords(limit: number = 5): RelatedKeywords[] {
+  getTopRelatedKeywords(limit: number = 10): RelatedKeywords[] {
     return this._relatedKeywords
       .slice(0, limit)
       .map(keyword => ({ ...keyword }));
@@ -151,9 +139,6 @@ export class KeywordAnalysisAggregate {
     chartData: {
       searchTrends: SearchTrends[];
       monthlyRatios: MonthlySearchRatios[];
-      weekdayRatios: WeekdaySearchRatios[];
-      issueAnalysis: IssueAnalysis | null;
-      intentAnalysis: IntentAnalysis | null;
     };
   } {
     return {

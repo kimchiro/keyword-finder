@@ -18,9 +18,6 @@ const keyword_analytics_entity_1 = require("../../database/entities/keyword-anal
 const related_keywords_entity_1 = require("../../database/entities/related-keywords.entity");
 const search_trends_entity_1 = require("../../database/entities/search-trends.entity");
 const monthly_search_ratios_entity_1 = require("../../database/entities/monthly-search-ratios.entity");
-const weekday_search_ratios_entity_1 = require("../../database/entities/weekday-search-ratios.entity");
-const issue_analysis_entity_1 = require("../../database/entities/issue-analysis.entity");
-const intent_analysis_entity_1 = require("../../database/entities/intent-analysis.entity");
 const keyword_collection_logs_entity_1 = require("../../database/entities/keyword-collection-logs.entity");
 const services_1 = require("./domain/services");
 let KeywordAnalysisModule = class KeywordAnalysisModule {
@@ -35,9 +32,6 @@ exports.KeywordAnalysisModule = KeywordAnalysisModule = __decorate([
                 related_keywords_entity_1.RelatedKeywords,
                 search_trends_entity_1.SearchTrends,
                 monthly_search_ratios_entity_1.MonthlySearchRatios,
-                weekday_search_ratios_entity_1.WeekdaySearchRatios,
-                issue_analysis_entity_1.IssueAnalysis,
-                intent_analysis_entity_1.IntentAnalysis,
                 keyword_collection_logs_entity_1.KeywordCollectionLogs,
             ]),
         ],

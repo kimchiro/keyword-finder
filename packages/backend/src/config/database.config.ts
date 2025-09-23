@@ -6,9 +6,6 @@ import { KeywordAnalytics } from '../database/entities/keyword-analytics.entity'
 import { RelatedKeywords } from '../database/entities/related-keywords.entity';
 import { SearchTrends } from '../database/entities/search-trends.entity';
 import { MonthlySearchRatios } from '../database/entities/monthly-search-ratios.entity';
-import { WeekdaySearchRatios } from '../database/entities/weekday-search-ratios.entity';
-import { IssueAnalysis } from '../database/entities/issue-analysis.entity';
-import { IntentAnalysis } from '../database/entities/intent-analysis.entity';
 import { KeywordCollectionLogs } from '../database/entities/keyword-collection-logs.entity';
 
 @Injectable()
@@ -30,9 +27,6 @@ export class DatabaseConfig implements TypeOrmOptionsFactory {
         RelatedKeywords,
         SearchTrends,
         MonthlySearchRatios,
-        WeekdaySearchRatios,
-        IssueAnalysis,
-        IntentAnalysis,
         KeywordCollectionLogs,
       ],
       migrations: ['dist/database/migrations/*.js'],

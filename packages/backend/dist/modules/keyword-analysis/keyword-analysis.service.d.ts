@@ -8,9 +8,6 @@ export declare class KeywordAnalysisService {
         chartData: {
             searchTrends: import("../../database/entities/search-trends.entity").SearchTrends[];
             monthlyRatios: import("../../database/entities/monthly-search-ratios.entity").MonthlySearchRatios[];
-            weekdayRatios: import("../../database/entities/weekday-search-ratios.entity").WeekdaySearchRatios[];
-            issueAnalysis: import("../../database/entities/issue-analysis.entity").IssueAnalysis | null;
-            intentAnalysis: import("../../database/entities/intent-analysis.entity").IntentAnalysis | null;
         };
     }>;
     getKeywordAnalysis(keyword: string): Promise<{
@@ -21,9 +18,6 @@ export declare class KeywordAnalysisService {
             chartData: {
                 searchTrends: import("../../database/entities/search-trends.entity").SearchTrends[];
                 monthlyRatios: import("../../database/entities/monthly-search-ratios.entity").MonthlySearchRatios[];
-                weekdayRatios: import("../../database/entities/weekday-search-ratios.entity").WeekdaySearchRatios[];
-                issueAnalysis: import("../../database/entities/issue-analysis.entity").IssueAnalysis | null;
-                intentAnalysis: import("../../database/entities/intent-analysis.entity").IntentAnalysis | null;
             };
         };
     }>;

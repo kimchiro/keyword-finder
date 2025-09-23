@@ -14,9 +14,6 @@ const typeorm_1 = require("typeorm");
 const swagger_1 = require("@nestjs/swagger");
 const keyword_analytics_entity_1 = require("./keyword-analytics.entity");
 const related_keywords_entity_1 = require("./related-keywords.entity");
-const weekday_search_ratios_entity_1 = require("./weekday-search-ratios.entity");
-const intent_analysis_entity_1 = require("./intent-analysis.entity");
-const issue_analysis_entity_1 = require("./issue-analysis.entity");
 const keyword_collection_logs_entity_1 = require("./keyword-collection-logs.entity");
 let Keyword = class Keyword {
 };
@@ -59,18 +56,6 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => related_keywords_entity_1.RelatedKeywords, (related) => related.baseKeywordEntity),
     __metadata("design:type", Array)
 ], Keyword.prototype, "relatedKeywords", void 0);
-__decorate([
-    (0, typeorm_1.OneToMany)(() => weekday_search_ratios_entity_1.WeekdaySearchRatios, (ratios) => ratios.keywordEntity),
-    __metadata("design:type", Array)
-], Keyword.prototype, "weekdaySearchRatios", void 0);
-__decorate([
-    (0, typeorm_1.OneToMany)(() => intent_analysis_entity_1.IntentAnalysis, (analysis) => analysis.keywordEntity),
-    __metadata("design:type", Array)
-], Keyword.prototype, "intentAnalysis", void 0);
-__decorate([
-    (0, typeorm_1.OneToMany)(() => issue_analysis_entity_1.IssueAnalysis, (analysis) => analysis.keywordEntity),
-    __metadata("design:type", Array)
-], Keyword.prototype, "issueAnalysis", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => keyword_collection_logs_entity_1.KeywordCollectionLogs, (logs) => logs.baseQueryEntity),
     __metadata("design:type", Array)

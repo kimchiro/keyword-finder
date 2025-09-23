@@ -4,9 +4,6 @@ import { Repository, DataSource } from 'typeorm';
 import { TransactionService } from '../../../../common/services/transaction.service';
 import { SearchTrends, PeriodType } from '../../../../database/entities/search-trends.entity';
 import { MonthlySearchRatios } from '../../../../database/entities/monthly-search-ratios.entity';
-import { WeekdaySearchRatios } from '../../../../database/entities/weekday-search-ratios.entity';
-import { IssueAnalysis } from '../../../../database/entities/issue-analysis.entity';
-import { IntentAnalysis } from '../../../../database/entities/intent-analysis.entity';
 import { Keyword, AnalysisDate } from '../value-objects';
 
 // 차트 데이터 서비스 - 키워드 분석 차트 데이터의 저장/조회를 담당
@@ -17,12 +14,6 @@ export class ChartDataService {
     private searchTrendsRepository: Repository<SearchTrends>,
     @InjectRepository(MonthlySearchRatios)
     private monthlySearchRatiosRepository: Repository<MonthlySearchRatios>,
-    @InjectRepository(WeekdaySearchRatios)
-    private weekdaySearchRatiosRepository: Repository<WeekdaySearchRatios>,
-    @InjectRepository(IssueAnalysis)
-    private issueAnalysisRepository: Repository<IssueAnalysis>,
-    @InjectRepository(IntentAnalysis)
-    private intentAnalysisRepository: Repository<IntentAnalysis>,
     private transactionService: TransactionService,
     private dataSource: DataSource,
   ) {}
@@ -35,9 +26,6 @@ export class ChartDataService {
   ): Promise<{
     searchTrends: SearchTrends[];
     monthlyRatios: MonthlySearchRatios[];
-    weekdayRatios: WeekdaySearchRatios[];
-    issueAnalysis: IssueAnalysis | null;
-    intentAnalysis: IntentAnalysis | null;
   }> {
     return await this.transactionService.runInTransaction(async (queryRunner) => {
       // 키워드 엔티티 조회 또는 생성
@@ -98,9 +86,6 @@ export class ChartDataService {
       return {
         searchTrends: savedSearchTrends,
         monthlyRatios: savedMonthlyRatios,
-        weekdayRatios: [],
-        issueAnalysis: null,
-        intentAnalysis: null,
       };
     });
   }
@@ -109,9 +94,6 @@ export class ChartDataService {
   async getChartData(keyword: Keyword, analysisDate: AnalysisDate): Promise<{
     searchTrends: SearchTrends[];
     monthlyRatios: MonthlySearchRatios[];
-    weekdayRatios: WeekdaySearchRatios[];
-    issueAnalysis: IssueAnalysis | null;
-    intentAnalysis: IntentAnalysis | null;
   }> {
     // 키워드 엔티티 조회
     const KeywordEntity = await import('../../../../database/entities/keyword.entity').then(m => m.Keyword);
@@ -124,9 +106,6 @@ export class ChartDataService {
       return {
         searchTrends: [],
         monthlyRatios: [],
-        weekdayRatios: [],
-        issueAnalysis: null,
-        intentAnalysis: null,
       };
     }
 
@@ -135,9 +114,6 @@ export class ChartDataService {
     const [
       searchTrends,
       monthlyRatios,
-      weekdayRatios,
-      issueAnalysis,
-      intentAnalysis,
     ] = await Promise.all([
       this.dataSource
         .getRepository(SearchTrends)
@@ -158,38 +134,11 @@ export class ChartDataService {
         .orderBy('msr.monthNumber', 'ASC')
         .getMany(),
 
-      this.dataSource
-        .getRepository(WeekdaySearchRatios)
-        .createQueryBuilder('wsr')
-        .select(['wsr.id', 'wsr.weekdayNumber', 'wsr.searchRatio'])
-        .where('wsr.keyword = :keyword AND wsr.analysisDate = :analysisDate')
-        .setParameters({ keyword: keyword.value, analysisDate: analysisDateStr })
-        .orderBy('wsr.weekdayNumber', 'ASC')
-        .getMany(),
-
-      this.dataSource
-        .getRepository(IssueAnalysis)
-        .createQueryBuilder('ia')
-        .select(['ia.id', 'ia.issueType', 'ia.trendDirection', 'ia.issueScore'])
-        .where('ia.keyword = :keyword AND ia.analysisDate = :analysisDate')
-        .setParameters({ keyword: keyword.value, analysisDate: analysisDateStr })
-        .getOne(),
-
-      this.dataSource
-        .getRepository(IntentAnalysis)
-        .createQueryBuilder('inta')
-        .select(['inta.id', 'inta.primaryIntent', 'inta.informationalScore', 'inta.transactionalScore', 'inta.navigationalScore'])
-        .where('inta.keyword = :keyword AND inta.analysisDate = :analysisDate')
-        .setParameters({ keyword: keyword.value, analysisDate: analysisDateStr })
-        .getOne(),
     ]);
 
     return {
       searchTrends,
       monthlyRatios,
-      weekdayRatios,
-      issueAnalysis,
-      intentAnalysis,
     };
   }
 
@@ -202,9 +151,6 @@ export class ChartDataService {
     await Promise.all([
       this.transactionService.batchDelete(queryRunner, SearchTrends, { keyword: keyword.value }),
       this.transactionService.batchDelete(queryRunner, MonthlySearchRatios, { keyword: keyword.value, analysisYear: analysisDate.year }),
-      this.transactionService.batchDelete(queryRunner, WeekdaySearchRatios, { keyword: keyword.value, analysisDate: analysisDate.value }),
-      this.transactionService.batchDelete(queryRunner, IssueAnalysis, { keyword: keyword.value, analysisDate: analysisDate.value }),
-      this.transactionService.batchDelete(queryRunner, IntentAnalysis, { keyword: keyword.value, analysisDate: analysisDate.value }),
     ]);
   }
 

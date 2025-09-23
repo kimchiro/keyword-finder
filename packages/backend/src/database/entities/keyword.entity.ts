@@ -12,9 +12,6 @@ import { KeywordAnalytics } from './keyword-analytics.entity';
 import { RelatedKeywords } from './related-keywords.entity';
 import { SearchTrends } from './search-trends.entity';
 import { MonthlySearchRatios } from './monthly-search-ratios.entity';
-import { WeekdaySearchRatios } from './weekday-search-ratios.entity';
-import { IntentAnalysis } from './intent-analysis.entity';
-import { IssueAnalysis } from './issue-analysis.entity';
 import { KeywordCollectionLogs } from './keyword-collection-logs.entity';
 
 @Entity('keywords')
@@ -57,14 +54,6 @@ export class Keyword {
 
   // monthlySearchRatios 관계 제거 - keyword 문자열로 직접 조회
 
-  @OneToMany(() => WeekdaySearchRatios, (ratios) => ratios.keywordEntity)
-  weekdaySearchRatios: WeekdaySearchRatios[];
-
-  @OneToMany(() => IntentAnalysis, (analysis) => analysis.keywordEntity)
-  intentAnalysis: IntentAnalysis[];
-
-  @OneToMany(() => IssueAnalysis, (analysis) => analysis.keywordEntity)
-  issueAnalysis: IssueAnalysis[];
 
   @OneToMany(() => KeywordCollectionLogs, (logs) => logs.baseQueryEntity)
   collectionLogs: KeywordCollectionLogs[];
