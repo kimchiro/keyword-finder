@@ -10,6 +10,7 @@ export interface WorkflowResult {
   data: {
     query: string;
     naverApiData: any;
+    contentCounts?: any; // 🆕 콘텐츠 수 데이터 추가
     scrapingData: any;
     analysisData: any;
     topKeywords?: string[];
@@ -78,9 +79,12 @@ export class WorkflowService {
       // Phase 4: 네이버 API 호출 (요구사항에 맞게 3번 호출)
       console.log(`🌐 Phase 4: 네이버 API 호출 시작`);
       
-      // 4-1: 원본 키워드 1개 API 호출
-      console.log(`📞 API 호출 1: 원본 키워드 "${query}"`);
-      const originalKeywordApiResult = await this.naverApiService.getIntegratedData(query);
+      // 4-1: 원본 키워드 1개 API 호출 (통합 데이터 + 콘텐츠 수)
+      console.log(`📞 API 호출 1: 원본 키워드 "${query}" (통합 데이터 + 콘텐츠 수)`);
+      const [originalKeywordApiResult, contentCountsResult] = await Promise.all([
+        this.naverApiService.getIntegratedData(query),
+        this.naverApiService.getContentCounts(query)
+      ]);
       
       // 4-2: 추출된 키워드 5개로 2번의 API 호출
       let firstBatchApiResult = null;
@@ -174,6 +178,7 @@ export class WorkflowService {
             firstBatch: firstBatchApiResult?.data || null,
             secondBatch: secondBatchApiResult?.data || null,
           },
+          contentCounts: contentCountsResult.data, // 🆕 콘텐츠 수 데이터 추가
           scrapingData: scrapingResult,
           analysisData,
           topKeywords,
