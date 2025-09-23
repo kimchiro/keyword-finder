@@ -152,6 +152,7 @@ export default function SearchPage() {
               relatedKeywords={workflowData.data.analysisData?.relatedKeywords}
             />
 
+
             {/* 네이버 블로그 검색결과 리스트 */}
             {workflowData.data.naverApiData?.original?.blogSearch && (
               <BlogSearchResults blogSearchData={workflowData.data.naverApiData.original.blogSearch} />
