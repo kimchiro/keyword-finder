@@ -18,10 +18,6 @@ async function clearAllData() {
     // 모든 테이블의 데이터 삭제 (테이블 구조는 유지)
     const tables = [
       'keyword_collection_logs',
-      'intent_analysis',
-      'issue_analysis', 
-      'gender_search_ratios',
-      'weekday_search_ratios',
       'monthly_search_ratios',
       'search_trends',
       'related_keywords',

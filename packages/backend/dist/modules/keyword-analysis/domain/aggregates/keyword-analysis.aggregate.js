@@ -43,7 +43,7 @@ class KeywordAnalysisAggregate {
     get relatedKeywordCount() {
         return this._relatedKeywords.length;
     }
-    getTopRelatedKeywords(limit = 5) {
+    getTopRelatedKeywords(limit = 10) {
         return this._relatedKeywords
             .slice(0, limit)
             .map(keyword => ({ ...keyword }));
