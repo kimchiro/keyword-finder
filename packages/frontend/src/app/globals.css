@@ -1,8 +1,112 @@
 @import "tailwindcss";
 
 :root {
+  /* 기본 배경/전경색 */
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* 색상 팔레트 */
+  --color-primary: #22c55e;        /* 연두색 - 주요 액션 */
+  --color-primary-light: #86efac;  /* 연한 연두색 - 호버/비활성 */
+  --color-primary-dark: #16a34a;   /* 진한 연두색 - 강조 */
+  
+  --color-secondary: #3b82f6;      /* 파란색 - 보조 액션 */
+  --color-secondary-light: #93c5fd; /* 연한 파란색 */
+  --color-secondary-dark: #1d4ed8;  /* 진한 파란색 */
+  
+  --color-accent: #f59e0b;         /* 주황색 - 경고/주의 */
+  --color-accent-light: #fbbf24;   /* 연한 주황색 */
+  --color-accent-dark: #d97706;    /* 진한 주황색 */
+  
+  --color-success: #10b981;        /* 초록색 - 성공 */
+  --color-success-light: #34d399;  /* 연한 초록색 */
+  --color-success-dark: #059669;   /* 진한 초록색 */
+  
+  --color-warning: #f59e0b;        /* 노란색 - 경고 */
+  --color-warning-light: #fbbf24;  /* 연한 노란색 */
+  --color-warning-dark: #d97706;   /* 진한 노란색 */
+  
+  --color-danger: #ef4444;         /* 빨간색 - 위험/에러 */
+  --color-danger-light: #f87171;   /* 연한 빨간색 */
+  --color-danger-dark: #dc2626;    /* 진한 빨간색 */
+  
+  --color-info: #06b6d4;           /* 청록색 - 정보 */
+  --color-info-light: #22d3ee;     /* 연한 청록색 */
+  --color-info-dark: #0891b2;      /* 진한 청록색 */
+  
+  /* 중성 색상 */
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  
+  /* 배경 색상 */
+  --color-bg-primary: var(--background);
+  --color-bg-secondary: var(--color-gray-50);
+  --color-bg-tertiary: var(--color-gray-100);
+  --color-bg-card: #ffffff;
+  --color-bg-overlay: rgba(0, 0, 0, 0.5);
+  
+  /* 텍스트 색상 */
+  --color-text-primary: var(--foreground);
+  --color-text-secondary: var(--color-gray-600);
+  --color-text-tertiary: var(--color-gray-500);
+  --color-text-inverse: #ffffff;
+  
+  /* 테두리 색상 */
+  --color-border-primary: var(--color-gray-200);
+  --color-border-secondary: var(--color-gray-300);
+  --color-border-focus: var(--color-primary);
+  
+  /* 그림자 */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  /* 폰트 크기 */
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+  --font-size-3xl: 1.875rem;  /* 30px */
+  --font-size-4xl: 2.25rem;   /* 36px */
+  
+  /* 폰트 굵기 */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  
+  /* 줄 간격 */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  
+  /* 간격 */
+  --spacing-xs: 0.25rem;   /* 4px */
+  --spacing-sm: 0.5rem;    /* 8px */
+  --spacing-md: 1rem;      /* 16px */
+  --spacing-lg: 1.5rem;    /* 24px */
+  --spacing-xl: 2rem;      /* 32px */
+  --spacing-2xl: 3rem;     /* 48px */
+  
+  /* 테두리 반지름 */
+  --border-radius-sm: 0.25rem;  /* 4px */
+  --border-radius-md: 0.5rem;   /* 8px */
+  --border-radius-lg: 0.75rem;  /* 12px */
+  --border-radius-xl: 1rem;     /* 16px */
+  --border-radius-full: 9999px;
 }
 
 @theme inline {
@@ -16,11 +120,92 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --color-bg-card: #1f2937;
+    --color-bg-secondary: #111827;
+    --color-bg-tertiary: #1f2937;
+    --color-text-secondary: var(--color-gray-400);
+    --color-text-tertiary: var(--color-gray-500);
+    --color-border-primary: var(--color-gray-700);
+    --color-border-secondary: var(--color-gray-600);
   }
 }
 
+/* 폰트 스타일 클래스 */
+.font-heading {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+.font-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+.font-body {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+}
+
+.font-content {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-secondary);
+}
+
+.font-caption {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-tertiary);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #ffffff;
+  color: #000000;
+  font-family: 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif';
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+}
+
+/* 기본 요소 스타일 */
+h1 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+h2 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+h3, h4, h5, h6 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+p {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+}
+
+small {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-tertiary);
 }

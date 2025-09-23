@@ -1,26 +1,26 @@
 import styled from '@emotion/styled';
+import { colors, spacing, borderRadius, shadow, fontStyles, fontSize, fontWeight } from '@/commons/styles';
 
 export const Container = styled.div`
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 24px;
+  background: ${colors.bgCard};
+  border-radius: ${borderRadius.lg};
+  padding: ${spacing.xl};
+  box-shadow: ${shadow.md};
+  margin-bottom: ${spacing.xl};
+  border: 1px solid ${colors.borderPrimary};
 `;
 
 export const Title = styled.h2`
-  font-size: 20px;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin: 0 0 24px 0;
-  padding-bottom: 12px;
-  border-bottom: 2px solid #f0f0f0;
+  ${fontStyles.title}
+  margin: 0 0 ${spacing.xl} 0;
+  padding-bottom: ${spacing.sm};
+  border-bottom: 2px solid ${colors.borderPrimary};
 `;
 
 export const TableContainer = styled.div`
   overflow-x: auto;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border-radius: ${borderRadius.md};
+  border: 1px solid ${colors.borderPrimary};
   
   /* 스크롤바 스타일링 */
   &::-webkit-scrollbar {
@@ -28,39 +28,39 @@ export const TableContainer = styled.div`
   }
   
   &::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
+    background: ${colors.gray100};
+    border-radius: ${borderRadius.sm};
   }
   
   &::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 4px;
+    background: ${colors.gray400};
+    border-radius: ${borderRadius.sm};
   }
   
   &::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
+    background: ${colors.gray500};
   }
 `;
 
 export const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  background: white;
+  background: ${colors.bgCard};
   min-width: 600px;
 `;
 
 export const TableHeader = styled.thead`
-  background: #f8f9fa;
+  background: ${colors.bgSecondary};
 `;
 
 export const TableBody = styled.tbody``;
 
 export const TableRow = styled.tr`
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid ${colors.borderPrimary};
   transition: background-color 0.2s ease;
   
   &:hover {
-    background: #f8f9fa;
+    background: ${colors.bgSecondary};
   }
   
   &:last-child {
@@ -69,12 +69,12 @@ export const TableRow = styled.tr`
 `;
 
 export const TableHeaderCell = styled.th`
-  padding: 16px 20px;
+  padding: ${spacing.md} ${spacing.lg};
   text-align: left;
-  font-size: 14px;
-  font-weight: 600;
-  color: #374151;
-  border-bottom: 2px solid #e5e7eb;
+  font-size: ${fontSize.sm};
+  font-weight: ${fontWeight.semibold};
+  color: ${colors.textSecondary};
+  border-bottom: 2px solid ${colors.borderPrimary};
   white-space: nowrap;
   
   &:first-of-type {
@@ -102,9 +102,9 @@ export const TableHeaderCell = styled.th`
 `;
 
 export const TableCell = styled.td`
-  padding: 16px 20px;
-  font-size: 14px;
-  color: #374151;
+  padding: ${spacing.md} ${spacing.lg};
+  font-size: ${fontSize.sm};
+  color: ${colors.textPrimary};
   vertical-align: middle;
   
   &:first-of-type {
@@ -113,7 +113,7 @@ export const TableCell = styled.td`
   
   &:nth-of-type(4) {
     text-align: center;
-    font-weight: 500;
+    font-weight: ${fontWeight.medium};
   }
   
   &:nth-of-type(5) {
@@ -123,28 +123,28 @@ export const TableCell = styled.td`
 
 export const RankBadge = styled.div<{ rank: number }>`
   background: ${props => {
-    if (props.rank <= 3) return '#ffd700'; // 금색
-    if (props.rank <= 10) return '#2563eb'; // 파란색
-    return '#666'; // 회색
+    if (props.rank <= 3) return colors.warning; // 상위 3위
+    if (props.rank <= 10) return colors.secondary; // 상위 10위
+    return colors.gray500; // 나머지
   }};
-  color: ${props => props.rank <= 3 ? '#333' : 'white'};
+  color: ${props => props.rank <= 3 ? colors.textPrimary : colors.textInverse};
   width: 32px;
   height: 32px;
-  border-radius: 50%;
+  border-radius: ${borderRadius.full};
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: ${fontSize.xs};
+  font-weight: ${fontWeight.bold};
   margin: 0 auto;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: ${shadow.sm};
 `;
 
 
 export const KeywordText = styled.div`
-  font-size: 16px;
-  font-weight: 600;
-  color: #1f2937;
+  font-size: ${fontSize.base};
+  font-weight: ${fontWeight.semibold};
+  color: ${colors.textPrimary};
   word-break: break-word;
   line-height: 1.4;
 `;
@@ -155,19 +155,22 @@ export const KeywordText = styled.div`
 
 export const SimilarityBadge = styled.div<{ color: string }>`
   background: ${props => props.color};
-  color: white;
-  padding: 6px 12px;
-  border-radius: 16px;
-  font-size: 12px;
-  font-weight: 600;
+  color: ${colors.textInverse};
+  padding: ${spacing.xs} ${spacing.sm};
+  border-radius: ${borderRadius.xl};
+  font-size: ${fontSize.xs};
+  font-weight: ${fontWeight.semibold};
   text-align: center;
   min-width: 50px;
   display: inline-block;
 `;
 
 export const EmptyState = styled.div`
+  ${fontStyles.content}
   text-align: center;
-  padding: 40px 20px;
-  color: #666;
-  font-size: 14px;
+  padding: ${spacing.xl} ${spacing.lg};
+  background: ${colors.bgCard};
+  border-radius: ${borderRadius.md};
+  border: 1px dashed ${colors.borderPrimary};
+  color: ${colors.textTertiary};
 `;

@@ -3,87 +3,73 @@
 import React from 'react';
 import { SearchForm } from '@/commons/components';
 import { BlogSearchResults } from '@/components/BlogSearchResults';
+import { KeywordAnalytics } from '@/components/KeywordAnalytics';
 import { MonthlyVolume } from '@/components/MonthlyVolume';
-import { CompetitionIndex } from '@/components/CompetitionIndex';
-import { GenderRatio } from '@/components/GenderRatio';
-import { AdultKeywordCheck } from '@/components/AdultKeywordCheck';
 import { SearchTrendChart } from '@/components/SearchTrendChart';
 import { MonthlyRatioChart } from '@/components/MonthlyRatioChart';
 import { SmartBlock } from '@/components/SmartBlock';
 import { RelatedKeywords } from '@/components/RelatedKeywords';
 import { UnifiedDataTable } from '@/components/UnifiedDataTable';
-import { SearchResults } from '@/components/SearchResults';
 import { useWorkflow } from '@/commons/hooks';
 import styled from '@emotion/styled';
+import { colors, spacing, borderRadius, shadow, fontStyles, fontSize, fontWeight } from '@/commons/styles';
 import Loading, { EmptyState } from './loading';
 
 const Container = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
-  
+  padding: ${spacing.lg};
 `;
 
 const Card = styled.div`
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 24px;
-  margin-bottom: 24px;
+  background: ${colors.bgCard};
+  border-radius: ${borderRadius.lg};
+  box-shadow: ${shadow.md};
+  padding: ${spacing.xl};
+  margin-bottom: ${spacing.xl};
+  border: 1px solid ${colors.borderPrimary};
 `;
 
 const AnalyticsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-  margin-bottom: 24px;
+  gap: ${spacing.lg};
+  margin-bottom: ${spacing.xl};
   
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
   }
 `;
 
-const ChartGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 20px;
-  margin-bottom: 24px;
-  
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-`;
 
 const Title = styled.h1`
-  font-size: 24px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 24px;
+  ${fontStyles.heading}
+  margin-bottom: ${spacing.xl};
   text-align: center;
 `;
 
 const ErrorMessage = styled.div`
-  background: #fee;
-  border: 1px solid #fcc;
-  color: #c33;
-  padding: 16px;
-  border-radius: 8px;
-  margin: 16px 0;
-  font-size: 14px;
+  background: ${colors.dangerLight}22;
+  border: 1px solid ${colors.dangerLight};
+  color: ${colors.danger};
+  padding: ${spacing.md};
+  border-radius: ${borderRadius.md};
+  margin: ${spacing.md} 0;
+  font-size: ${fontSize.sm};
   line-height: 1.5;
   
   strong {
     display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
+    margin-bottom: ${spacing.sm};
+    font-weight: ${fontWeight.semibold};
   }
   
   .error-details {
-    font-size: 12px;
-    color: #999;
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid #fdd;
+    font-size: ${fontSize.xs};
+    color: ${colors.dangerDark};
+    margin-top: ${spacing.sm};
+    padding-top: ${spacing.sm};
+    border-top: 1px solid ${colors.dangerLight}44;
   }
 `;
 
@@ -132,33 +118,31 @@ export default function SearchPage() {
         {/* 워크플로우 결과 표시 */}
         {workflowData?.success && workflowData.data && (
           <>
-            {/* 키워드 분석 4개 컴포넌트 */}
+            {/* 상단 3개 컴포넌트: KeywordAnalytics, SearchTrendChart, MonthlyRatioChart */}
+            <AnalyticsGrid>
+              <KeywordAnalytics 
+                analytics={workflowData.data.analysisData?.analytics || null}
+                contentCounts={workflowData.data.contentCounts || null}
+              />
+              {workflowData.data.analysisData?.chartData && (
+                <>
+                  <SearchTrendChart searchTrends={workflowData.data.analysisData.chartData.searchTrends} />
+                  <MonthlyRatioChart monthlyRatios={workflowData.data.analysisData.chartData.monthlyRatios} />
+                </>
+              )}
+            </AnalyticsGrid>
+
+            {/* 월간 발행량 컴포넌트 */}
             {workflowData.data.analysisData && (
               <AnalyticsGrid>
                 <MonthlyVolume analytics={workflowData.data.analysisData.analytics} />
-                <CompetitionIndex analytics={workflowData.data.analysisData.analytics} />
-                <GenderRatio genderRatios={workflowData.data.analysisData.chartData?.genderRatios} />
-                <AdultKeywordCheck 
-                  keyword={workflowData.data.query} 
-                  intentAnalysis={workflowData.data.analysisData.chartData?.intentAnalysis} 
-                />
               </AnalyticsGrid>
             )}
 
-            {/* 차트 2개 컴포넌트 */}
-            {workflowData.data.analysisData?.chartData && (
-              <ChartGrid>
-                <SearchTrendChart searchTrends={workflowData.data.analysisData.chartData.searchTrends} />
-                <MonthlyRatioChart monthlyRatios={workflowData.data.analysisData.chartData.monthlyRatios} />
-              </ChartGrid>
-            )}
-
-            {/* 스마트블록 키워드 (순위표시, overflow-x 스크롤) */}
             <SmartBlock 
               keywords={workflowData.data.scrapingData?.keywords?.filter(keyword => keyword.category === 'smartblock') || []} 
             />
 
-            {/* 연관키워드 (순위표시, overflow-x 스크롤) */}
             <RelatedKeywords 
               keywords={workflowData.data.scrapingData?.keywords?.filter(keyword => keyword.category === 'related_search') || []} 
             />

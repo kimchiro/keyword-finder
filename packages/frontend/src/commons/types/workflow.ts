@@ -100,29 +100,6 @@ export interface MonthlySearchRatioData {
   createdAt: string;
 }
 
-/**
- * 요일별 검색 비율 데이터
- */
-export interface WeekdaySearchRatioData {
-  keyword: string;
-  weekdayNumber: number;
-  searchRatio: number;
-  analysisDate: string;
-  id: number;
-  createdAt: string;
-}
-
-/**
- * 성별 검색 비율 데이터
- */
-export interface GenderSearchRatioData {
-  keyword: string;
-  maleRatio: number;
-  femaleRatio: number;
-  analysisDate: string;
-  id: number;
-  createdAt: string;
-}
 
 /**
  * 이슈성 분석 데이터
@@ -138,19 +115,6 @@ export interface IssueAnalysisData {
   createdAt: string;
 }
 
-/**
- * 의도 분석 데이터 (정보성/상업성)
- */
-export interface IntentAnalysisData {
-  keyword: string;
-  informationalRatio: number;
-  commercialRatio: number;
-  primaryIntent: '정보성' | '상업성' | '혼합';
-  confidenceScore: number;
-  analysisDate: string;
-  id: number;
-  createdAt: string;
-}
 
 /**
  * 차트 데이터 통합
@@ -158,10 +122,7 @@ export interface IntentAnalysisData {
 export interface ChartData {
   searchTrends: SearchTrendData[];
   monthlyRatios: MonthlySearchRatioData[];
-  weekdayRatios: WeekdaySearchRatioData[];
-  genderRatios: GenderSearchRatioData | null;
   issueAnalysis: IssueAnalysisData | null;
-  intentAnalysis: IntentAnalysisData | null;
 }
 
 /**
@@ -181,6 +142,15 @@ export interface WorkflowResponse {
   data: {
     query: string;
     naverApiData: NaverApiData;
+    contentCounts?: {
+      keyword: string;
+      searchedAt: string;
+      counts: {
+        blogs: number;
+        cafes: number;
+        total: number;
+      };
+    };
     scrapingData: ScrapingData;
     analysisData: AnalysisData | null;
     topKeywords: string[];

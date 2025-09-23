@@ -1,26 +1,26 @@
 import styled from '@emotion/styled';
+import { colors, spacing, borderRadius, fontSize, fontWeight, shadow, fontStyles } from '@/commons/styles';
 
 export const Container = styled.div`
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 24px;
+  background: ${colors.bgCard};
+  border-radius: ${borderRadius.lg};
+  padding: ${spacing.xl};
+  box-shadow: ${shadow.md};
+  margin-bottom: ${spacing.xl};
+  border: 1px solid ${colors.borderPrimary};
 `;
 
 export const Title = styled.h2`
-  font-size: 18px;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin: 0 0 20px 0;
-  padding-bottom: 12px;
-  border-bottom: 2px solid #f0f0f0;
+  ${fontStyles.title}
+  margin: 0 0 ${spacing.lg} 0;
+  padding-bottom: ${spacing.sm};
+  border-bottom: 2px solid ${colors.borderPrimary};
 `;
 
 export const StatsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  gap: ${spacing.md};
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
@@ -28,35 +28,34 @@ export const StatsGrid = styled.div`
 `;
 
 export const StatCard = styled.div`
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 20px;
+  background: ${colors.bgSecondary};
+  border-radius: ${borderRadius.md};
+  padding: ${spacing.lg};
   text-align: center;
-  border: 1px solid #e9ecef;
+  border: 1px solid ${colors.borderPrimary};
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: ${shadow.lg};
+    background: ${colors.bgTertiary};
   }
 `;
 
 export const StatLabel = styled.div`
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 8px;
-  font-weight: 500;
+  ${fontStyles.content}
+  margin-bottom: ${spacing.sm};
+  font-weight: ${fontWeight.medium};
 `;
 
 export const StatValue = styled.div`
-  font-size: 24px;
-  font-weight: 700;
-  color: #2563eb;
-  margin-bottom: 4px;
+  font-size: ${fontSize['2xl']};
+  font-weight: ${fontWeight.bold};
+  color: ${colors.primary};
+  margin-bottom: ${spacing.xs};
 `;
 
 export const StatUnit = styled.div`
-  font-size: 12px;
-  color: #999;
-  font-weight: 500;
+  ${fontStyles.caption}
+  font-weight: ${fontWeight.medium};
 `;

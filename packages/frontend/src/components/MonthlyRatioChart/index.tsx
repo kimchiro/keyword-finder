@@ -9,9 +9,9 @@ import {
   Title as ChartTitle,
   Tooltip,
   Legend,
-  TooltipItem,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
+import { createBarChartOptions } from '@/commons/utils/chartConfig';
 import { MonthlyRatioChartProps } from './types';
 import {
   Container,
@@ -58,90 +58,21 @@ export const MonthlyRatioChart: React.FC<MonthlyRatioChartProps> = ({ monthlyRat
         {
           label: '검색 비율 (%)',
           data: sortedRatios.map(ratio => parseFloat(ratio.searchRatio.toString())),
-          backgroundColor: 'rgba(16, 185, 129, 0.8)',
-          borderColor: '#10b981',
-          borderWidth: 2,
+          backgroundColor: '#22c55e',
+          borderColor: '#22c55e',
           borderRadius: 6,
           borderSkipped: false,
+          pointBackgroundColor: '#ffffff',
+          pointBorderColor: '#22c55e',
+          pointRadius: 5,
+          pointHoverRadius: 7,
         },
       ],
     };
   };
 
-  // 차트 옵션
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-        labels: {
-          font: {
-            family: 'system-ui, -apple-system, sans-serif',
-            size: 14,
-            weight: 500,
-          },
-          padding: 20,
-        },
-      },
-      tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        titleColor: '#ffffff',
-        bodyColor: '#ffffff',
-        borderColor: '#10b981',
-        borderWidth: 1,
-        cornerRadius: 8,
-        displayColors: false,
-        titleFont: {
-          size: 14,
-          weight: 600,
-        },
-        bodyFont: {
-          size: 13,
-        },
-        callbacks: {
-          label: function(context: TooltipItem<'bar'>) {
-            return `${context.dataset.label || '검색 비율'}: ${context.parsed.y.toFixed(1)}%`;
-          },
-        },
-      },
-    },
-    scales: {
-      x: {
-        grid: {
-          color: 'rgba(0, 0, 0, 0.05)',
-          lineWidth: 1,
-        },
-        ticks: {
-          font: {
-            size: 12,
-          },
-          color: '#666',
-        },
-      },
-      y: {
-        grid: {
-          color: 'rgba(0, 0, 0, 0.05)',
-          lineWidth: 1,
-        },
-        ticks: {
-          font: {
-            size: 12,
-          },
-          color: '#666',
-          callback: function(value: string | number) {
-            return `${value}%`;
-          },
-        },
-        beginAtZero: true,
-      },
-    },
-    elements: {
-      bar: {
-        borderWidth: 2,
-      },
-    },
-  };
+  // 차트 옵션 (공통 설정 사용)
+  const chartOptions = createBarChartOptions('#22c55e');
 
   const chartData = createBarChartData();
 

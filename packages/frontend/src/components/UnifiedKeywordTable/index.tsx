@@ -4,6 +4,7 @@ import {
   SortOrder,
   SORT_TYPE_NAMES
 } from '@/commons/enums';
+import { colors } from '@/commons/styles';
 import { 
   UnifiedKeywordTableProps, 
   FilterState, 
@@ -194,7 +195,7 @@ export const UnifiedKeywordTable: React.FC<UnifiedKeywordTableProps> = ({ integr
               <TableCell>
                 {keyword.rankChange !== undefined && keyword.rankChange !== 0 && (
                   <span style={{ 
-                    color: keyword.rankChange > 0 ? '#22543d' : '#742a2a',
+                    color: keyword.rankChange > 0 ? colors.successDark : colors.dangerDark,
                     fontWeight: 'bold'
                   }}>
                     {keyword.rankChange > 0 ? '+' : ''}{keyword.rankChange}

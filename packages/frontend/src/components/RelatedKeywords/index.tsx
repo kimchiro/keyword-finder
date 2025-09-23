@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { colors } from '@/commons/styles';
 import { RelatedKeywordsProps } from './types';
 import {
   Container,
@@ -31,13 +32,13 @@ export const RelatedKeywords: React.FC<RelatedKeywordsProps> = ({ keywords }) =>
   const getSimilarityColor = (similarity: 'low' | 'medium' | 'high') => {
     switch (similarity) {
       case 'high':
-        return '#10b981';
+        return colors.success;
       case 'medium':
-        return '#f59e0b';
+        return colors.warning;
       case 'low':
-        return '#ef4444';
+        return colors.danger;
       default:
-        return '#6b7280';
+        return colors.gray500;
     }
   };
 

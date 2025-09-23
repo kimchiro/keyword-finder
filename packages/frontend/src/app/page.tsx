@@ -3,11 +3,12 @@
 import React from 'react';
 import Link from 'next/link';
 import styled from '@emotion/styled';
+import { colors, spacing, borderRadius, shadow, fontStyles, fontSize, fontWeight } from '@/commons/styles';
 
 const Container = styled.div`
   min-height: calc(100vh - 80px);
-  padding: 4rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: ${spacing['2xl']} ${spacing.xl};
+  background: linear-gradient(135deg, ${colors.secondary} 0%, ${colors.secondaryDark} 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -15,82 +16,92 @@ const Container = styled.div`
 
 const HeroCard = styled.div`
   max-width: 800px;
-  background: white;
-  border-radius: 20px;
-  padding: 4rem;
+  background: ${colors.bgCard};
+  border-radius: ${borderRadius.xl};
+  padding: ${spacing['2xl']};
   text-align: center;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: ${shadow.xl};
+  border: 1px solid ${colors.borderPrimary};
 `;
 
 const Title = styled.h1`
-  font-size: 3.5rem;
-  font-weight: bold;
-  margin-bottom: 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-size: ${fontSize['4xl']};
+  font-weight: ${fontWeight.extrabold};
+  margin-bottom: ${spacing.lg};
+  background: linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryDark} 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 `;
 
 const Subtitle = styled.p`
-  font-size: 1.25rem;
-  color: #6b7280;
-  margin-bottom: 3rem;
+  ${fontStyles.body}
+  font-size: ${fontSize.lg};
+  color: ${colors.textSecondary};
+  margin-bottom: ${spacing['2xl']};
   line-height: 1.6;
 `;
 
 const ButtonGroup = styled.div`
   display: flex;
-  gap: 1.5rem;
+  gap: ${spacing.lg};
   justify-content: center;
   flex-wrap: wrap;
 `;
 
 const PrimaryButton = styled(Link)`
   display: inline-block;
-  padding: 1rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  padding: ${spacing.md} ${spacing.xl};
+  background: ${colors.primary};
+  color: ${colors.textInverse};
   text-decoration: none;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 1.1rem;
-  transition: transform 0.2s;
+  border-radius: ${borderRadius.lg};
+  font-weight: ${fontWeight.semibold};
+  font-size: ${fontSize.lg};
+  transition: all 0.2s ease;
+  box-shadow: ${shadow.md};
 
   &:hover {
+    background: ${colors.primaryDark};
     transform: translateY(-2px);
+    box-shadow: ${shadow.lg};
   }
 `;
 
 const FeatureGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 2rem;
-  margin-top: 3rem;
+  gap: ${spacing.xl};
+  margin-top: ${spacing['2xl']};
 `;
 
 const FeatureCard = styled.div`
-  padding: 1.5rem;
-  background: #f8fafc;
-  border-radius: 12px;
+  padding: ${spacing.lg};
+  background: ${colors.bgSecondary};
+  border-radius: ${borderRadius.lg};
   text-align: center;
+  border: 1px solid ${colors.borderPrimary};
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: ${shadow.md};
+  }
 `;
 
 const FeatureIcon = styled.div`
-  font-size: 2rem;
-  margin-bottom: 1rem;
+  font-size: ${fontSize['3xl']};
+  margin-bottom: ${spacing.md};
 `;
 
 const FeatureTitle = styled.h3`
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 0.5rem;
+  ${fontStyles.title}
+  font-size: ${fontSize.lg};
+  margin-bottom: ${spacing.sm};
 `;
 
 const FeatureDescription = styled.p`
-  font-size: 0.9rem;
-  color: #6b7280;
+  ${fontStyles.content}
 `;
 
 export default function Home() {

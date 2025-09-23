@@ -1,5 +1,6 @@
 import styled from '@emotion/styled';
 import { keyframes } from '@emotion/react';
+import { colors, spacing, borderRadius, fontSize, fontWeight, shadow } from '@/commons/styles';
 
 const spin = keyframes`
   0% { transform: rotate(0deg); }
@@ -9,69 +10,85 @@ const spin = keyframes`
 export const SearchFormContainer = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: ${spacing.md};
+  margin-bottom: ${spacing.xl};
 `;
 
 export const SearchInput = styled.input`
-  padding: 1rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
+  padding: ${spacing.md};
+  border: 2px solid ${colors.borderPrimary};
+  border-radius: ${borderRadius.md};
+  font-size: ${fontSize.base};
+  color: ${colors.textPrimary};
+  background: ${colors.bgCard};
   transition: all 0.2s ease;
-  color: black
+  
   &:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: ${colors.borderFocus};
+    box-shadow: 0 0 0 3px ${colors.primaryLight}33;
   }
 
   &:disabled {
-    background-color: #f7fafc;
+    background-color: ${colors.bgSecondary};
+    color: ${colors.textTertiary};
     cursor: not-allowed;
+  }
+
+  &::placeholder {
+    color: ${colors.textTertiary};
   }
 `;
 
 export const ButtonGroup = styled.div`
   display: flex;
-  gap: 1rem;
+  gap: ${spacing.md};
   flex-wrap: wrap;
 `;
 
 export const SearchButton = styled.button<{ variant?: 'primary' | 'secondary' }>`
-  padding: 1rem 1.5rem;
+  padding: ${spacing.md} ${spacing.lg};
   border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
+  border-radius: ${borderRadius.md};
+  font-size: ${fontSize.base};
+  font-weight: ${fontWeight.semibold};
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: ${spacing.sm};
   min-width: 180px;
 
   ${({ variant = 'secondary' }) => {
     if (variant === 'primary') {
       return `
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        background: ${colors.primary};
+        color: ${colors.textInverse};
+        box-shadow: ${shadow.sm};
         
         &:hover:not(:disabled) {
+          background: ${colors.primaryDark};
           transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+          box-shadow: ${shadow.lg};
+        }
+
+        &:active {
+          transform: translateY(0);
+          box-shadow: ${shadow.sm};
         }
       `;
     } else {
       return `
-        background: #f7fafc;
-        color: #4a5568;
-        border: 2px solid #e2e8f0;
+        background: ${colors.bgCard};
+        color: ${colors.textSecondary};
+        border: 2px solid ${colors.borderPrimary};
+        box-shadow: ${shadow.sm};
         
         &:hover:not(:disabled) {
-          background: #edf2f7;
-          border-color: #cbd5e0;
+          background: ${colors.bgSecondary};
+          border-color: ${colors.borderSecondary};
+          color: ${colors.textPrimary};
         }
       `;
     }
@@ -81,6 +98,7 @@ export const SearchButton = styled.button<{ variant?: 'primary' | 'secondary' }>
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
+    box-shadow: none;
   }
 `;
 

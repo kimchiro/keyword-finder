@@ -1,60 +1,67 @@
 import styled from '@emotion/styled';
 import { TrendType, KeywordType } from '@/commons/enums';
+import { colors, spacing, borderRadius, shadow, fontStyles, fontSize, fontWeight } from '@/commons/styles';
 
 export const TableContainer = styled.div`
-  margin: 2rem 0;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
+  margin: ${spacing.xl} 0;
+  background: ${colors.bgCard};
+  border-radius: ${borderRadius.lg};
+  box-shadow: ${shadow.md};
+  border: 1px solid ${colors.borderPrimary};
   overflow: hidden;
 `;
 
 export const TableHeader = styled.div`
-  padding: 1.5rem;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e2e8f0;
+  padding: ${spacing.lg};
+  background: ${colors.bgSecondary};
+  border-bottom: 1px solid ${colors.borderPrimary};
   display: flex;
   justify-content: space-between;
   align-items: center;
 `;
 
 export const TableTitle = styled.h3`
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #2d3748;
+  ${fontStyles.title}
   margin: 0;
 `;
 
 export const FilterControls = styled.div`
   display: flex;
-  gap: 1rem;
+  gap: ${spacing.md};
   align-items: center;
 `;
 
 export const FilterSelect = styled.select`
-  padding: 0.5rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  background: white;
+  padding: ${spacing.sm};
+  border: 1px solid ${colors.borderSecondary};
+  border-radius: ${borderRadius.sm};
+  font-size: ${fontSize.sm};
+  background: ${colors.bgCard};
+  color: ${colors.textPrimary};
 `;
 
 export const SearchInput = styled.input`
-  padding: 0.5rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.875rem;
+  padding: ${spacing.sm};
+  border: 1px solid ${colors.borderSecondary};
+  border-radius: ${borderRadius.sm};
+  font-size: ${fontSize.sm};
   width: 200px;
+  background: ${colors.bgCard};
+  color: ${colors.textPrimary};
+  
+  &:focus {
+    outline: none;
+    border-color: ${colors.borderFocus};
+  }
 `;
 
 export const StatsRow = styled.div`
-  padding: 1rem 1.5rem;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e2e8f0;
+  padding: ${spacing.md} ${spacing.lg};
+  background: ${colors.bgSecondary};
+  border-bottom: 1px solid ${colors.borderPrimary};
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+  gap: ${spacing.md};
 `;
 
 export const StatItem = styled.div`
@@ -62,15 +69,14 @@ export const StatItem = styled.div`
 `;
 
 export const StatValue = styled.div`
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #667eea;
+  font-size: ${fontSize.xl};
+  font-weight: ${fontWeight.bold};
+  color: ${colors.primary};
 `;
 
 export const StatLabel = styled.div`
-  font-size: 0.8rem;
-  color: #6b7280;
-  margin-top: 0.25rem;
+  ${fontStyles.caption}
+  margin-top: ${spacing.xs};
 `;
 
 export const Table = styled.table`
@@ -79,106 +85,106 @@ export const Table = styled.table`
 `;
 
 export const TableHead = styled.thead`
-  background: #f8f9fa;
+  background: ${colors.bgSecondary};
 `;
 
 export const TableRow = styled.tr<{ trend?: TrendType }>`
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid ${colors.borderPrimary};
   
   ${({ trend }) => {
     switch (trend) {
       case TrendType.RISING:
-        return 'background: linear-gradient(90deg, #c6f6d5 0%, transparent 100%);';
+        return `background: linear-gradient(90deg, ${colors.successLight}33 0%, transparent 100%);`;
       case TrendType.FALLING:
-        return 'background: linear-gradient(90deg, #fed7d7 0%, transparent 100%);';
+        return `background: linear-gradient(90deg, ${colors.dangerLight}33 0%, transparent 100%);`;
       case TrendType.NEW:
-        return 'background: linear-gradient(90deg, #bee3f8 0%, transparent 100%);';
+        return `background: linear-gradient(90deg, ${colors.infoLight}33 0%, transparent 100%);`;
       default:
         return '';
     }
   }}
   
   &:hover {
-    background: #f7fafc;
+    background: ${colors.bgSecondary};
   }
 `;
 
 export const TableHeaderCell = styled.th`
-  padding: 1rem;
+  padding: ${spacing.md};
   text-align: left;
-  font-weight: 600;
-  color: #4a5568;
-  font-size: 0.875rem;
+  font-weight: ${fontWeight.semibold};
+  color: ${colors.textSecondary};
+  font-size: ${fontSize.sm};
   cursor: pointer;
   
   &:hover {
-    background: #e2e8f0;
+    background: ${colors.bgTertiary};
   }
 `;
 
 export const TableCell = styled.td`
-  padding: 1rem;
-  font-size: 0.875rem;
-  color: #4a5568;
+  padding: ${spacing.md};
+  font-size: ${fontSize.sm};
+  color: ${colors.textPrimary};
 `;
 
 export const TrendBadge = styled.span<{ trend: TrendType }>`
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 500;
+  padding: ${spacing.xs} ${spacing.sm};
+  border-radius: ${borderRadius.lg};
+  font-size: ${fontSize.xs};
+  font-weight: ${fontWeight.medium};
   
   ${({ trend }) => {
     switch (trend) {
       case TrendType.RISING:
-        return 'background: #c6f6d5; color: #22543d;';
+        return `background: ${colors.successLight}; color: ${colors.successDark};`;
       case TrendType.FALLING:
-        return 'background: #fed7d7; color: #742a2a;';
+        return `background: ${colors.dangerLight}; color: ${colors.dangerDark};`;
       case TrendType.NEW:
-        return 'background: #bee3f8; color: #2a4365;';
+        return `background: ${colors.infoLight}; color: ${colors.infoDark};`;
       case TrendType.STABLE:
-        return 'background: #e2e8f0; color: #4a5568;';
+        return `background: ${colors.gray200}; color: ${colors.gray700};`;
       case TrendType.DISAPPEARED:
-        return 'background: #fbb6ce; color: #702459;';
+        return `background: ${colors.gray300}; color: ${colors.gray800};`;
       default:
-        return 'background: #e2e8f0; color: #4a5568;';
+        return `background: ${colors.gray200}; color: ${colors.gray700};`;
     }
   }}
 `;
 
 export const CategoryBadge = styled.span<{ category: KeywordType }>`
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 500;
+  padding: ${spacing.xs} ${spacing.sm};
+  border-radius: ${borderRadius.lg};
+  font-size: ${fontSize.xs};
+  font-weight: ${fontWeight.medium};
   
   ${({ category }) => {
     switch (category) {
       case KeywordType.AUTOSUGGEST:
-        return 'background: #e6fffa; color: #234e52;';
+        return `background: ${colors.info}22; color: ${colors.infoDark};`;
       case KeywordType.RELATED_KEYWORDS:
-        return 'background: #fef5e7; color: #744210;';
+        return `background: ${colors.warning}22; color: ${colors.warningDark};`;
       case KeywordType.TOGETHER_SEARCHED:
-        return 'background: #f0fff4; color: #22543d;';
+        return `background: ${colors.success}22; color: ${colors.successDark};`;
       case KeywordType.HOT_TOPICS:
-        return 'background: #fdf2f8; color: #702459;';
+        return `background: ${colors.accent}22; color: ${colors.accentDark};`;
       default:
-        return 'background: #f7fafc; color: #4a5568;';
+        return `background: ${colors.gray200}; color: ${colors.gray700};`;
     }
   }}
 `;
 
 export const InsightsBanner = styled.div`
-  padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  padding: ${spacing.md} ${spacing.lg};
+  background: linear-gradient(135deg, ${colors.secondary} 0%, ${colors.secondaryDark} 100%);
+  color: ${colors.textInverse};
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: ${spacing.md};
   flex-wrap: wrap;
 `;
 
 export const InsightItem = styled.div`
-  font-size: 0.875rem;
+  font-size: ${fontSize.sm};
   opacity: 0.9;
 `;

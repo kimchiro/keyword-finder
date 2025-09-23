@@ -1,49 +1,50 @@
 import styled from '@emotion/styled';
+import { colors, spacing, borderRadius, shadow, fontStyles, fontSize, fontWeight } from '@/commons/styles';
 
 export const ResultsContainer = styled.div`
-  margin: 2rem 0;
+  margin: ${spacing.xl} 0;
 `;
 
 export const SectionTitle = styled.h3`
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: #2d3748;
+  ${fontStyles.title}
+  margin-bottom: ${spacing.md};
 `;
 
 export const SearchResultItem = styled.div`
-  padding: 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  background: #f8f9fa;
+  padding: ${spacing.md};
+  border: 1px solid ${colors.borderPrimary};
+  border-radius: ${borderRadius.md};
+  margin-bottom: ${spacing.md};
+  background: ${colors.bgSecondary};
   transition: all 0.2s ease;
 
   &:hover {
-    background: #e8f4f8;
-    border-color: #667eea;
+    background: ${colors.bgTertiary};
+    border-color: ${colors.secondary};
+    box-shadow: ${shadow.sm};
   }
 `;
 
 export const BlogTitle = styled.h4`
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #2d3748;
+  font-size: ${fontSize.lg};
+  font-weight: ${fontWeight.semibold};
+  margin-bottom: ${spacing.sm};
+  color: ${colors.textPrimary};
   
   a {
-    color: #667eea;
+    color: ${colors.secondary};
     text-decoration: none;
     
     &:hover {
       text-decoration: underline;
+      color: ${colors.secondaryDark};
     }
   }
 `;
 
 export const BlogDescription = styled.p`
-  color: #4a5568;
-  margin-bottom: 0.5rem;
+  ${fontStyles.content}
+  margin-bottom: ${spacing.sm};
   line-height: 1.5;
 `;
 
@@ -51,15 +52,16 @@ export const BlogMeta = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.875rem;
-  color: #718096;
+  font-size: ${fontSize.sm};
+  color: ${colors.textTertiary};
   
   a {
-    color: #667eea;
+    color: ${colors.secondary};
     text-decoration: none;
     
     &:hover {
       text-decoration: underline;
+      color: ${colors.secondaryDark};
     }
   }
 `;

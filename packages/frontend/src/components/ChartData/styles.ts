@@ -1,26 +1,26 @@
 import styled from '@emotion/styled';
+import { colors, spacing, borderRadius, shadow, fontStyles, fontSize, fontWeight } from '@/commons/styles';
 
 export const Container = styled.div`
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 24px;
+  background: ${colors.bgCard};
+  border-radius: ${borderRadius.lg};
+  padding: ${spacing.xl};
+  box-shadow: ${shadow.md};
+  margin-bottom: ${spacing.xl};
+  border: 1px solid ${colors.borderPrimary};
 `;
 
 export const Title = styled.h2`
-  font-size: 20px;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin: 0 0 24px 0;
-  padding-bottom: 12px;
-  border-bottom: 2px solid #f0f0f0;
+  ${fontStyles.title}
+  margin: 0 0 ${spacing.xl} 0;
+  padding-bottom: ${spacing.sm};
+  border-bottom: 2px solid ${colors.borderPrimary};
 `;
 
 export const ChartGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
+  gap: ${spacing.lg};
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
@@ -28,17 +28,17 @@ export const ChartGrid = styled.div`
 `;
 
 export const ChartCard = styled.div`
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 20px;
-  border: 1px solid #e9ecef;
+  background: ${colors.bgSecondary};
+  border-radius: ${borderRadius.md};
+  padding: ${spacing.lg};
+  border: 1px solid ${colors.borderPrimary};
 `;
 
 export const ChartTitle = styled.h3`
-  font-size: 16px;
-  font-weight: 500;
-  color: #333;
-  margin: 0 0 16px 0;
+  font-size: ${fontSize.base};
+  font-weight: ${fontWeight.medium};
+  color: ${colors.textPrimary};
+  margin: 0 0 ${spacing.md} 0;
   text-align: center;
 `;
 
@@ -50,46 +50,46 @@ export const ChartContent = styled.div`
 export const DataList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: ${spacing.sm};
 `;
 
 export const DataItem = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
-  background: white;
-  border-radius: 6px;
-  border: 1px solid #e9ecef;
+  padding: ${spacing.sm} ${spacing.sm};
+  background: ${colors.bgCard};
+  border-radius: ${borderRadius.sm};
+  border: 1px solid ${colors.borderPrimary};
 `;
 
 export const DataLabel = styled.div`
-  font-size: 14px;
-  color: #666;
-  font-weight: 500;
+  font-size: ${fontSize.sm};
+  color: ${colors.primary};
+  font-weight: ${fontWeight.medium};
 `;
 
 export const DataValue = styled.div`
-  font-size: 14px;
-  font-weight: 600;
-  color: #1f2937;
+  font-size: ${fontSize.sm};
+  font-weight: ${fontWeight.semibold};
+  color: ${colors.primary};
 `;
 
 export const Badge = styled.div<{ color: string }>`
   background: ${props => props.color};
-  color: white;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
+  color: ${colors.textInverse};
+  padding: ${spacing.xs} ${spacing.sm};
+  border-radius: ${borderRadius.lg};
+  font-size: ${fontSize.xs};
+  font-weight: ${fontWeight.semibold};
   text-align: center;
 `;
 
 export const EmptyState = styled.div`
+  ${fontStyles.content}
   text-align: center;
-  padding: 40px 20px;
-  color: #666;
-  font-size: 14px;
+  padding: ${spacing['2xl']} ${spacing.lg};
+  color: ${colors.primary};
 `;
 
 export const ChartContainer = styled.div`

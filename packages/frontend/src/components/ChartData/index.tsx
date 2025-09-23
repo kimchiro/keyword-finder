@@ -31,7 +31,7 @@ import {
   ChartContainer,
 } from './styles';
 
-// Chart.js 등록
+// Chart.js 등록 및 기본 설정
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -42,6 +42,16 @@ ChartJS.register(
   Tooltip,
   Legend
 );
+
+// Chart.js 기본 색상 설정 오버라이드
+ChartJS.defaults.color = '';
+ChartJS.defaults.borderColor = '#22c55e';
+ChartJS.defaults.backgroundColor = '#22c55e';
+
+// 기본 색상 팔레트 비활성화
+ChartJS.defaults.plugins.colors = {
+  enabled: false
+};
 
 export const ChartData: React.FC<ChartDataProps> = ({ chartData }) => {
   console.log('🔍 ChartData 컴포넌트 - 받은 데이터:', chartData);
@@ -66,23 +76,7 @@ export const ChartData: React.FC<ChartDataProps> = ({ chartData }) => {
     return `${monthNum}월`;
   };
 
-  const getWeekdayName = (weekdayNum: number) => {
-    const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-    return weekdays[weekdayNum - 1] || `${weekdayNum}`;
-  };
 
-  const getIntentColor = (intent: string) => {
-    switch (intent) {
-      case '정보성':
-        return '#10b981';
-      case '상업성':
-        return '#f59e0b';
-      case '혼합':
-        return '#6366f1';
-      default:
-        return '#6b7280';
-    }
-  };
 
   const getIssueColor = (issueType: string) => {
     switch (issueType) {
@@ -93,7 +87,7 @@ export const ChartData: React.FC<ChartDataProps> = ({ chartData }) => {
       case '하락':
         return '#f59e0b';
       case '신규':
-        return '#8b5cf6';
+        return '#06b6d4';
       default:
         return '#6b7280';
     }
@@ -111,24 +105,45 @@ export const ChartData: React.FC<ChartDataProps> = ({ chartData }) => {
       return new Date(a.periodValue).getTime() - new Date(b.periodValue).getTime();
     });
 
-    return {
+    // 강제 색상 적용을 위한 설정
+    const lineColor = '#22c55e';
+    const pointColor = '#22c55e';
+    const fillColor = 'rgba(34, 197, 94, 0.2)';
+
+    console.log('🎨 라인차트 색상 설정:', { lineColor, pointColor, fillColor });
+
+    const lineChartDataset = {
       labels: sortedTrends.map(trend => trend.periodValue),
       datasets: [
         {
+          type: 'line' as const,
           label: '검색량',
           data: sortedTrends.map(trend => trend.searchVolume),
-          borderColor: '#3b82f6',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          borderWidth: 2,
+          borderColor: lineColor,
+          backgroundColor: fillColor,
+          borderWidth: 4,
           fill: true,
-          tension: 0.4,
-          pointBackgroundColor: '#3b82f6',
+          tension: 0.3,
+          pointBackgroundColor: pointColor,
           pointBorderColor: '#ffffff',
-          pointBorderWidth: 2,
-          pointRadius: 4,
+          pointBorderWidth: 3,
+          pointRadius: 8,
+          pointHoverRadius: 10,
+          pointHoverBackgroundColor: pointColor,
+          pointHoverBorderColor: '#ffffff',
+          pointHoverBorderWidth: 3,
+          // Chart.js v4 호환성을 위한 추가 설정
+          // 강제 색상 적용
+          segment: {
+            borderColor: lineColor,
+            backgroundColor: fillColor,
+          },
         },
       ],
     };
+    
+    console.log('📊 생성된 라인차트 데이터:', lineChartDataset);
+    return lineChartDataset;
   };
 
   // 바차트 데이터 생성 (월별 검색비율)
@@ -149,8 +164,8 @@ export const ChartData: React.FC<ChartDataProps> = ({ chartData }) => {
         {
           label: '검색 비율 (%)',
           data: sortedRatios.map(ratio => parseFloat(ratio.searchRatio.toString())),
-          backgroundColor: 'rgba(16, 185, 129, 0.8)',
-          borderColor: '#10b981',
+          backgroundColor: '#22c55eCC',
+          borderColor: '#22c55e',
           borderWidth: 1,
           borderRadius: 4,
         },
@@ -162,6 +177,26 @@ export const ChartData: React.FC<ChartDataProps> = ({ chartData }) => {
   const lineChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    interaction: {
+      intersect: false,
+      mode: 'index' as const,
+    },
+    // 강제 색상 적용을 위한 콜백
+    onHover: (event: unknown, elements: unknown, chart: unknown) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const chartInstance = chart as any;
+      if (chartInstance && chartInstance.data && chartInstance.data.datasets) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        chartInstance.data.datasets.forEach((dataset: any) => {
+          if (dataset.type === 'line' || !dataset.type) {
+            dataset.borderColor = '#22c55e';
+            dataset.backgroundColor = 'rgba(34, 197, 94, 0.2)';
+            dataset.pointBackgroundColor = '#22c55e';
+          }
+        });
+        chartInstance.update('none');
+      }
+    },
     plugins: {
       legend: {
         position: 'top' as const,
@@ -170,39 +205,59 @@ export const ChartData: React.FC<ChartDataProps> = ({ chartData }) => {
             family: 'system-ui, -apple-system, sans-serif',
             size: 12,
           },
+          color: '#22c55e',
+          usePointStyle: true,
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: '#22c55e',
         titleColor: '#ffffff',
         bodyColor: '#ffffff',
-        borderColor: '#3b82f6',
+        borderColor: '#22c55e',
         borderWidth: 1,
       },
     },
     scales: {
       x: {
         grid: {
-          color: 'rgba(0, 0, 0, 0.1)',
+          color: '#22c55e',
         },
         ticks: {
           font: {
             size: 11,
           },
+          color: '#22c55e',
         },
       },
       y: {
         grid: {
-          color: 'rgba(0, 0, 0, 0.1)',
+          color: '#22c55e',
         },
         ticks: {
           font: {
             size: 11,
           },
+          color: '#6b7280',
           callback: function(value: string | number) {
             return new Intl.NumberFormat('ko-KR').format(Number(value));
           },
         },
+      },
+    },
+    elements: {
+      line: {
+        borderColor: '#22c55e',
+        backgroundColor: 'rgba(34, 197, 94, 0.2)',
+        borderWidth: 4,
+      },
+      point: {
+        backgroundColor: '#22c55e',
+        borderColor: '#ffffff',
+        borderWidth: 3,
+        radius: 8,
+        hoverRadius: 10,
+        hoverBackgroundColor: '#22c55e',
+        hoverBorderColor: '#ffffff',
       },
     },
   };
@@ -218,13 +273,15 @@ export const ChartData: React.FC<ChartDataProps> = ({ chartData }) => {
             family: 'system-ui, -apple-system, sans-serif',
             size: 12,
           },
+          color: '#22c55e',
+          usePointStyle: true,
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: '#22c55e',
         titleColor: '#ffffff',
         bodyColor: '#ffffff',
-        borderColor: '#10b981',
+        borderColor: '#22c55e',
         borderWidth: 1,
         callbacks: {
           label: function(context: TooltipItem<'bar'>) {
@@ -236,22 +293,24 @@ export const ChartData: React.FC<ChartDataProps> = ({ chartData }) => {
     scales: {
       x: {
         grid: {
-          color: 'rgba(0, 0, 0, 0.1)',
+          color: '#22c55e',
         },
         ticks: {
           font: {
             size: 11,
           },
+          color: '#6b7280',
         },
       },
       y: {
         grid: {
-          color: 'rgba(0, 0, 0, 0.1)',
+          color: '#22c55e20',
         },
         ticks: {
           font: {
             size: 11,
           },
+          color: '#6b7280',
           callback: function(value: string | number) {
             return `${value}%`;
           },
@@ -293,41 +352,6 @@ export const ChartData: React.FC<ChartDataProps> = ({ chartData }) => {
           </ChartCard>
         )}
 
-        {/* 요일별 검색 비율 */}
-        {chartData.weekdayRatios && chartData.weekdayRatios.length > 0 && (
-          <ChartCard>
-            <StyledChartTitle>요일별 검색 비율</StyledChartTitle>
-            <ChartContent>
-              <DataList>
-                {chartData.weekdayRatios.map((ratio, index) => (
-                  <DataItem key={ratio.id || index}>
-                    <DataLabel>{getWeekdayName(ratio.weekdayNumber)}</DataLabel>
-                    <DataValue>{formatPercentage(ratio.searchRatio)}</DataValue>
-                  </DataItem>
-                ))}
-              </DataList>
-            </ChartContent>
-          </ChartCard>
-        )}
-
-        {/* 성별 검색 비율 */}
-        {chartData.genderRatios && (
-          <ChartCard>
-            <StyledChartTitle>성별 검색 비율</StyledChartTitle>
-            <ChartContent>
-              <DataList>
-                <DataItem>
-                  <DataLabel>남성</DataLabel>
-                  <DataValue>{formatPercentage(chartData.genderRatios.maleRatio)}</DataValue>
-                </DataItem>
-                <DataItem>
-                  <DataLabel>여성</DataLabel>
-                  <DataValue>{formatPercentage(chartData.genderRatios.femaleRatio)}</DataValue>
-                </DataItem>
-              </DataList>
-            </ChartContent>
-          </ChartCard>
-        )}
 
         {/* 이슈성 분석 */}
         {chartData.issueAnalysis && (
@@ -354,30 +378,6 @@ export const ChartData: React.FC<ChartDataProps> = ({ chartData }) => {
           </ChartCard>
         )}
 
-        {/* 의도 분석 */}
-        {chartData.intentAnalysis && (
-          <ChartCard>
-            <StyledChartTitle>정보성/상업성 분석</StyledChartTitle>
-            <ChartContent>
-              <DataList>
-                <DataItem>
-                  <DataLabel>정보성</DataLabel>
-                  <DataValue>{formatPercentage(chartData.intentAnalysis.informationalRatio)}</DataValue>
-                </DataItem>
-                <DataItem>
-                  <DataLabel>상업성</DataLabel>
-                  <DataValue>{formatPercentage(chartData.intentAnalysis.commercialRatio)}</DataValue>
-                </DataItem>
-                <DataItem>
-                  <DataLabel>주요 의도</DataLabel>
-                  <Badge color={getIntentColor(chartData.intentAnalysis.primaryIntent)}>
-                    {chartData.intentAnalysis.primaryIntent}
-                  </Badge>
-                </DataItem>
-              </DataList>
-            </ChartContent>
-          </ChartCard>
-        )}
       </ChartGrid>
     </Container>
   );

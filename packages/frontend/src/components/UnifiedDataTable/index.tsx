@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { colors } from '@/commons/styles';
 import { UnifiedDataTableProps } from './types';
 import {
   Container,
@@ -26,13 +27,13 @@ export const UnifiedDataTable: React.FC<UnifiedDataTableProps> = ({
   const getSimilarityColor = (similarity: string) => {
     switch (similarity) {
       case '높음':
-        return '#10b981';
+        return colors.success;
       case '보통':
-        return '#f59e0b';
+        return colors.warning;
       case '낮음':
-        return '#ef4444';
+        return colors.danger;
       default:
-        return '#6b7280';
+        return colors.gray500;
     }
   };
 

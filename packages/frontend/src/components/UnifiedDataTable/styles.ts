@@ -1,50 +1,50 @@
 import styled from '@emotion/styled';
+import { colors, spacing, borderRadius, shadow, fontStyles, fontSize, fontWeight } from '@/commons/styles';
 
 export const Container = styled.div`
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 24px;
+  background: ${colors.bgCard};
+  border-radius: ${borderRadius.lg};
+  padding: ${spacing.xl};
+  box-shadow: ${shadow.md};
+  margin-bottom: ${spacing.xl};
+  border: 1px solid ${colors.borderPrimary};
 `;
 
 export const Title = styled.h2`
-  font-size: 20px;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin: 0 0 24px 0;
-  padding-bottom: 12px;
-  border-bottom: 2px solid #f0f0f0;
+  ${fontStyles.title}
+  margin: 0 0 ${spacing.xl} 0;
+  padding-bottom: ${spacing.sm};
+  border-bottom: 2px solid ${colors.borderPrimary};
 `;
 
 export const TabContainer = styled.div`
   display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #e5e7eb;
+  gap: ${spacing.sm};
+  margin-bottom: ${spacing.lg};
+  border-bottom: 1px solid ${colors.borderPrimary};
 `;
 
 export const Tab = styled.button<{ active: boolean }>`
-  padding: 12px 20px;
+  padding: ${spacing.sm} ${spacing.lg};
   border: none;
-  background: ${props => props.active ? '#3b82f6' : 'transparent'};
-  color: ${props => props.active ? 'white' : '#666'};
-  border-radius: 8px 8px 0 0;
-  font-size: 14px;
-  font-weight: 500;
+  background: ${props => props.active ? colors.secondary : 'transparent'};
+  color: ${props => props.active ? colors.textInverse : colors.textSecondary};
+  border-radius: ${borderRadius.md} ${borderRadius.md} 0 0;
+  font-size: ${fontSize.sm};
+  font-weight: ${fontWeight.medium};
   cursor: pointer;
   transition: all 0.2s ease;
-  border-bottom: 2px solid ${props => props.active ? '#3b82f6' : 'transparent'};
+  border-bottom: 2px solid ${props => props.active ? colors.secondary : 'transparent'};
 
   &:hover {
-    background: ${props => props.active ? '#3b82f6' : '#f3f4f6'};
+    background: ${props => props.active ? colors.secondary : colors.bgSecondary};
   }
 `;
 
 export const TableContainer = styled.div`
   overflow-x: auto;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border-radius: ${borderRadius.md};
+  border: 1px solid ${colors.borderPrimary};
   
   /* 스크롤바 스타일링 */
   &::-webkit-scrollbar {
@@ -52,17 +52,17 @@ export const TableContainer = styled.div`
   }
   
   &::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
+    background: ${colors.gray100};
+    border-radius: ${borderRadius.sm};
   }
   
   &::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 4px;
+    background: ${colors.gray400};
+    border-radius: ${borderRadius.sm};
   }
   
   &::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
+    background: ${colors.gray500};
   }
 `;
 
@@ -70,36 +70,37 @@ export const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
   min-width: 600px;
+  background: ${colors.bgCard};
 `;
 
 export const TableHeader = styled.thead`
-  background: #f8f9fa;
+  background: ${colors.bgSecondary};
 `;
 
 export const TableRow = styled.tr`
   &:nth-of-type(even) {
-    background: #f9fafb;
+    background: ${colors.bgSecondary};
   }
   
   &:hover {
-    background: #f3f4f6;
+    background: ${colors.bgTertiary};
   }
 `;
 
 export const TableCell = styled.td<{ header?: boolean; weight?: string }>`
-  padding: 12px 16px;
+  padding: ${spacing.sm} ${spacing.md};
   text-align: left;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 14px;
-  font-weight: ${props => props.header ? '600' : props.weight || '400'};
-  color: ${props => props.header ? '#374151' : '#1f2937'};
+  border-bottom: 1px solid ${colors.borderPrimary};
+  font-size: ${fontSize.sm};
+  font-weight: ${props => props.header ? fontWeight.semibold : props.weight || fontWeight.normal};
+  color: ${props => props.header ? colors.textSecondary : colors.textPrimary};
   
   &:first-of-type {
-    padding-left: 20px;
+    padding-left: ${spacing.lg};
   }
   
   &:last-of-type {
-    padding-right: 20px;
+    padding-right: ${spacing.lg};
   }
 `;
 
@@ -110,46 +111,46 @@ export const RankBadge = styled.div<{ rank: number }>`
   width: 28px;
   height: 28px;
   background: ${props => {
-    if (props.rank <= 3) return '#ffd700'; // 금색
-    if (props.rank <= 10) return '#3b82f6'; // 파란색
-    return '#666'; // 회색
+    if (props.rank <= 3) return colors.warning;
+    if (props.rank <= 10) return colors.secondary;
+    return colors.gray500;
   }};
-  color: ${props => props.rank <= 3 ? '#333' : 'white'};
-  border-radius: 50%;
-  font-size: 11px;
-  font-weight: 700;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: ${props => props.rank <= 3 ? colors.textPrimary : colors.textInverse};
+  border-radius: ${borderRadius.full};
+  font-size: ${fontSize.xs};
+  font-weight: ${fontWeight.bold};
+  border: 2px solid ${colors.bgCard};
+  box-shadow: ${shadow.sm};
 `;
 
 export const CategoryBadge = styled.span`
-  background: #3b82f6;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
+  background: ${colors.secondary};
+  color: ${colors.textInverse};
+  padding: ${spacing.xs} ${spacing.sm};
+  border-radius: ${borderRadius.sm};
+  font-size: ${fontSize.xs};
+  font-weight: ${fontWeight.medium};
   text-transform: uppercase;
 `;
 
 export const SimilarityBadge = styled.div<{ color: string }>`
   display: inline-block;
   background: ${props => props.color};
-  color: white;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
+  color: ${colors.textInverse};
+  padding: ${spacing.xs} ${spacing.sm};
+  border-radius: ${borderRadius.lg};
+  font-size: ${fontSize.xs};
+  font-weight: ${fontWeight.semibold};
   text-align: center;
   min-width: 40px;
 `;
 
 export const EmptyState = styled.div`
+  ${fontStyles.content}
   text-align: center;
-  padding: 60px 20px;
-  color: #666;
-  font-size: 14px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px dashed #ddd;
+  padding: ${spacing['2xl']} ${spacing.lg};
+  background: ${colors.bgSecondary};
+  border-radius: ${borderRadius.md};
+  border: 1px dashed ${colors.borderSecondary};
+  color: ${colors.textTertiary};
 `;

@@ -1,4 +1,5 @@
 import React from 'react';
+import { colors } from '@/commons/styles';
 import { SmartBlockProps } from './types';
 import {
   SmartBlockContainer,
@@ -52,13 +53,13 @@ export const SmartBlock: React.FC<SmartBlockProps> = ({ keywords }) => {
   const getSimilarityColor = (similarity: 'low' | 'medium' | 'high') => {
     switch (similarity) {
       case 'high':
-        return '#10b981';
+        return colors.success;
       case 'medium':
-        return '#f59e0b';
+        return colors.warning;
       case 'low':
-        return '#ef4444';
+        return colors.danger;
       default:
-        return '#6b7280';
+        return colors.gray500;
     }
   };
 
@@ -66,7 +67,7 @@ export const SmartBlock: React.FC<SmartBlockProps> = ({ keywords }) => {
     return (
       <SmartBlockContainer>
         <SmartBlockTitle>🧠 스마트블록 키워드</SmartBlockTitle>
-        <div style={{ textAlign: 'center', padding: '40px 20px', color: '#666', fontSize: '14px' }}>
+        <div style={{ textAlign: 'center', padding: '40px 20px', color: colors.textTertiary, fontSize: '14px' }}>
           스마트블록 키워드 데이터가 없습니다.
         </div>
       </SmartBlockContainer>
