@@ -391,4 +391,94 @@ export class KeywordDataService {
       collectedAt: log.collectedAt,
     }));
   }
+
+  // 콘텐츠 수 데이터만 저장 (블로그/카페 발행량)
+  async saveContentCounts(
+    keyword: Keyword,
+    analysisDate: AnalysisDate,
+    contentData: {
+      blogs: number;
+      cafes: number;
+      total: number;
+    }
+  ): Promise<KeywordAnalytics> {
+    return await this.transactionService.runInTransaction(async (queryRunner) => {
+      // 먼저 Keyword 엔티티를 저장하거나 조회
+      let keywordEntity = await queryRunner.manager.getRepository(KeywordEntity).findOne({
+        where: { keyword: keyword.value }
+      });
+
+      if (!keywordEntity) {
+        keywordEntity = await queryRunner.manager.getRepository(KeywordEntity).save({
+          keyword: keyword.value,
+          status: 'active',
+        });
+      }
+
+      // 분석 날짜를 YYYY-MM-DD 형식 문자열로 변환
+      const analysisDateString = analysisDate.value.toISOString().split('T')[0];
+      
+      // 기존 분석 데이터가 있는지 확인 (날짜 범위로 검색)
+      let existingAnalytics = await queryRunner.manager
+        .getRepository(KeywordAnalytics)
+        .createQueryBuilder('analytics')
+        .where('analytics.keyword = :keyword', { keyword: keyword.value })
+        .andWhere('DATE(analytics.analysisDate) = :date', { date: analysisDateString })
+        .getOne();
+
+      console.log(`🔍 기존 데이터 검색: ${keyword.value} (${analysisDateString})`, 
+        existingAnalytics ? `찾음 (ID: ${existingAnalytics.id})` : '없음');
+
+      const analyticsData = {
+        keywordId: keywordEntity.id,
+        keyword: keyword.value,
+        // 기존 데이터가 있으면 검색량 데이터는 유지하고 콘텐츠 수만 업데이트
+        monthlySearchPc: existingAnalytics?.monthlySearchPc || 0,
+        monthlySearchMobile: existingAnalytics?.monthlySearchMobile || 0,
+        monthlySearchTotal: existingAnalytics?.monthlySearchTotal || 0,
+        // 콘텐츠 수 데이터 업데이트
+        monthlyContentBlog: contentData.blogs,
+        monthlyContentCafe: contentData.cafes,
+        monthlyContentAll: contentData.total,
+        // 기존 데이터가 있으면 유지, 없으면 기본값
+        estimatedSearchYesterday: existingAnalytics?.estimatedSearchYesterday || 0,
+        estimatedSearchEndMonth: existingAnalytics?.estimatedSearchEndMonth || 0,
+        saturationIndexBlog: existingAnalytics?.saturationIndexBlog || 0,
+        saturationIndexCafe: existingAnalytics?.saturationIndexCafe || 0,
+        saturationIndexAll: existingAnalytics?.saturationIndexAll || 0,
+        analysisDate: new Date(analysisDateString),
+      };
+
+      console.log(`💾 콘텐츠 수 데이터 저장: ${keyword.value}`, {
+        blogs: contentData.blogs,
+        cafes: contentData.cafes,
+        total: contentData.total
+      });
+
+      // 기존 데이터가 있으면 업데이트, 없으면 새로 생성
+      if (existingAnalytics) {
+        console.log(`🔄 기존 데이터 업데이트: ${keyword.value} (ID: ${existingAnalytics.id})`);
+        
+        // 기존 데이터 업데이트
+        await queryRunner.manager.getRepository(KeywordAnalytics).update(
+          { id: existingAnalytics.id },
+          {
+            monthlyContentBlog: contentData.blogs,
+            monthlyContentCafe: contentData.cafes,
+            monthlyContentAll: contentData.total,
+          }
+        );
+        
+        return await queryRunner.manager.getRepository(KeywordAnalytics).findOne({
+          where: { id: existingAnalytics.id }
+        });
+      } else {
+        console.log(`➕ 새 데이터 생성: ${keyword.value}`);
+        
+        // 새 데이터 생성
+        const newAnalytics = await queryRunner.manager.getRepository(KeywordAnalytics).save(analyticsData);
+        return newAnalytics;
+      }
+    });
+  }
 }

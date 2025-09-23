@@ -110,6 +110,178 @@ export class NaverApiController {
     }
   }
 
+  @Get('cafe-search')
+  @NaverApiRateLimit(50, 60000) // 카페 검색은 1분당 50회로 제한
+  @ApiOperation({ 
+    summary: '네이버 카페 검색',
+    description: '네이버 카페 검색 API를 통해 카페 글을 검색합니다.'
+  })
+  @ApiQuery({ 
+    name: 'query', 
+    description: '검색어',
+    example: '맛집'
+  })
+  @ApiQuery({ 
+    name: 'display', 
+    description: '검색 결과 개수 (1-100)',
+    example: 10,
+    required: false
+  })
+  @ApiQuery({ 
+    name: 'start', 
+    description: '검색 시작 위치 (1-1000)',
+    example: 1,
+    required: false
+  })
+  @ApiQuery({ 
+    name: 'sort', 
+    description: '정렬 방식 (sim: 정확도순, date: 날짜순)',
+    example: 'sim',
+    required: false
+  })
+  @ApiResponse({
+    status: 200,
+    description: '검색 성공',
+  })
+  @ApiResponse({
+    status: 400,
+    description: '잘못된 요청',
+  })
+  @ApiResponse({
+    status: 500,
+    description: '서버 오류',
+  })
+  async searchCafe(
+    @Query('query') query: string,
+    @Query('display') display?: number,
+    @Query('start') start?: number,
+    @Query('sort') sort?: string,
+  ) {
+    try {
+      console.log(`☕ 네이버 카페 검색: ${query}`);
+      
+      const result = await this.naverApiService.searchCafes(query, display, start, sort);
+
+      return {
+        success: true,
+        message: '카페 검색이 완료되었습니다.',
+        data: result.data,
+      };
+    } catch (error) {
+      console.error('❌ 카페 검색 실패:', error);
+      throw new HttpException(
+        {
+          success: false,
+          message: '카페 검색 중 오류가 발생했습니다.',
+          error: error.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get('content-counts/:query')
+  @NaverApiRateLimit(20, 60000) // 콘텐츠 수 조회는 1분당 20회로 제한 (2개 API 동시 호출)
+  @ApiOperation({ 
+    summary: '블로그 및 카페 콘텐츠 수 조회',
+    description: '특정 키워드의 블로그 글 수와 카페 글 수를 조회합니다.'
+  })
+  @ApiParam({ 
+    name: 'query', 
+    description: '검색할 키워드',
+    example: '다이어트'
+  })
+  @ApiResponse({
+    status: 200,
+    description: '콘텐츠 수 조회 성공',
+  })
+  @ApiResponse({
+    status: 400,
+    description: '잘못된 요청',
+  })
+  @ApiResponse({
+    status: 500,
+    description: '서버 오류',
+  })
+  async getContentCounts(@Param('query') query: string) {
+    try {
+      console.log(`📊 콘텐츠 수 조회: ${query}`);
+      
+      const result = await this.naverApiService.getContentCounts(query);
+
+      return {
+        success: true,
+        message: `키워드 "${query}" 콘텐츠 수 조회가 완료되었습니다.`,
+        data: result.data,
+      };
+    } catch (error) {
+      console.error('❌ 콘텐츠 수 조회 실패:', error);
+      throw new HttpException(
+        {
+          success: false,
+          message: '콘텐츠 수 조회 중 오류가 발생했습니다.',
+          error: error.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post('content-counts-save')
+  @NaverApiRateLimit(10, 60000) // 콘텐츠 수 조회 및 저장은 1분당 10회로 제한 (DB 저장 포함)
+  @ApiOperation({ 
+    summary: '블로그 및 카페 콘텐츠 수 조회 및 저장',
+    description: '특정 키워드의 블로그 글 수와 카페 글 수를 조회하고 데이터베이스에 저장합니다.'
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        query: {
+          type: 'string',
+          description: '검색할 키워드',
+          example: '다이어트'
+        }
+      },
+      required: ['query']
+    }
+  })
+  @ApiResponse({
+    status: 200,
+    description: '콘텐츠 수 조회 및 저장 성공',
+  })
+  @ApiResponse({
+    status: 400,
+    description: '잘못된 요청',
+  })
+  @ApiResponse({
+    status: 500,
+    description: '서버 오류',
+  })
+  async saveContentCounts(@Body() body: { query: string }) {
+    try {
+      console.log(`💾 콘텐츠 수 조회 및 저장: ${body.query}`);
+      
+      const result = await this.naverApiService.getContentCountsAndSave(body.query);
+
+      return {
+        success: true,
+        message: result.message,
+        data: result.data,
+      };
+    } catch (error) {
+      console.error('❌ 콘텐츠 수 조회 및 저장 실패:', error);
+      throw new HttpException(
+        {
+          success: false,
+          message: '콘텐츠 수 조회 및 저장 중 오류가 발생했습니다.',
+          error: error.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Post('datalab')
   @NaverApiRateLimit(30, 60000) // 데이터랩은 1분당 30회로 제한 (더 무거운 API)
   @ApiOperation({ 

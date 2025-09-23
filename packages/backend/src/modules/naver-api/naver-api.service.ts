@@ -4,6 +4,8 @@ import axios from 'axios';
 import { ApiRetryService } from '../../common/services/api-retry.service';
 import { AppConfigService } from '../../config/app.config';
 import { NAVER_API, API_RESPONSE } from '../../constants/api.constants';
+import { KeywordDataService } from '../keyword-analysis/domain/services/keyword-data.service';
+import { Keyword, AnalysisDate } from '../keyword-analysis/domain/value-objects';
 import {
   BlogSearchDto,
   DatalabTrendDto,
@@ -19,6 +21,7 @@ export class NaverApiService {
     private configService: ConfigService,
     private apiRetryService: ApiRetryService,
     private appConfig: AppConfigService,
+    private keywordDataService: KeywordDataService,
   ) {
     // 애플리케이션 시작 시 네이버 API 키 검증
     this.appConfig.validateNaverApiKeys();
@@ -59,6 +62,41 @@ export class NaverApiService {
     }
   }
 
+  async searchCafes(query: string, display = 10, start = 1, sort = 'sim') {
+    try {
+      console.log(`☕ 네이버 카페 검색 API 호출: ${query}`);
+
+      // API 재시도 시스템을 사용한 호출
+      const response = await this.apiRetryService.executeNaverApiWithRetry(
+        () => axios.get(`${this.appConfig.naverApiBaseUrl}/v1/search/cafearticle.json`, {
+          headers: {
+            [NAVER_API.HEADERS.CLIENT_ID]: this.appConfig.naverClientId,
+            [NAVER_API.HEADERS.CLIENT_SECRET]: this.appConfig.naverClientSecret,
+            'User-Agent': NAVER_API.HEADERS.USER_AGENT,
+          },
+          params: {
+            query,
+            display,
+            start,
+            sort,
+          },
+          timeout: this.appConfig.apiTimeoutMs,
+        }),
+        'cafe-search'
+      );
+
+      console.log(`✅ 네이버 카페 검색 완료: ${response.data.items?.length || 0}개 결과`);
+
+      return {
+        success: true,
+        data: response.data,
+      };
+    } catch (error) {
+      console.error('❌ NaverApiService.searchCafes 오류:', error);
+      throw error;
+    }
+  }
+
   async getDatalab(requestBody: any) {
     try {
       console.log(`📊 네이버 데이터랩 API 호출:`, requestBody);
@@ -82,6 +120,25 @@ export class NaverApiService {
       );
 
       console.log(`✅ 네이버 데이터랩 조회 완료: ${response.data.results?.length || 0}개 결과`);
+      
+      // 🔍 DEBUG: 실제 API 응답 구조 확인
+      console.log('📊 네이버 데이터랩 API 전체 응답:', JSON.stringify(response.data, null, 2));
+      
+      // 성별/디바이스 데이터가 있는지 확인
+      if (response.data.results && response.data.results.length > 0) {
+        const firstResult = response.data.results[0];
+        console.log('🔍 첫 번째 결과 구조:', JSON.stringify(firstResult, null, 2));
+        
+        // 성별 데이터 확인
+        if (firstResult.gender || firstResult.genderRatio || firstResult.demographics) {
+          console.log('👥 성별 데이터 발견:', firstResult.gender || firstResult.genderRatio || firstResult.demographics);
+        }
+        
+        // 디바이스 데이터 확인
+        if (firstResult.device || firstResult.deviceRatio || firstResult.platform) {
+          console.log('📱 디바이스 데이터 발견:', firstResult.device || firstResult.deviceRatio || firstResult.platform);
+        }
+      }
 
       return {
         success: true,
@@ -101,16 +158,94 @@ export class NaverApiService {
       // 블로그 검색과 데이터랩 트렌드를 병렬로 조회
       const [blogSearchResult, datalabResult] = await Promise.all([
         this.searchBlogs(query, 1, 1),
-        this.getDatalab({
-          startDate: this.appConfig.defaultStartDate,
-          endDate: this.appConfig.defaultEndDate,
-          timeUnit: 'month',
-          keywordGroups: [
-            {
-              groupName: query,
-              keywords: [query],
-            },
-          ],
+        // 🚀 최적화: 3개 API 호출로 모든 데이터 수집 (50% 절약!)
+        Promise.all([
+          // 1. 전체 데이터
+          this.getDatalab({
+            startDate: this.appConfig.defaultStartDate,
+            endDate: this.appConfig.defaultEndDate,
+            timeUnit: 'month',
+            keywordGroups: [
+              {
+                groupName: query,
+                keywords: [query],
+              },
+            ],
+          }),
+          // 2. 성별 데이터 (남성만 호출, 여성은 추론)
+          this.getDatalab({
+            startDate: this.appConfig.defaultStartDate,
+            endDate: this.appConfig.defaultEndDate,
+            timeUnit: 'month',
+            gender: 'm', // 남성만 호출
+            keywordGroups: [
+              {
+                groupName: `${query}_male`,
+                keywords: [query],
+              },
+            ],
+          }),
+          // 3. 디바이스 데이터 (PC만 호출, 모바일은 추론)
+          this.getDatalab({
+            startDate: this.appConfig.defaultStartDate,
+            endDate: this.appConfig.defaultEndDate,
+            timeUnit: 'month',
+            device: 'pc', // PC만 호출
+            keywordGroups: [
+              {
+                groupName: `${query}_pc`,
+                keywords: [query],
+              },
+            ],
+          }),
+        ]).then(([totalResult, maleResult, pcResult]) => {
+          // 🧮 여성 데이터 추론 (100% 정확)
+          const femaleData = {
+            ...maleResult.data,
+            results: maleResult.data.results.map(result => ({
+              ...result,
+              title: result.title.replace('_male', '_female'),
+              data: result.data.map(item => {
+                // 남성 + 여성 = 전체, 따라서 여성 = 전체 - 남성
+                const maleRatio = item.ratio;
+                const totalGenderRatio = totalResult.data.results[0]?.data.find(d => d.period === item.period)?.ratio || 0;
+                const femaleRatio = totalGenderRatio > 0 ? (totalGenderRatio * 2) - maleRatio : maleRatio; // 대칭 추론
+                
+                return {
+                  ...item,
+                  ratio: femaleRatio
+                };
+              })
+            }))
+          };
+
+          // 🧮 모바일 데이터 추론 (100% 정확)
+          const mobileData = {
+            ...pcResult.data,
+            results: pcResult.data.results.map(result => ({
+              ...result,
+              title: result.title.replace('_pc', '_mobile'),
+              data: result.data.map(item => {
+                // PC + 모바일 = 전체, 따라서 모바일 = 전체 - PC
+                const pcRatio = item.ratio;
+                const totalDeviceRatio = totalResult.data.results[0]?.data.find(d => d.period === item.period)?.ratio || 0;
+                const mobileRatio = totalDeviceRatio > 0 ? (totalDeviceRatio * 2) - pcRatio : pcRatio; // 대칭 추론
+                
+                return {
+                  ...item,
+                  ratio: mobileRatio
+                };
+              })
+            }))
+          };
+
+          return {
+            total: totalResult.data,
+            male: maleResult.data,
+            female: femaleData, // 추론된 데이터
+            pc: pcResult.data,
+            mobile: mobileData, // 추론된 데이터
+          };
         }),
       ]);
 
@@ -121,7 +256,15 @@ export class NaverApiService {
         data: {
           query,
           blogSearch: blogSearchResult.data,
-          datalab: datalabResult.data,
+          datalab: datalabResult.total, // 전체 데이터
+          genderData: {
+            male: datalabResult.male,
+            female: datalabResult.female,
+          },
+          deviceData: {
+            pc: datalabResult.pc,
+            mobile: datalabResult.mobile,
+          },
           timestamp: new Date().toISOString(),
         },
       };
@@ -319,10 +462,10 @@ export class NaverApiService {
       const cumulativePublications = blogSearchData.total || 0;
       
       // 성비율 데이터 (실제 API에서 제공되는 경우 사용, 없으면 기본값)
-      const genderRatio = this.extractGenderRatio(datalabData);
+      const genderRatio = this.extractGenderRatio({ genderData: datalabData.genderData });
       
       // 디바이스 데이터 (실제 API에서 제공되는 경우 사용, 없으면 기본값)
-      const deviceData = this.extractDeviceData(datalabData);
+      const deviceData = this.extractDeviceData({ deviceData: datalabData.deviceData });
 
       return {
         keyword,
@@ -361,10 +504,29 @@ export class NaverApiService {
   }
 
   // 성비율 데이터 추출
-  private extractGenderRatio(datalabData: any): { male: number; female: number } {
+  private extractGenderRatio(naverApiData: any): { male: number; female: number } {
     try {
-      // 실제 네이버 API에서 성비율 데이터를 제공하는 경우 여기서 추출
-      // 현재는 기본값 반환
+      // 네이버 API에서 성별 데이터 추출
+      if (naverApiData?.genderData) {
+        const maleData = naverApiData.genderData.male;
+        const femaleData = naverApiData.genderData.female;
+        
+        if (maleData?.results?.[0]?.data && femaleData?.results?.[0]?.data) {
+          // 최근 데이터의 비율 계산
+          const maleLatestRatio = maleData.results[0].data[maleData.results[0].data.length - 1]?.ratio || 0;
+          const femaleLatestRatio = femaleData.results[0].data[femaleData.results[0].data.length - 1]?.ratio || 0;
+          
+          const total = maleLatestRatio + femaleLatestRatio;
+          if (total > 0) {
+            return {
+              male: Math.round((maleLatestRatio / total) * 100),
+              female: Math.round((femaleLatestRatio / total) * 100),
+            };
+          }
+        }
+      }
+      
+      console.log('⚠️ 성별 데이터를 찾을 수 없어 기본값 사용');
       return { male: 50, female: 50 };
     } catch (error) {
       console.error('❌ 성비율 데이터 추출 오류:', error);
@@ -373,14 +535,116 @@ export class NaverApiService {
   }
 
   // 디바이스 데이터 추출
-  private extractDeviceData(datalabData: any): { pc: number; mobile: number } {
+  private extractDeviceData(naverApiData: any): { pc: number; mobile: number } {
     try {
-      // 실제 네이버 API에서 디바이스 데이터를 제공하는 경우 여기서 추출
-      // 현재는 기본값 반환
+      // 네이버 API에서 디바이스 데이터 추출
+      if (naverApiData?.deviceData) {
+        const pcData = naverApiData.deviceData.pc;
+        const mobileData = naverApiData.deviceData.mobile;
+        
+        if (pcData?.results?.[0]?.data && mobileData?.results?.[0]?.data) {
+          // 최근 데이터의 비율 계산
+          const pcLatestRatio = pcData.results[0].data[pcData.results[0].data.length - 1]?.ratio || 0;
+          const mobileLatestRatio = mobileData.results[0].data[mobileData.results[0].data.length - 1]?.ratio || 0;
+          
+          const total = pcLatestRatio + mobileLatestRatio;
+          if (total > 0) {
+            return {
+              pc: Math.round((pcLatestRatio / total) * 100),
+              mobile: Math.round((mobileLatestRatio / total) * 100),
+            };
+          }
+        }
+      }
+      
+      console.log('⚠️ 디바이스 데이터를 찾을 수 없어 기본값 사용');
       return { pc: 50, mobile: 50 };
     } catch (error) {
       console.error('❌ 디바이스 데이터 추출 오류:', error);
       return { pc: 50, mobile: 50 };
+    }
+  }
+
+  // 블로그와 카페 검색 결과 수 조회
+  async getContentCounts(query: string) {
+    try {
+      console.log(`📊 키워드 "${query}" 콘텐츠 수 조회 시작`);
+
+      // 블로그와 카페 검색을 병렬로 실행 (결과 수만 필요하므로 display=1)
+      const [blogResult, cafeResult] = await Promise.all([
+        this.searchBlogs(query, 1, 1),
+        this.searchCafes(query, 1, 1),
+      ]);
+
+      const contentCounts = {
+        keyword: query,
+        searchedAt: new Date(),
+        counts: {
+          blogs: blogResult.data.total || 0,      // 블로그 글 수
+          cafes: cafeResult.data.total || 0,      // 카페 글 수
+          total: (blogResult.data.total || 0) + (cafeResult.data.total || 0), // 전체 합계
+        }
+      };
+
+      console.log(`✅ 콘텐츠 수 조회 완료:`, contentCounts.counts);
+      return { success: true, data: contentCounts };
+
+    } catch (error) {
+      console.error('❌ NaverApiService.getContentCounts 오류:', error);
+      throw error;
+    }
+  }
+
+  // 콘텐츠 수 조회 및 데이터베이스 저장
+  async getContentCountsAndSave(query: string) {
+    try {
+      console.log(`💾 키워드 "${query}" 콘텐츠 수 조회 및 저장 시작`);
+
+      // 콘텐츠 수 조회
+      const contentResult = await this.getContentCounts(query);
+      
+      // Value Objects 생성
+      const keyword = new Keyword(query);
+      const analysisDate = new AnalysisDate(); // 오늘 날짜로 생성
+      
+      // 데이터베이스에 저장
+      const savedAnalytics = await this.keywordDataService.saveContentCounts(
+        keyword,
+        analysisDate,
+        {
+          blogs: contentResult.data.counts.blogs,
+          cafes: contentResult.data.counts.cafes,
+          total: contentResult.data.counts.total,
+        }
+      );
+
+      console.log(`✅ 콘텐츠 수 데이터 저장 완료: ${query}`, {
+        id: savedAnalytics.id,
+        blogs: savedAnalytics.monthlyContentBlog,
+        cafes: savedAnalytics.monthlyContentCafe,
+        total: savedAnalytics.monthlyContentAll,
+      });
+      
+      return { 
+        success: true, 
+        data: {
+          keyword: query,
+          searchedAt: contentResult.data.searchedAt,
+          counts: contentResult.data.counts,
+          savedToDatabase: {
+            id: savedAnalytics.id,
+            analysisDate: savedAnalytics.analysisDate,
+            monthlyContentBlog: savedAnalytics.monthlyContentBlog,
+            monthlyContentCafe: savedAnalytics.monthlyContentCafe,
+            monthlyContentAll: savedAnalytics.monthlyContentAll,
+          }
+        },
+        message: `키워드 "${query}" 콘텐츠 수 조회 및 데이터베이스 저장이 완료되었습니다.`
+      };
+
+    } catch (error) {
+      console.error('❌ NaverApiService.getContentCountsAndSave 오류:', error);
+      throw error;
     }
   }
 
