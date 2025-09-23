@@ -255,6 +255,14 @@ export class MultipleKeywordsLimitedDataResponseDto {
         pc: number;
         mobile: number;
       };
+      ageData: {
+        '10s': number;
+        '20s': number;
+        '30s': number;
+        '40s': number;
+        '50s': number;
+        '60+': number;
+      };
     }>;
     timestamp: string;
   };
