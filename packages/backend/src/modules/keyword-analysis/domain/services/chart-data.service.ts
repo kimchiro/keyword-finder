@@ -86,8 +86,21 @@ export class ChartDataService {
         );
       }
 
+      // 🆕 성별 비율 데이터 저장
+      if (chartDataToSave.genderRatios) {
+        await this.transactionService.batchUpsert(
+          queryRunner,
+          GenderSearchRatios,
+          [chartDataToSave.genderRatios],
+          ['keyword_id', 'analysis_date'], // 중복 감지 컬럼 (DB 컬럼명)
+          ['male_ratio', 'female_ratio'], // 업데이트할 컬럼 (DB 컬럼명)
+          1
+        );
+        console.log(`✅ 성별 비율 데이터 저장 완료: ${keyword.value}`);
+      }
+
       // 저장된 데이터 조회
-      const [savedSearchTrends, savedMonthlyRatios] = await Promise.all([
+      const [savedSearchTrends, savedMonthlyRatios, savedGenderRatios] = await Promise.all([
         queryRunner.manager.getRepository(SearchTrends).find({
           where: { keywordId: keywordEntity.id, keyword: keyword.value, periodType: PeriodType.MONTHLY },
           order: { periodValue: 'ASC' },
@@ -96,13 +109,16 @@ export class ChartDataService {
           where: { keywordId: keywordEntity.id, keyword: keyword.value, analysisYear: analysisDate.year },
           order: { monthNumber: 'ASC' },
         }),
+        queryRunner.manager.getRepository(GenderSearchRatios).findOne({
+          where: { keywordId: keywordEntity.id, analysisDate: analysisDate.value },
+        }),
       ]);
 
       return {
         searchTrends: savedSearchTrends,
         monthlyRatios: savedMonthlyRatios,
         weekdayRatios: [],
-        genderRatios: null,
+        genderRatios: savedGenderRatios,
         issueAnalysis: null,
         intentAnalysis: null,
       };
@@ -234,9 +250,11 @@ export class ChartDataService {
   ): {
     searchTrends: any[];
     monthlyRatios: any[];
+    genderRatios: any | null;
   } {
     const searchTrends: any[] = [];
     const monthlyRatios: any[] = [];
+    let genderRatios: any | null = null;
 
     try {
       // 네이버 데이터랩 데이터 처리
@@ -268,6 +286,35 @@ export class ChartDataService {
           }
         }
       }
+
+      // 🆕 성별 데이터 처리
+      if (naverApiData?.genderData?.male?.results?.[0]?.data && naverApiData?.genderData?.female?.results?.[0]?.data) {
+        const maleData = naverApiData.genderData.male.results[0].data;
+        const femaleData = naverApiData.genderData.female.results[0].data;
+        
+        // 최신 데이터 포인트의 성별 비율 사용 (가장 최근 월)
+        if (maleData.length > 0 && femaleData.length > 0) {
+          const latestMaleRatio = maleData[maleData.length - 1].ratio;
+          const latestFemaleRatio = femaleData[femaleData.length - 1].ratio;
+          
+          genderRatios = {
+            keywordId,
+            keyword,
+            maleRatio: parseFloat(latestMaleRatio.toFixed(2)),
+            femaleRatio: parseFloat(latestFemaleRatio.toFixed(2)),
+            analysisDate: analysisDate.value,
+          };
+          
+          console.log(`📊 성별 비율 데이터 추출: ${keyword} - 남성: ${latestMaleRatio.toFixed(2)}%, 여성: ${latestFemaleRatio.toFixed(2)}%`);
+        }
+      } else {
+        console.log(`⚠️ 성별 데이터 없음: ${keyword}`, {
+          hasGenderData: !!naverApiData?.genderData,
+          hasMale: !!naverApiData?.genderData?.male,
+          hasFemale: !!naverApiData?.genderData?.female,
+          naverApiDataKeys: naverApiData ? Object.keys(naverApiData) : 'naverApiData is null/undefined'
+        });
+      }
     } catch (error) {
       console.error('❌ 네이버 API 차트 데이터 추출 오류:', error);
     }
@@ -275,6 +322,7 @@ export class ChartDataService {
     return {
       searchTrends,
       monthlyRatios,
+      genderRatios,
     };
   }
 }
