@@ -13,24 +13,24 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Keyword } from './keyword.entity';
 
 @Entity('monthly_search_ratios')
-@Unique(['keyword', 'monthNumber', 'analysisYear']) // keyword 기반으로 변경
-@Index(['keyword']) // keyword 인덱스
+@Unique(['keywordId', 'monthNumber', 'analysisYear'])
+@Index(['keywordId'])
 @Index(['monthNumber'])
 @Index(['analysisYear'])
-@Index(['keyword', 'analysisYear']) // 복합 인덱스 변경
+@Index(['keywordId', 'analysisYear'])
 @Check('"month_number" BETWEEN 1 AND 12')
 export class MonthlySearchRatios {
   @ApiProperty({ description: '고유 ID' })
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ApiProperty({ description: '키워드 ID (선택적)' })
-  @Column({ name: 'keyword_id', type: 'int', nullable: true })
-  keywordId?: number;
+  @ApiProperty({ description: '키워드 ID' })
+  @Column({ name: 'keyword_id', type: 'int' })
+  keywordId: number;
 
-  @ApiProperty({ description: '키워드' })
-  @Column({ type: 'varchar', length: 255 })
-  keyword: string;
+  @ManyToOne(() => Keyword, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'keyword_id' })
+  keywordEntity: Keyword;
 
   @ApiProperty({ description: '월 (1-12)' })
   @Column({ name: 'month_number', type: 'int' })

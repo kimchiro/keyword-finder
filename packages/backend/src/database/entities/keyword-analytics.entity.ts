@@ -26,9 +26,6 @@ export class KeywordAnalytics {
   @Column({ name: 'keyword_id', type: 'int' })
   keywordId: number;
 
-  @ApiProperty({ description: '분석 키워드' })
-  @Column({ type: 'varchar', length: 255 })
-  keyword: string;
 
   @ManyToOne(() => Keyword, (keyword) => keyword.analytics, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'keyword_id' })

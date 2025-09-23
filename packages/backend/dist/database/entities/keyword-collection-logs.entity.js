@@ -38,16 +38,6 @@ __decorate([
     __metadata("design:type", Number)
 ], KeywordCollectionLogs.prototype, "collectedKeywordId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ description: '기준 검색어' }),
-    (0, typeorm_1.Column)({ name: 'base_query', type: 'varchar', length: 255 }),
-    __metadata("design:type", String)
-], KeywordCollectionLogs.prototype, "baseQuery", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ description: '수집된 키워드' }),
-    (0, typeorm_1.Column)({ name: 'collected_keyword', type: 'varchar', length: 255 }),
-    __metadata("design:type", String)
-], KeywordCollectionLogs.prototype, "collectedKeyword", void 0);
-__decorate([
     (0, typeorm_1.ManyToOne)(() => keyword_entity_1.Keyword, (keyword) => keyword.collectionLogs, { onDelete: 'CASCADE' }),
     (0, typeorm_1.JoinColumn)({ name: 'base_query_id' }),
     __metadata("design:type", keyword_entity_1.Keyword)

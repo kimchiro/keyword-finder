@@ -241,8 +241,6 @@ let KeywordDataService = class KeywordDataService {
                 collectionLogs.push({
                     baseQueryId: baseKeywordEntity.id,
                     collectedKeywordId: collectedKeywordEntity.id,
-                    baseQuery: keyword.value,
-                    collectedKeyword: scrapedKeyword.keyword,
                     collectionType,
                     rankPosition: scrapedKeyword.rankPosition || 0,
                     collectedAt: new Date(analysisDate.value),
@@ -270,7 +268,7 @@ let KeywordDataService = class KeywordDataService {
             },
         });
         return collectionLogs.map(log => ({
-            keyword: log.collectedKeyword,
+            keywordId: log.collectedKeywordId,
             category: log.collectionType,
             rankPosition: log.rankPosition,
             collectedAt: log.collectedAt,

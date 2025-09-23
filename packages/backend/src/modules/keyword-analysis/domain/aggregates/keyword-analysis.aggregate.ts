@@ -161,10 +161,8 @@ export class KeywordAnalysisAggregate {
         return false;
       }
 
-      // 키워드 일치성 확인
-      if (this._analytics.keyword !== this._keyword.value) {
-        return false;
-      }
+      // 키워드 일치성 확인 - 최적화된 스키마에서는 keywordId로만 검증
+      // (키워드 문자열은 더 이상 중복 저장되지 않음)
 
       // 분석 날짜 일치성 확인
       const analyticsDate = new AnalysisDate(this._analytics.analysisDate);

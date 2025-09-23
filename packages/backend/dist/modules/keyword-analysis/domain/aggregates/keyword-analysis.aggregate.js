@@ -94,9 +94,6 @@ class KeywordAnalysisAggregate {
             if (!this._analytics) {
                 return false;
             }
-            if (this._analytics.keyword !== this._keyword.value) {
-                return false;
-            }
             const analyticsDate = new value_objects_1.AnalysisDate(this._analytics.analysisDate);
             if (!this._analysisDate.isSameDay(analyticsDate)) {
                 return false;

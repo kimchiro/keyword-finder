@@ -74,11 +74,11 @@ export class ChartDataService {
       // 저장된 데이터 조회
       const [savedSearchTrends, savedMonthlyRatios] = await Promise.all([
         queryRunner.manager.getRepository(SearchTrends).find({
-          where: { keywordId: keywordEntity.id, keyword: keyword.value, periodType: PeriodType.MONTHLY },
+          where: { keywordId: keywordEntity.id, periodType: PeriodType.MONTHLY },
           order: { periodValue: 'ASC' },
         }),
         queryRunner.manager.getRepository(MonthlySearchRatios).find({
-          where: { keywordId: keywordEntity.id, keyword: keyword.value, analysisYear: analysisDate.year },
+          where: { keywordId: keywordEntity.id, analysisYear: analysisDate.year },
           order: { monthNumber: 'ASC' },
         }),
       ]);

@@ -48,11 +48,11 @@ let ChartDataService = class ChartDataService {
             }
             const [savedSearchTrends, savedMonthlyRatios] = await Promise.all([
                 queryRunner.manager.getRepository(search_trends_entity_1.SearchTrends).find({
-                    where: { keywordId: keywordEntity.id, keyword: keyword.value, periodType: search_trends_entity_1.PeriodType.MONTHLY },
+                    where: { keywordId: keywordEntity.id, periodType: search_trends_entity_1.PeriodType.MONTHLY },
                     order: { periodValue: 'ASC' },
                 }),
                 queryRunner.manager.getRepository(monthly_search_ratios_entity_1.MonthlySearchRatios).find({
-                    where: { keywordId: keywordEntity.id, keyword: keyword.value, analysisYear: analysisDate.year },
+                    where: { keywordId: keywordEntity.id, analysisYear: analysisDate.year },
                     order: { monthNumber: 'ASC' },
                 }),
             ]);

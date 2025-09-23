@@ -38,16 +38,6 @@ __decorate([
     __metadata("design:type", Number)
 ], RelatedKeywords.prototype, "relatedKeywordId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ description: '기준 키워드' }),
-    (0, typeorm_1.Column)({ name: 'base_keyword', type: 'varchar', length: 255 }),
-    __metadata("design:type", String)
-], RelatedKeywords.prototype, "baseKeyword", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ description: '연관 키워드' }),
-    (0, typeorm_1.Column)({ name: 'related_keyword', type: 'varchar', length: 255 }),
-    __metadata("design:type", String)
-], RelatedKeywords.prototype, "relatedKeyword", void 0);
-__decorate([
     (0, typeorm_1.ManyToOne)(() => keyword_entity_1.Keyword, (keyword) => keyword.relatedKeywords, { onDelete: 'CASCADE' }),
     (0, typeorm_1.JoinColumn)({ name: 'base_keyword_id' }),
     __metadata("design:type", keyword_entity_1.Keyword)

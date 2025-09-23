@@ -27,11 +27,6 @@ __decorate([
     __metadata("design:type", Number)
 ], KeywordAnalytics.prototype, "keywordId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ description: '분석 키워드' }),
-    (0, typeorm_1.Column)({ type: 'varchar', length: 255 }),
-    __metadata("design:type", String)
-], KeywordAnalytics.prototype, "keyword", void 0);
-__decorate([
     (0, typeorm_1.ManyToOne)(() => keyword_entity_1.Keyword, (keyword) => keyword.analytics, { onDelete: 'CASCADE' }),
     (0, typeorm_1.JoinColumn)({ name: 'keyword_id' }),
     __metadata("design:type", keyword_entity_1.Keyword)

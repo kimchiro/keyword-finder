@@ -49,7 +49,7 @@ __decorate([
     __metadata("design:type", Date)
 ], Keyword.prototype, "updatedAt", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => keyword_analytics_entity_1.KeywordAnalytics, (analytics) => analytics.keyword),
+    (0, typeorm_1.OneToMany)(() => keyword_analytics_entity_1.KeywordAnalytics, (analytics) => analytics.keywordEntity),
     __metadata("design:type", Array)
 ], Keyword.prototype, "analytics", void 0);
 __decorate([

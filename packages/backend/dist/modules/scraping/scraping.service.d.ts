@@ -19,7 +19,7 @@ export declare class ScrapingService {
         };
         keywords: {
             keyword: string;
-            category: "autosuggest" | "related" | "smartblock" | "related_search";
+            category: "smartblock" | "related_search" | "autosuggest" | "related";
             rank: number;
             source: string;
             competition: "low" | "medium" | "high";

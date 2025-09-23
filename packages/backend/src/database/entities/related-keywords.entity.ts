@@ -39,13 +39,6 @@ export class RelatedKeywords {
   @Column({ name: 'related_keyword_id', type: 'int' })
   relatedKeywordId: number;
 
-  @ApiProperty({ description: '기준 키워드' })
-  @Column({ name: 'base_keyword', type: 'varchar', length: 255 })
-  baseKeyword: string;
-
-  @ApiProperty({ description: '연관 키워드' })
-  @Column({ name: 'related_keyword', type: 'varchar', length: 255 })
-  relatedKeyword: string;
 
   @ManyToOne(() => Keyword, (keyword) => keyword.relatedKeywords, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'base_keyword_id' })

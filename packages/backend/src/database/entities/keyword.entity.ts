@@ -43,7 +43,7 @@ export class Keyword {
   updatedAt: Date;
 
   // 관계 설정
-  @OneToMany(() => KeywordAnalytics, (analytics) => analytics.keyword)
+  @OneToMany(() => KeywordAnalytics, (analytics) => analytics.keywordEntity)
   analytics: KeywordAnalytics[];
 
   @OneToMany(() => RelatedKeywords, (related) => related.baseKeywordEntity)

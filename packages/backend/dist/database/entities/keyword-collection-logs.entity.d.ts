@@ -8,8 +8,6 @@ export declare class KeywordCollectionLogs {
     id: number;
     baseQueryId: number;
     collectedKeywordId: number;
-    baseQuery: string;
-    collectedKeyword: string;
     baseQueryEntity: Keyword;
     collectedKeywordEntity: Keyword;
     collectionType: CollectionType;

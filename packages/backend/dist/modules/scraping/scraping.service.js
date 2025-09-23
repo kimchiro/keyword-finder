@@ -170,8 +170,6 @@ let ScrapingService = class ScrapingService {
                 const log = this.keywordCollectionLogsRepository.create({
                     baseQueryId: baseKeyword.id,
                     collectedKeywordId: collectedKeyword.id,
-                    baseQuery,
-                    collectedKeyword: keyword.keyword,
                     collectionType: keyword.category,
                     rankPosition: keyword.rank,
                 });

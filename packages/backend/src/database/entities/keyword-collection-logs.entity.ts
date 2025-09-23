@@ -34,13 +34,6 @@ export class KeywordCollectionLogs {
   @Column({ name: 'collected_keyword_id', type: 'int' })
   collectedKeywordId: number;
 
-  @ApiProperty({ description: '기준 검색어' })
-  @Column({ name: 'base_query', type: 'varchar', length: 255 })
-  baseQuery: string;
-
-  @ApiProperty({ description: '수집된 키워드' })
-  @Column({ name: 'collected_keyword', type: 'varchar', length: 255 })
-  collectedKeyword: string;
 
   @ManyToOne(() => Keyword, (keyword) => keyword.collectionLogs, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'base_query_id' })

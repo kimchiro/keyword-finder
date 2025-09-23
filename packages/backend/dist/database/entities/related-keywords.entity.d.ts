@@ -8,8 +8,6 @@ export declare class RelatedKeywords {
     id: number;
     baseKeywordId: number;
     relatedKeywordId: number;
-    baseKeyword: string;
-    relatedKeyword: string;
     baseKeywordEntity: Keyword;
     relatedKeywordEntity: Keyword;
     monthlySearchVolume: number;
