@@ -121,6 +121,9 @@ export const SortContainer = styled.div`
 `;
 
 export const SortSelect = styled.select`
+  position: relative;
+  right: 0;
+  top: 0;
   padding: ${spacing.xs} ${spacing.sm};
   border: 1px solid ${colors.borderPrimary};
   border-radius: ${borderRadius.sm};
@@ -135,12 +138,14 @@ export const SortSelect = styled.select`
 `;
 
 export const TableContainer = styled.div`
-  overflow-x: auto;
+  overflow: auto;
   border-radius: ${borderRadius.md};
   border: 1px solid ${colors.borderPrimary};
+  max-height: 600px; /* 고정 높이 설정 */
   
   /* 스크롤바 스타일링 */
   &::-webkit-scrollbar {
+    width: 8px;
     height: 8px;
   }
   
@@ -201,12 +206,12 @@ export const TableHeaderCell = styled.th<{ sortable?: boolean }>`
   }
   
   &:first-of-type {
-    width: 80px;
-    text-align: center;
+    min-width: 200px;
   }
   
   &:nth-of-type(2) {
-    min-width: 200px;
+    width: 120px;
+    text-align: center;
   }
   
   &:nth-of-type(3) {
@@ -215,26 +220,6 @@ export const TableHeaderCell = styled.th<{ sortable?: boolean }>`
   }
   
   &:nth-of-type(4) {
-    width: 120px;
-    text-align: center;
-  }
-  
-  &:nth-of-type(5) {
-    width: 100px;
-    text-align: center;
-  }
-  
-  &:nth-of-type(6) {
-    width: 100px;
-    text-align: center;
-  }
-  
-  &:nth-of-type(7) {
-    width: 120px;
-    text-align: center;
-  }
-  
-  &:nth-of-type(8) {
     width: 120px;
     text-align: center;
   }
@@ -287,9 +272,9 @@ export const SourceBadge = styled.div<{ source: 'smartblock' | 'related' }>`
   display: inline-block;
 `;
 
-export const CategoryBadge = styled.div`
-  background: ${colors.secondary};
-  color: ${colors.textInverse};
+export const CategoryBadge = styled.div<{ source: 'smartblock' | 'related' }>`
+  background: ${props => props.source === 'related' ? '#9AE6B4' : '#FBB6CE'}; /* 연관검색어: 연두색, 스마트블록: 핑크색 */
+  color: ${colors.textPrimary};
   padding: ${spacing.xs} ${spacing.sm};
   border-radius: ${borderRadius.lg};
   font-size: ${fontSize.xs};

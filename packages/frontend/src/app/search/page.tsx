@@ -174,7 +174,7 @@ export default function SearchPage() {
                   smartBlockKeywords={smartBlockData}
                   relatedKeywords={relatedData}
                   showFilters={true}
-                  maxItems={100}
+                  
                 />
               );
             })()}

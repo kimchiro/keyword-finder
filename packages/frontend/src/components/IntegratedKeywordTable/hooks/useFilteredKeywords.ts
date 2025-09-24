@@ -20,7 +20,7 @@ const DEFAULT_FILTERS: FilterOptions = {
  * 기본 정렬 옵션
  */
 const DEFAULT_SORT: SortOptions = {
-  field: 'rank',
+  field: 'keyword',
   direction: 'asc',
 };
 

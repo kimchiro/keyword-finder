@@ -32,7 +32,7 @@ export interface FilterOptions {
  * 정렬 옵션 타입
  */
 export interface SortOptions {
-  field: 'rank' | 'keyword' | 'competition' | 'similarity' | 'monthlySearchVolume' | 'blogCumulativePosts';
+  field: 'keyword' | 'competition' | 'similarity';
   direction: 'asc' | 'desc';
 }
 
@@ -45,7 +45,6 @@ export interface IntegratedKeywordTableProps {
   initialFilters?: Partial<FilterOptions>;
   initialSort?: SortOptions;
   showFilters?: boolean;
-  maxItems?: number;
 }
 
 /**

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { IntegratedKeywordTableProps, FilterOptions, SortOptions } from './types';
 import { useFilteredKeywords } from './hooks/useFilteredKeywords';
 import {
@@ -25,13 +25,10 @@ import {
   TableRow,
   TableHeaderCell,
   TableCell,
-  RankBadge,
   KeywordText,
-  SourceBadge,
   CategoryBadge,
   CompetitionBadge,
   SimilarityBadge,
-  VolumeText,
   EmptyState,
   SortIcon,
 } from './styles';
@@ -42,7 +39,6 @@ export const IntegratedKeywordTable: React.FC<IntegratedKeywordTableProps> = ({
   initialFilters,
   initialSort,
   showFilters = true,
-  maxItems,
 }) => {
   // 디버깅: 전달받은 데이터 확인
   console.log('🔍 IntegratedKeywordTable Props:', {
@@ -72,13 +68,8 @@ export const IntegratedKeywordTable: React.FC<IntegratedKeywordTableProps> = ({
     availableCategories
   });
 
-  // 표시할 키워드 (maxItems 제한 적용)
-  const displayKeywords = useMemo(() => {
-    if (maxItems && maxItems > 0) {
-      return filteredKeywords.slice(0, maxItems);
-    }
-    return filteredKeywords;
-  }, [filteredKeywords, maxItems]);
+  // 모든 필터링된 키워드 표시 (maxItems 제한 제거)
+  const displayKeywords = filteredKeywords;
 
   // 경쟁도 텍스트 변환
   const getCompetitionText = (competition: 'low' | 'medium' | 'high') => {
@@ -100,16 +91,6 @@ export const IntegratedKeywordTable: React.FC<IntegratedKeywordTableProps> = ({
     }
   };
 
-  // 소스 텍스트 변환
-  const getSourceText = (source: 'smartblock' | 'related') => {
-    return source === 'smartblock' ? '스마트블록' : '연관검색어';
-  };
-
-  // 숫자 포맷팅
-  const formatNumber = (num?: number) => {
-    if (num === undefined || num === null) return '-';
-    return new Intl.NumberFormat('ko-KR').format(num);
-  };
 
   // 필터 업데이트 핸들러
   const handleFilterChange = (filterType: keyof FilterOptions, value: string, checked: boolean) => {
@@ -165,21 +146,6 @@ export const IntegratedKeywordTable: React.FC<IntegratedKeywordTableProps> = ({
         
         {showFilters && (
           <FilterContainer>
-            <FilterGroup>
-              <FilterLabel>소스</FilterLabel>
-              <FilterCheckboxGroup>
-                {(['smartblock', 'related'] as const).map(source => (
-                  <FilterCheckbox key={source}>
-                    <input
-                      type="checkbox"
-                      checked={filters.source.includes(source)}
-                      onChange={(e) => handleFilterChange('source', source, e.target.checked)}
-                    />
-                    {getSourceText(source)}
-                  </FilterCheckbox>
-                ))}
-              </FilterCheckboxGroup>
-            </FilterGroup>
 
             <FilterGroup>
               <FilterLabel>경쟁도</FilterLabel>
@@ -224,7 +190,6 @@ export const IntegratedKeywordTable: React.FC<IntegratedKeywordTableProps> = ({
         <StatsContainer>
           <StatsText>
             전체 {totalCount}개 중 {filteredCount}개 표시
-            {maxItems && filteredCount > maxItems && ` (상위 ${maxItems}개만 표시)`}
           </StatsText>
           
           <SortContainer>
@@ -236,14 +201,8 @@ export const IntegratedKeywordTable: React.FC<IntegratedKeywordTableProps> = ({
                 updateSort({ field, direction });
               }}
             >
-              <option value="rank-asc">순위 (낮은 순)</option>
-              <option value="rank-desc">순위 (높은 순)</option>
               <option value="keyword-asc">키워드 (가나다순)</option>
               <option value="keyword-desc">키워드 (역순)</option>
-              <option value="monthlySearchVolume-desc">검색량 (높은 순)</option>
-              <option value="monthlySearchVolume-asc">검색량 (낮은 순)</option>
-              <option value="blogCumulativePosts-desc">블로그 누적 (높은 순)</option>
-              <option value="blogCumulativePosts-asc">블로그 누적 (낮은 순)</option>
             </SortSelect>
           </SortContainer>
         </StatsContainer>
@@ -255,34 +214,12 @@ export const IntegratedKeywordTable: React.FC<IntegratedKeywordTableProps> = ({
             <TableRow>
               <TableHeaderCell 
                 sortable 
-                onClick={() => handleSortChange('rank')}
-              >
-                순위
-                <SortIcon direction={getSortIcon('rank')} />
-              </TableHeaderCell>
-              <TableHeaderCell 
-                sortable 
                 onClick={() => handleSortChange('keyword')}
               >
                 키워드
                 <SortIcon direction={getSortIcon('keyword')} />
               </TableHeaderCell>
-              <TableHeaderCell>소스</TableHeaderCell>
               <TableHeaderCell>카테고리</TableHeaderCell>
-              <TableHeaderCell 
-                sortable 
-                onClick={() => handleSortChange('monthlySearchVolume')}
-              >
-                월간 검색량
-                <SortIcon direction={getSortIcon('monthlySearchVolume')} />
-              </TableHeaderCell>
-              <TableHeaderCell 
-                sortable 
-                onClick={() => handleSortChange('blogCumulativePosts')}
-              >
-                블로그 누적
-                <SortIcon direction={getSortIcon('blogCumulativePosts')} />
-              </TableHeaderCell>
               <TableHeaderCell>경쟁도</TableHeaderCell>
               <TableHeaderCell>유사도</TableHeaderCell>
             </TableRow>
@@ -290,25 +227,11 @@ export const IntegratedKeywordTable: React.FC<IntegratedKeywordTableProps> = ({
           <TableBody>
             {displayKeywords.map((keyword) => (
               <TableRow key={keyword.id}>
-                <TableCell align="center">
-                  <RankBadge rank={keyword.rank}>#{keyword.rank}</RankBadge>
-                </TableCell>
                 <TableCell>
                   <KeywordText>{keyword.keyword}</KeywordText>
                 </TableCell>
                 <TableCell align="center">
-                  <SourceBadge source={keyword.source}>
-                    {getSourceText(keyword.source)}
-                  </SourceBadge>
-                </TableCell>
-                <TableCell align="center">
-                  <CategoryBadge>{keyword.category}</CategoryBadge>
-                </TableCell>
-                <TableCell align="center">
-                  <VolumeText>{formatNumber(keyword.monthlySearchVolume)}</VolumeText>
-                </TableCell>
-                <TableCell align="center">
-                  <VolumeText>{formatNumber(keyword.blogCumulativePosts)}</VolumeText>
+                  <CategoryBadge source={keyword.source}>{keyword.category}</CategoryBadge>
                 </TableCell>
                 <TableCell align="center">
                   <CompetitionBadge level={keyword.competition}>
