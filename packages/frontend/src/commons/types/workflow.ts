@@ -19,22 +19,32 @@ export interface ScrapedKeyword {
  */
 export interface ScrapingData {
   query: string;
-  totalKeywords: number;
-  executionTime: number;
-  categories: Record<string, number>;
   keywords: ScrapedKeyword[];
+  totalCount: number;
+  categories: Record<string, number>;
+  topKeywords: string[];
+  keywordsWithRank: Array<{
+    keyword: string;
+    originalRank: number;
+    category: string;
+    source: string;
+  }>;
+  scrapingTime: number;
+  timestamp: string;
 }
 
 /**
  * 네이버 API 데이터 (백엔드 워크플로우에서 반환)
  */
 export interface NaverApiData {
-  original: {
-    blogSearch: NaverBlogSearchResult;
-    datalab: NaverDatalabResult;
+  keyword: string;
+  blogSearch: NaverBlogSearchResult;
+  datalab: NaverDatalabResult;
+  searchPeriod: {
+    startDate: string;
+    endDate: string;
   };
-  firstBatch: NaverDatalabResult | null;
-  secondBatch: NaverDatalabResult | null;
+  timestamp: string;
 }
 
 /**

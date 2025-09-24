@@ -22,6 +22,6 @@ export declare class KeywordAnalysisService {
         };
     }>;
     getAnalyzedKeywords(): Promise<any[]>;
-    saveScrapingData(query: string, scrapingData: any): Promise<void>;
+    saveScrapingData(query: string, scrapingData: any): Promise<any>;
     getScrapedKeywords(query: string): Promise<any[]>;
 }

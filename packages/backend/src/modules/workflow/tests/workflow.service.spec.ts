@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { WorkflowService, WorkflowResult } from './workflow.service';
-import { NaverApiService } from '../naver-api/naver-api.service';
-import { ScrapingService } from '../scraping/scraping.service';
-import { KeywordAnalysisService } from '../keyword-analysis/keyword-analysis.service';
-import { AppConfigService } from '../../config/app.config';
+import { WorkflowService, WorkflowResult } from '../workflow.service';
+import { NaverApiService } from '../../naver-api/naver-api.service';
+import { ScrapingService } from '../../scraping/scraping.service';
+import { KeywordAnalysisService } from '../../keyword-analysis/keyword-analysis.service';
+import { AppConfigService } from '../../../config/app.config';
 
 // 타입 체크 우회를 위한 헬퍼
 const mockResolvedValue = (mockFn: any, value: any) => {

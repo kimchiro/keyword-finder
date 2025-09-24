@@ -10,7 +10,7 @@ module.exports = {
     "!**/*.integration.spec.ts",
     "!**/node_modules/**",
   ],
-  coverageDirectory: "../../../coverage/workflow",
+  coverageDirectory: "../../../../coverage/workflow",
   testEnvironment: "node",
   setupFilesAfterEnv: ["<rootDir>/test-setup.ts"],
 };

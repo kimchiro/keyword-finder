@@ -73,7 +73,33 @@ let KeywordAnalysisDomainService = class KeywordAnalysisDomainService {
             const keyword = new value_objects_1.Keyword(query);
             const analysisDate = new value_objects_1.AnalysisDate();
             await this.keywordDataService.saveScrapedKeywords(keyword, analysisDate, scrapingData);
-            console.log(`✅ 스크래핑 데이터 저장 완료: ${query}`);
+            const allSavedKeywords = await this.keywordDataService.findScrapedKeywords(keyword);
+            const uniqueKeywords = this.removeDuplicateKeywords(allSavedKeywords);
+            const categories = this.categorizeKeywords(uniqueKeywords);
+            const topKeywords = uniqueKeywords
+                .sort((a, b) => a.rankPosition - b.rankPosition)
+                .slice(0, 10)
+                .map(k => k.keyword);
+            const keywordsWithRank = uniqueKeywords
+                .sort((a, b) => a.rankPosition - b.rankPosition)
+                .map(k => ({
+                keyword: k.keyword,
+                originalRank: k.rankPosition,
+                category: k.category,
+                source: 'naver_scraping'
+            }));
+            const result = {
+                query,
+                keywords: uniqueKeywords,
+                totalCount: uniqueKeywords.length,
+                categories,
+                topKeywords,
+                keywordsWithRank,
+                scrapingTime: scrapingData.executionTime || 0,
+                timestamp: new Date().toISOString()
+            };
+            console.log(`✅ 스크래핑 데이터 저장 완료: ${query} (${uniqueKeywords.length}개 고유 키워드, 전체 ${allSavedKeywords.length}개에서 중복 제거)`);
+            return result;
         }
         catch (error) {
             console.error('❌ KeywordAnalysisDomainService.saveScrapingData 오류:', error);
@@ -103,6 +129,33 @@ let KeywordAnalysisDomainService = class KeywordAnalysisDomainService {
             throw new Error(`키워드 '${keyword.value}'의 분석 데이터를 찾을 수 없습니다.`);
         }
         return new keyword_analysis_aggregate_1.KeywordAnalysisAggregate(keyword, analysisDate, analytics, relatedKeywords, chartData);
+    }
+    categorizeKeywords(keywords) {
+        return keywords.reduce((acc, keyword) => {
+            const category = keyword.category || 'unknown';
+            acc[category] = (acc[category] || 0) + 1;
+            return acc;
+        }, {});
+    }
+    removeDuplicateKeywords(keywords) {
+        const keywordMap = new Map();
+        const sortedKeywords = keywords.sort((a, b) => new Date(b.collectedAt).getTime() - new Date(a.collectedAt).getTime());
+        for (const keyword of sortedKeywords) {
+            const key = `${keyword.keyword}-${keyword.category}`;
+            if (!keywordMap.has(key)) {
+                keywordMap.set(key, keyword);
+            }
+        }
+        return Array.from(keywordMap.values()).sort((a, b) => {
+            if (a.category !== b.category) {
+                if (a.category === 'smartblock')
+                    return -1;
+                if (b.category === 'smartblock')
+                    return 1;
+                return a.category.localeCompare(b.category);
+            }
+            return a.rankPosition - b.rankPosition;
+        });
     }
 };
 exports.KeywordAnalysisDomainService = KeywordAnalysisDomainService;

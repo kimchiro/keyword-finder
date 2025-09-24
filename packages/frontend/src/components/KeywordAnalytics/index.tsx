@@ -45,17 +45,17 @@ export const KeywordAnalytics: React.FC<KeywordAnalyticsProps> = ({
           <StatsGrid>
             <StatCard>
               <StatLabel>블로그 발행량</StatLabel>
-              <StatValue>{formatNumber(contentCounts.counts.blogs)}</StatValue>
+              <StatValue>{formatNumber(contentCounts.blogs)}</StatValue>
               <StatUnit>개 (총)</StatUnit>
             </StatCard>
             <StatCard>
               <StatLabel>카페 발행량</StatLabel>
-              <StatValue>{formatNumber(contentCounts.counts.cafes)}</StatValue>
+              <StatValue>{formatNumber(contentCounts.cafes)}</StatValue>
               <StatUnit>개 (총)</StatUnit>
             </StatCard>
             <StatCard>
               <StatLabel>총 발행량</StatLabel>
-              <StatValue>{formatNumber(contentCounts.counts.total)}</StatValue>
+              <StatValue>{formatNumber(contentCounts.total)}</StatValue>
               <StatUnit>개 (총)</StatUnit>
             </StatCard>
           </StatsGrid>

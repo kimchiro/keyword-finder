@@ -1,11 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { WorkflowModule } from './workflow.module';
-import { NaverApiModule } from '../naver-api/naver-api.module';
-import { ScrapingModule } from '../scraping/scraping.module';
-import { KeywordAnalysisModule } from '../keyword-analysis/keyword-analysis.module';
-import { AppConfigService } from '../../config/app.config';
+import { WorkflowModule } from '../workflow.module';
+import { NaverApiModule } from '../../naver-api/naver-api.module';
+import { ScrapingModule } from '../../scraping/scraping.module';
+import { KeywordAnalysisModule } from '../../keyword-analysis/keyword-analysis.module';
+import { AppConfigService } from '../../../config/app.config';
 
 describe('WorkflowController (Integration)', () => {
   let app: INestApplication;

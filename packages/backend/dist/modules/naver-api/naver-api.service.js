@@ -95,17 +95,6 @@ let NaverApiService = class NaverApiService {
                 timeout: this.appConfig.apiExtendedTimeoutMs,
             }), 'datalab-search');
             console.log(`✅ 네이버 데이터랩 조회 완료: ${response.data.results?.length || 0}개 결과`);
-            console.log('📊 네이버 데이터랩 API 전체 응답:', JSON.stringify(response.data, null, 2));
-            if (response.data.results && response.data.results.length > 0) {
-                const firstResult = response.data.results[0];
-                console.log('🔍 첫 번째 결과 구조:', JSON.stringify(firstResult, null, 2));
-                if (firstResult.gender || firstResult.genderRatio || firstResult.demographics) {
-                    console.log('👥 성별 데이터 발견:', firstResult.gender || firstResult.genderRatio || firstResult.demographics);
-                }
-                if (firstResult.device || firstResult.deviceRatio || firstResult.platform) {
-                    console.log('📱 디바이스 데이터 발견:', firstResult.device || firstResult.deviceRatio || firstResult.platform);
-                }
-            }
             return {
                 success: true,
                 data: response.data,
@@ -116,46 +105,13 @@ let NaverApiService = class NaverApiService {
             throw error;
         }
     }
-    async getIntegratedData(query) {
-        try {
-            console.log(`🔄 통합 데이터 조회 시작: ${query}`);
-            const [blogSearchResult, datalabResult] = await Promise.all([
-                this.searchBlogs(query, 1, 1),
-                this.getDatalab({
-                    startDate: this.appConfig.defaultStartDate,
-                    endDate: this.appConfig.defaultEndDate,
-                    timeUnit: 'month',
-                    keywordGroups: [
-                        {
-                            groupName: query,
-                            keywords: [query],
-                        },
-                    ],
-                }),
-            ]);
-            console.log(`✅ 통합 데이터 조회 완료: ${query}`);
-            return {
-                success: true,
-                data: {
-                    query,
-                    blogSearch: blogSearchResult.data,
-                    datalab: datalabResult.data,
-                    timestamp: new Date().toISOString(),
-                },
-            };
-        }
-        catch (error) {
-            console.error('❌ NaverApiService.getIntegratedData 오류:', error);
-            throw error;
-        }
-    }
     async getSingleKeywordFullData(request) {
         try {
             console.log(`🔍 단일 키워드 전체 데이터 조회 시작: ${request.keyword}`);
             const { startDate, endDate } = this.getDateRange();
             console.log(`📅 검색 기간: ${startDate} ~ ${endDate}`);
-            const [blogSearchResult, generalDatalabResult, relatedKeywordsResult] = await Promise.all([
-                this.searchBlogs(request.keyword, 5, 1, 'date'),
+            const [blogSearchResult, datalabResult] = await Promise.all([
+                this.searchBlogs(request.keyword, 10, 1, 'date'),
                 this.getDatalab({
                     startDate,
                     endDate,
@@ -167,7 +123,6 @@ let NaverApiService = class NaverApiService {
                         },
                     ],
                 }),
-                this.getRelatedKeywords(request.keyword),
             ]);
             console.log(`✅ 단일 키워드 전체 데이터 조회 완료: ${request.keyword}`);
             return {
@@ -175,8 +130,7 @@ let NaverApiService = class NaverApiService {
                 data: {
                     keyword: request.keyword,
                     blogSearch: blogSearchResult.data,
-                    datalab: generalDatalabResult.data,
-                    relatedKeywords: relatedKeywordsResult.data,
+                    datalab: datalabResult.data,
                     searchPeriod: { startDate, endDate },
                     timestamp: new Date().toISOString(),
                 },
@@ -193,11 +147,10 @@ let NaverApiService = class NaverApiService {
             if (request.keywords.length > 5) {
                 throw new Error('키워드는 최대 5개까지만 요청할 수 있습니다.');
             }
-            const startDate = request.startDate || this.appConfig.defaultStartDate;
-            const endDate = request.endDate || this.appConfig.defaultEndDate;
+            const { startDate, endDate } = this.getDateRange();
             const keywordResults = await Promise.all(request.keywords.map(async (keyword) => {
                 try {
-                    const [generalResult, blogSearchResult] = await Promise.all([
+                    const [datalabResult, blogSearchResult] = await Promise.all([
                         this.getDatalab({
                             startDate,
                             endDate,
@@ -211,7 +164,7 @@ let NaverApiService = class NaverApiService {
                         }),
                         this.searchBlogs(keyword, 1, 1),
                     ]);
-                    const processedData = this.processLimitedKeywordData(keyword, generalResult.data, blogSearchResult.data);
+                    const processedData = this.processKeywordData(keyword, datalabResult.data, blogSearchResult.data);
                     return processedData;
                 }
                 catch (error) {
@@ -230,6 +183,7 @@ let NaverApiService = class NaverApiService {
                 data: {
                     keywords: request.keywords,
                     results: keywordResults,
+                    searchPeriod: { startDate, endDate },
                     timestamp: new Date().toISOString(),
                 },
             };
@@ -237,96 +191,6 @@ let NaverApiService = class NaverApiService {
         catch (error) {
             console.error('❌ NaverApiService.getMultipleKeywordsLimitedData 오류:', error);
             throw error;
-        }
-    }
-    async processBatchRequest(request) {
-        try {
-            console.log('🚀 배치 요청 처리 시작');
-            const startTime = Date.now();
-            const [firstResult, secondResult, thirdResult] = await Promise.all([
-                this.getSingleKeywordFullData(request.firstRequest),
-                this.getMultipleKeywordsLimitedData(request.secondRequest),
-                this.getMultipleKeywordsLimitedData(request.thirdRequest),
-            ]);
-            const endTime = Date.now();
-            const totalProcessingTime = endTime - startTime;
-            console.log(`✅ 배치 요청 처리 완료 (${totalProcessingTime}ms)`);
-            return {
-                success: true,
-                data: {
-                    firstResult: firstResult.data,
-                    secondResult: secondResult.data,
-                    thirdResult: thirdResult.data,
-                    totalProcessingTime,
-                    timestamp: new Date().toISOString(),
-                },
-            };
-        }
-        catch (error) {
-            console.error('❌ NaverApiService.processBatchRequest 오류:', error);
-            throw error;
-        }
-    }
-    async getRelatedKeywords(keyword) {
-        try {
-            console.log(`🔗 연관 검색어 조회: ${keyword}`);
-            return {
-                success: true,
-                data: {
-                    keyword,
-                    relatedKeywords: [],
-                    timestamp: new Date().toISOString(),
-                },
-            };
-        }
-        catch (error) {
-            console.error('❌ 연관 검색어 조회 오류:', error);
-            return {
-                success: false,
-                data: {
-                    keyword,
-                    relatedKeywords: [],
-                    timestamp: new Date().toISOString(),
-                },
-            };
-        }
-    }
-    processLimitedKeywordData(keyword, generalData, blogSearchData) {
-        try {
-            const monthlySearchVolume = this.calculateMonthlySearchVolume(generalData);
-            const cumulativePublications = blogSearchData.total || 0;
-            console.log(`📊 키워드 "${keyword}" 데이터 가공 완료:`, {
-                monthlySearchVolume,
-                cumulativePublications,
-            });
-            return {
-                keyword,
-                monthlySearchVolume,
-                cumulativePublications,
-            };
-        }
-        catch (error) {
-            console.error(`❌ 키워드 데이터 가공 오류 (${keyword}):`, error);
-            return {
-                keyword,
-                monthlySearchVolume: 0,
-                cumulativePublications: 0,
-            };
-        }
-    }
-    calculateMonthlySearchVolume(datalabData) {
-        try {
-            if (datalabData.results && datalabData.results.length > 0) {
-                const latestData = datalabData.results[0].data;
-                if (latestData && latestData.length > 0) {
-                    return latestData[latestData.length - 1].ratio * 100;
-                }
-            }
-            return 0;
-        }
-        catch (error) {
-            console.error('❌ 월간검색량 계산 오류:', error);
-            return 0;
         }
     }
     async getContentCounts(query) {
@@ -390,6 +254,44 @@ let NaverApiService = class NaverApiService {
         catch (error) {
             console.error('❌ NaverApiService.getContentCountsAndSave 오류:', error);
             throw error;
+        }
+    }
+    processKeywordData(keyword, datalabData, blogSearchData) {
+        try {
+            const monthlySearchVolume = this.calculateMonthlySearchVolume(datalabData);
+            const cumulativePublications = blogSearchData.total || 0;
+            console.log(`📊 키워드 "${keyword}" 데이터 가공 완료:`, {
+                monthlySearchVolume,
+                cumulativePublications,
+            });
+            return {
+                keyword,
+                monthlySearchVolume,
+                cumulativePublications,
+            };
+        }
+        catch (error) {
+            console.error(`❌ 키워드 데이터 가공 오류 (${keyword}):`, error);
+            return {
+                keyword,
+                monthlySearchVolume: 0,
+                cumulativePublications: 0,
+            };
+        }
+    }
+    calculateMonthlySearchVolume(datalabData) {
+        try {
+            if (datalabData.results && datalabData.results.length > 0) {
+                const latestData = datalabData.results[0].data;
+                if (latestData && latestData.length > 0) {
+                    return latestData[latestData.length - 1].ratio * 100;
+                }
+            }
+            return 0;
+        }
+        catch (error) {
+            console.error('❌ 월간검색량 계산 오류:', error);
+            return 0;
         }
     }
     getDateRange() {

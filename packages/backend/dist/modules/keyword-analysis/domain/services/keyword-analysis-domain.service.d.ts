@@ -11,7 +11,9 @@ export declare class KeywordAnalysisDomainService {
         data: KeywordAnalysisAggregate | null;
     }>;
     getAnalyzedKeywords(): Promise<any[]>;
-    saveScrapingData(query: string, scrapingData: any): Promise<void>;
+    saveScrapingData(query: string, scrapingData: any): Promise<any>;
     getScrapedKeywords(query: string): Promise<any[]>;
     private getExistingAnalysis;
+    private categorizeKeywords;
+    private removeDuplicateKeywords;
 }

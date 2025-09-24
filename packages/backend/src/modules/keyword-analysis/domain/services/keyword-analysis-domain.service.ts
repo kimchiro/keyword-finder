@@ -111,8 +111,8 @@ export class KeywordAnalysisDomainService {
     }
   }
 
-  // 스크래핑 데이터 저장
-  async saveScrapingData(query: string, scrapingData: any): Promise<void> {
+  // 스크래핑 데이터 저장 및 반환
+  async saveScrapingData(query: string, scrapingData: any): Promise<any> {
     try {
       console.log(`💾 스크래핑 데이터 저장 시작: ${query}`);
       
@@ -122,7 +122,44 @@ export class KeywordAnalysisDomainService {
       // 스크래핑된 키워드 데이터를 데이터베이스에 저장
       await this.keywordDataService.saveScrapedKeywords(keyword, analysisDate, scrapingData);
       
-      console.log(`✅ 스크래핑 데이터 저장 완료: ${query}`);
+      // 저장된 데이터를 조회해서 반환
+      const allSavedKeywords = await this.keywordDataService.findScrapedKeywords(keyword);
+      
+      // 중복 제거: 최신 데이터만 유지 (키워드 + 카테고리 조합으로 중복 제거)
+      const uniqueKeywords = this.removeDuplicateKeywords(allSavedKeywords);
+      
+      // 카테고리별 통계 계산
+      const categories = this.categorizeKeywords(uniqueKeywords);
+      
+      // 상위 키워드 추출 (순위순으로 정렬 후 상위 10개)
+      const topKeywords = uniqueKeywords
+        .sort((a, b) => a.rankPosition - b.rankPosition)
+        .slice(0, 10)
+        .map(k => k.keyword);
+      
+      // 순위와 함께 키워드 정보 구성
+      const keywordsWithRank = uniqueKeywords
+        .sort((a, b) => a.rankPosition - b.rankPosition)
+        .map(k => ({
+          keyword: k.keyword,
+          originalRank: k.rankPosition,
+          category: k.category,
+          source: 'naver_scraping'
+        }));
+      
+      const result = {
+        query,
+        keywords: uniqueKeywords,
+        totalCount: uniqueKeywords.length,
+        categories,
+        topKeywords,
+        keywordsWithRank,
+        scrapingTime: scrapingData.executionTime || 0,
+        timestamp: new Date().toISOString()
+      };
+      
+      console.log(`✅ 스크래핑 데이터 저장 완료: ${query} (${uniqueKeywords.length}개 고유 키워드, 전체 ${allSavedKeywords.length}개에서 중복 제거)`);
+      return result;
     } catch (error) {
       console.error('❌ KeywordAnalysisDomainService.saveScrapingData 오류:', error);
       throw error;
@@ -168,5 +205,45 @@ export class KeywordAnalysisDomainService {
       relatedKeywords,
       chartData,
     );
+  }
+
+  // 키워드 카테고리별 통계 계산
+  private categorizeKeywords(keywords: any[]): { [key: string]: number } {
+    return keywords.reduce((acc, keyword) => {
+      const category = keyword.category || 'unknown';
+      acc[category] = (acc[category] || 0) + 1;
+      return acc;
+    }, {} as { [key: string]: number });
+  }
+
+  // 중복 키워드 제거 (키워드 + 카테고리 조합으로 중복 제거, 최신 데이터 유지)
+  private removeDuplicateKeywords(keywords: any[]): any[] {
+    const keywordMap = new Map<string, any>();
+    
+    // 최신 데이터부터 처리 (collectedAt 기준 내림차순 정렬)
+    const sortedKeywords = keywords.sort((a, b) => 
+      new Date(b.collectedAt).getTime() - new Date(a.collectedAt).getTime()
+    );
+    
+    for (const keyword of sortedKeywords) {
+      const key = `${keyword.keyword}-${keyword.category}`;
+      
+      // 이미 존재하지 않는 경우에만 추가 (최신 데이터가 우선)
+      if (!keywordMap.has(key)) {
+        keywordMap.set(key, keyword);
+      }
+    }
+    
+    // Map에서 값들을 배열로 변환하고 순위순으로 정렬
+    return Array.from(keywordMap.values()).sort((a, b) => {
+      // 카테고리별로 먼저 정렬 (smartblock 우선)
+      if (a.category !== b.category) {
+        if (a.category === 'smartblock') return -1;
+        if (b.category === 'smartblock') return 1;
+        return a.category.localeCompare(b.category);
+      }
+      // 같은 카테고리 내에서는 순위순 정렬
+      return a.rankPosition - b.rankPosition;
+    });
   }
 }

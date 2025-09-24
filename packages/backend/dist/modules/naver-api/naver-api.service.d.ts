@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { ApiRetryService } from '../../common/services/api-retry.service';
 import { AppConfigService } from '../../config/app.config';
 import { KeywordDataService } from '../keyword-analysis/domain/services/keyword-data.service';
-import { SingleKeywordFullDataDto, MultipleKeywordsLimitedDataDto, BatchRequestDto } from './dto/naver-api.dto';
+import { SingleKeywordFullDataDto, MultipleKeywordsLimitedDataDto } from './dto/naver-api.dto';
 export declare class NaverApiService {
     private configService;
     private apiRetryService;
@@ -21,26 +21,12 @@ export declare class NaverApiService {
         success: boolean;
         data: any;
     }>;
-    getIntegratedData(query: string): Promise<{
-        success: boolean;
-        data: {
-            query: string;
-            blogSearch: any;
-            datalab: any;
-            timestamp: string;
-        };
-    }>;
     getSingleKeywordFullData(request: SingleKeywordFullDataDto): Promise<{
         success: boolean;
         data: {
             keyword: string;
             blogSearch: any;
             datalab: any;
-            relatedKeywords: {
-                keyword: string;
-                relatedKeywords: any[];
-                timestamp: string;
-            };
             searchPeriod: {
                 startDate: string;
                 endDate: string;
@@ -62,62 +48,13 @@ export declare class NaverApiService {
                 cumulativePublications: number;
                 error: any;
             })[];
+            searchPeriod: {
+                startDate: string;
+                endDate: string;
+            };
             timestamp: string;
         };
     }>;
-    processBatchRequest(request: BatchRequestDto): Promise<{
-        success: boolean;
-        data: {
-            firstResult: {
-                keyword: string;
-                blogSearch: any;
-                datalab: any;
-                relatedKeywords: {
-                    keyword: string;
-                    relatedKeywords: any[];
-                    timestamp: string;
-                };
-                searchPeriod: {
-                    startDate: string;
-                    endDate: string;
-                };
-                timestamp: string;
-            };
-            secondResult: {
-                keywords: string[];
-                results: ({
-                    keyword: string;
-                    monthlySearchVolume: number;
-                    cumulativePublications: any;
-                } | {
-                    keyword: string;
-                    monthlySearchVolume: number;
-                    cumulativePublications: number;
-                    error: any;
-                })[];
-                timestamp: string;
-            };
-            thirdResult: {
-                keywords: string[];
-                results: ({
-                    keyword: string;
-                    monthlySearchVolume: number;
-                    cumulativePublications: any;
-                } | {
-                    keyword: string;
-                    monthlySearchVolume: number;
-                    cumulativePublications: number;
-                    error: any;
-                })[];
-                timestamp: string;
-            };
-            totalProcessingTime: number;
-            timestamp: string;
-        };
-    }>;
-    private getRelatedKeywords;
-    private processLimitedKeywordData;
-    private calculateMonthlySearchVolume;
     getContentCounts(query: string): Promise<{
         success: boolean;
         data: {
@@ -150,5 +87,7 @@ export declare class NaverApiService {
         };
         message: string;
     }>;
+    private processKeywordData;
+    private calculateMonthlySearchVolume;
     private getDateRange;
 }

@@ -3,16 +3,13 @@ export declare class WorkflowController {
     private readonly workflowService;
     constructor(workflowService: WorkflowService);
     executeCompleteWorkflow(query: string): Promise<WorkflowResult>;
-    executeQuickAnalysis(query: string): Promise<WorkflowResult>;
-    executeScrapingOnly(query: string): Promise<WorkflowResult>;
-    checkWorkflowHealth(): Promise<{
+    checkHealth(): Promise<{
         success: boolean;
-        message: string;
-        data: {
+        services: {
             naverApi: boolean;
             scraping: boolean;
-            analysis: boolean;
-            overall: boolean;
+            keywordAnalysis: boolean;
         };
+        message: string;
     }>;
 }

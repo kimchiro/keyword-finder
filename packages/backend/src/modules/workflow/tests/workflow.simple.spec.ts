@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { WorkflowService } from './workflow.service';
-import { NaverApiService } from '../naver-api/naver-api.service';
-import { ScrapingService } from '../scraping/scraping.service';
-import { KeywordAnalysisService } from '../keyword-analysis/keyword-analysis.service';
-import { AppConfigService } from '../../config/app.config';
+import { WorkflowService } from '../workflow.service';
+import { NaverApiService } from '../../naver-api/naver-api.service';
+import { ScrapingService } from '../../scraping/scraping.service';
+import { KeywordAnalysisService } from '../../keyword-analysis/keyword-analysis.service';
+import { AppConfigService } from '../../../config/app.config';
 
 describe('WorkflowService - 간단한 테스트', () => {
   let service: WorkflowService;

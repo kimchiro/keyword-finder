@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { WorkflowController } from './workflow.controller';
-import { WorkflowService, WorkflowResult } from './workflow.service';
+import { WorkflowController } from '../workflow.controller';
+import { WorkflowService, WorkflowResult } from '../workflow.service';
 
 describe('WorkflowController', () => {
   let controller: WorkflowController;

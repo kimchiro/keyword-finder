@@ -20,16 +20,11 @@ import {
 import { RateLimitGuard, NaverApiRateLimit } from '../../common/guards/rate-limit.guard';
 import { NaverApiService } from './naver-api.service';
 import {
-  DatalabTrendDto,
-  BlogSearchResponseDto,
-  DatalabTrendResponseDto,
-  IntegratedDataResponseDto,
   SingleKeywordFullDataDto,
   MultipleKeywordsLimitedDataDto,
-  BatchRequestDto,
   SingleKeywordFullDataResponseDto,
   MultipleKeywordsLimitedDataResponseDto,
-  BatchResponseDto,
+  BlogSearchResponseDto,
 } from './dto/naver-api.dto';
 
 @ApiTags('naver-api')
@@ -42,8 +37,8 @@ export class NaverApiController {
   @Get('blog-search')
   @NaverApiRateLimit(50, 60000) // 블로그 검색은 1분당 50회로 제한
   @ApiOperation({ 
-    summary: '네이버 블로그 검색',
-    description: '네이버 블로그 검색 API를 통해 블로그 포스트를 검색합니다.'
+    summary: '네이버 블로그 검색 (상위 10개)',
+    description: '네이버 블로그 검색 API를 통해 상위 10개 블로그 포스트를 검색합니다.'
   })
   @ApiQuery({ 
     name: 'query', 
@@ -110,94 +105,20 @@ export class NaverApiController {
     }
   }
 
-  @Get('cafe-search')
-  @NaverApiRateLimit(50, 60000) // 카페 검색은 1분당 50회로 제한
+  @Get('content-counts/:query')
+  @NaverApiRateLimit(30, 60000) // 콘텐츠 수 조회는 1분당 30회로 제한
   @ApiOperation({ 
-    summary: '네이버 카페 검색',
-    description: '네이버 카페 검색 API를 통해 카페 글을 검색합니다.'
+    summary: '키워드 콘텐츠 발행량 조회',
+    description: '해당 키워드의 블로그, 카페 콘텐츠 발행량을 조회합니다.'
   })
-  @ApiQuery({ 
+  @ApiParam({ 
     name: 'query', 
     description: '검색어',
     example: '맛집'
   })
-  @ApiQuery({ 
-    name: 'display', 
-    description: '검색 결과 개수 (1-100)',
-    example: 10,
-    required: false
-  })
-  @ApiQuery({ 
-    name: 'start', 
-    description: '검색 시작 위치 (1-1000)',
-    example: 1,
-    required: false
-  })
-  @ApiQuery({ 
-    name: 'sort', 
-    description: '정렬 방식 (sim: 정확도순, date: 날짜순)',
-    example: 'sim',
-    required: false
-  })
-  @ApiResponse({
-    status: 200,
-    description: '검색 성공',
-  })
-  @ApiResponse({
-    status: 400,
-    description: '잘못된 요청',
-  })
-  @ApiResponse({
-    status: 500,
-    description: '서버 오류',
-  })
-  async searchCafe(
-    @Query('query') query: string,
-    @Query('display') display?: number,
-    @Query('start') start?: number,
-    @Query('sort') sort?: string,
-  ) {
-    try {
-      console.log(`☕ 네이버 카페 검색: ${query}`);
-      
-      const result = await this.naverApiService.searchCafes(query, display, start, sort);
-
-      return {
-        success: true,
-        message: '카페 검색이 완료되었습니다.',
-        data: result.data,
-      };
-    } catch (error) {
-      console.error('❌ 카페 검색 실패:', error);
-      throw new HttpException(
-        {
-          success: false,
-          message: '카페 검색 중 오류가 발생했습니다.',
-          error: error.message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  @Get('content-counts/:query')
-  @NaverApiRateLimit(20, 60000) // 콘텐츠 수 조회는 1분당 20회로 제한 (2개 API 동시 호출)
-  @ApiOperation({ 
-    summary: '블로그 및 카페 콘텐츠 수 조회',
-    description: '특정 키워드의 블로그 글 수와 카페 글 수를 조회합니다.'
-  })
-  @ApiParam({ 
-    name: 'query', 
-    description: '검색할 키워드',
-    example: '다이어트'
-  })
   @ApiResponse({
     status: 200,
     description: '콘텐츠 수 조회 성공',
-  })
-  @ApiResponse({
-    status: 400,
-    description: '잘못된 요청',
   })
   @ApiResponse({
     status: 500,
@@ -211,7 +132,7 @@ export class NaverApiController {
 
       return {
         success: true,
-        message: `키워드 "${query}" 콘텐츠 수 조회가 완료되었습니다.`,
+        message: '콘텐츠 수 조회가 완료되었습니다.',
         data: result.data,
       };
     } catch (error) {
@@ -228,19 +149,19 @@ export class NaverApiController {
   }
 
   @Post('content-counts-save')
-  @NaverApiRateLimit(10, 60000) // 콘텐츠 수 조회 및 저장은 1분당 10회로 제한 (DB 저장 포함)
+  @NaverApiRateLimit(20, 60000) // 콘텐츠 수 저장은 1분당 20회로 제한
   @ApiOperation({ 
-    summary: '블로그 및 카페 콘텐츠 수 조회 및 저장',
-    description: '특정 키워드의 블로그 글 수와 카페 글 수를 조회하고 데이터베이스에 저장합니다.'
+    summary: '키워드 콘텐츠 발행량 조회 및 저장',
+    description: '해당 키워드의 블로그, 카페 콘텐츠 발행량을 조회하고 데이터베이스에 저장합니다.'
   })
-  @ApiBody({
+  @ApiBody({ 
     schema: {
       type: 'object',
       properties: {
         query: {
           type: 'string',
-          description: '검색할 키워드',
-          example: '다이어트'
+          description: '검색어',
+          example: '맛집'
         }
       },
       required: ['query']
@@ -251,18 +172,14 @@ export class NaverApiController {
     description: '콘텐츠 수 조회 및 저장 성공',
   })
   @ApiResponse({
-    status: 400,
-    description: '잘못된 요청',
-  })
-  @ApiResponse({
     status: 500,
     description: '서버 오류',
   })
-  async saveContentCounts(@Body() body: { query: string }) {
+  async getContentCountsAndSave(@Body('query') query: string) {
     try {
-      console.log(`💾 콘텐츠 수 조회 및 저장: ${body.query}`);
+      console.log(`💾 콘텐츠 수 조회 및 저장: ${query}`);
       
-      const result = await this.naverApiService.getContentCountsAndSave(body.query);
+      const result = await this.naverApiService.getContentCountsAndSave(query);
 
       return {
         success: true,
@@ -282,99 +199,11 @@ export class NaverApiController {
     }
   }
 
-  @Post('datalab')
-  @NaverApiRateLimit(30, 60000) // 데이터랩은 1분당 30회로 제한 (더 무거운 API)
-  @ApiOperation({ 
-    summary: '네이버 데이터랩 트렌드 조회',
-    description: '네이버 데이터랩 API를 통해 검색 트렌드를 조회합니다.'
-  })
-  @ApiBody({ type: DatalabTrendDto })
-  @ApiResponse({
-    status: 200,
-    description: '트렌드 조회 성공',
-    type: DatalabTrendResponseDto,
-  })
-  @ApiResponse({
-    status: 400,
-    description: '잘못된 요청',
-  })
-  @ApiResponse({
-    status: 500,
-    description: '서버 오류',
-  })
-  async getDatalabTrend(@Body() requestBody: any): Promise<DatalabTrendResponseDto> {
-    try {
-      console.log(`📈 네이버 데이터랩 트렌드 조회:`, requestBody);
-      
-      const result = await this.naverApiService.getDatalab(requestBody);
-
-      return {
-        success: true,
-        message: '트렌드 데이터 조회가 완료되었습니다.',
-        data: result.data,
-      };
-    } catch (error) {
-      console.error('❌ 트렌드 조회 실패:', error);
-      throw new HttpException(
-        {
-          success: false,
-          message: '트렌드 조회 중 오류가 발생했습니다.',
-          error: error.message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  @Get('integrated-data/:query')
-  @NaverApiRateLimit(20, 60000) // 통합 데이터는 1분당 20회로 제한 (가장 무거운 API)
-  @ApiOperation({ 
-    summary: '통합 데이터 조회',
-    description: '블로그 검색과 트렌드 데이터를 통합하여 조회합니다.'
-  })
-  @ApiParam({ 
-    name: 'query', 
-    description: '검색어',
-    example: '맛집'
-  })
-  @ApiResponse({
-    status: 200,
-    description: '통합 데이터 조회 성공',
-    type: IntegratedDataResponseDto,
-  })
-  @ApiResponse({
-    status: 500,
-    description: '서버 오류',
-  })
-  async getIntegratedData(@Param('query') query: string): Promise<IntegratedDataResponseDto> {
-    try {
-      console.log(`📊 통합 데이터 조회: ${query}`);
-      
-      const result = await this.naverApiService.getIntegratedData(query);
-
-      return {
-        success: true,
-        message: '통합 데이터 조회가 완료되었습니다.',
-        data: result.data,
-      };
-    } catch (error) {
-      console.error('❌ 통합 데이터 조회 실패:', error);
-      throw new HttpException(
-        {
-          success: false,
-          message: '통합 데이터 조회 중 오류가 발생했습니다.',
-          error: error.message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
   @Post('single-keyword-full-data')
   @NaverApiRateLimit(10, 60000) // 1분당 10회로 제한 (무거운 API)
   @ApiOperation({ 
-    summary: '단일 키워드 전체 데이터 조회',
-    description: '1개 키워드의 모든 데이터를 조회합니다. 블로그 검색(최신 5개), 트렌드(작년 어제~어제), 연관 검색어를 포함합니다.'
+    summary: '1개 키워드 전체 검색 결과',
+    description: '1개 키워드의 모든 데이터를 조회합니다. 블로그 검색(상위 10개), 트렌드(어제~작년 어제)를 포함합니다.'
   })
   @ApiBody({ type: SingleKeywordFullDataDto })
   @ApiResponse({
@@ -417,8 +246,8 @@ export class NaverApiController {
   @Post('multiple-keywords-limited-data')
   @NaverApiRateLimit(15, 60000) // 1분당 15회로 제한
   @ApiOperation({ 
-    summary: '다중 키워드 제한 데이터 조회',
-    description: '최대 5개 키워드의 월간검색량, 누적발행량, 성비율, 디바이스 데이터를 조회합니다.'
+    summary: '5개 키워드 검색 결과',
+    description: '최대 5개 키워드의 검색 결과를 조회합니다. 월간검색량과 누적발행량을 포함합니다.'
   })
   @ApiBody({ type: MultipleKeywordsLimitedDataDto })
   @ApiResponse({
@@ -451,50 +280,6 @@ export class NaverApiController {
         {
           success: false,
           message: '다중 키워드 제한 데이터 조회 중 오류가 발생했습니다.',
-          error: error.message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  @Post('batch-request')
-  @NaverApiRateLimit(5, 60000) // 1분당 5회로 제한 (가장 무거운 API)
-  @ApiOperation({ 
-    summary: '배치 요청 처리',
-    description: '3개의 요청을 배치로 처리합니다: 1) 단일 키워드 전체 데이터, 2) 5개 키워드 제한 데이터, 3) 5개 키워드 제한 데이터'
-  })
-  @ApiBody({ type: BatchRequestDto })
-  @ApiResponse({
-    status: 200,
-    description: '배치 요청 처리 성공',
-    type: BatchResponseDto,
-  })
-  @ApiResponse({
-    status: 400,
-    description: '잘못된 요청',
-  })
-  @ApiResponse({
-    status: 500,
-    description: '서버 오류',
-  })
-  async processBatchRequest(@Body() request: BatchRequestDto): Promise<BatchResponseDto> {
-    try {
-      console.log('🚀 배치 요청 처리 시작');
-      
-      const result = await this.naverApiService.processBatchRequest(request);
-
-      return {
-        success: true,
-        message: '배치 요청 처리가 완료되었습니다.',
-        data: result.data,
-      };
-    } catch (error) {
-      console.error('❌ 배치 요청 처리 실패:', error);
-      throw new HttpException(
-        {
-          success: false,
-          message: '배치 요청 처리 중 오류가 발생했습니다.',
           error: error.message,
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
