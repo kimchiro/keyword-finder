@@ -11,7 +11,6 @@ export interface WorkflowResult {
     scrapingData: any;      // 스크래핑 결과 (smartblock, related_search 분류 포함)
     naverApiData: any;      // 1개 키워드 네이버 API 결과
     analysisData: any;      // 키워드 분석 데이터
-    naverCafeData?: any;    // 네이버 카페 검색 결과 (선택적)
     topKeywords: string[];  // 상위 키워드 목록
     keywordsWithRank: Array<{
       keyword: string;
@@ -19,18 +18,6 @@ export interface WorkflowResult {
       category: string;
       source: string;
     }>;                     // 순위와 함께 키워드 정보
-    executionTime: number;
-    timestamp: string;
-  };
-  message: string;
-}
-
-export interface NaverCafeWorkflowResult {
-  success: boolean;
-  data: {
-    query: string;
-    totalPosts: number;
-    searchUrl: string;
     executionTime: number;
     timestamp: string;
   };
@@ -108,7 +95,6 @@ export class WorkflowService {
           scrapingData: savedScrapingData,     // DB에 저장된 스크래핑 데이터 (이제 완전한 구조)
           naverApiData: naverApiResult.data,   // 네이버 API 결과
           analysisData: analysisData,          // 키워드 분석 데이터
-          naverCafeData: undefined,            // 네이버 카페 데이터 (기본 워크플로우에서는 미포함)
           topKeywords: savedScrapingData?.topKeywords || [],
           keywordsWithRank: savedScrapingData?.keywordsWithRank || [],
           executionTime,
@@ -128,7 +114,6 @@ export class WorkflowService {
           scrapingData: null,
           naverApiData: null,
           analysisData: null,
-          naverCafeData: null,
           topKeywords: [],
           keywordsWithRank: [],
           executionTime,
@@ -139,123 +124,6 @@ export class WorkflowService {
     }
   }
 
-  /**
-   * 네이버 카페 검색 스크래핑 워크플로우
-   * 단순히 네이버 카페에서 키워드 검색 후 전체글 수만 추출
-   */
-  async executeNaverCafeWorkflow(query: string): Promise<NaverCafeWorkflowResult> {
-    const startTime = Date.now();
-    console.log(`🔍 네이버 카페 워크플로우 시작: ${query}`);
-
-    try {
-      // 네이버 카페 스크래핑 실행
-      console.log(`🕷️ 네이버 카페 스크래핑 실행`);
-      const cafeResult = await this.scrapingService.scrapeNaverCafe({ query });
-
-      if (!cafeResult) {
-        throw new Error('네이버 카페 스크래핑 데이터를 가져올 수 없습니다.');
-      }
-
-      const executionTime = (Date.now() - startTime) / 1000;
-      console.log(`🎉 네이버 카페 워크플로우 완료: ${query} (${executionTime}초)`);
-
-      return {
-        success: true,
-        data: {
-          query,
-          totalPosts: cafeResult.totalPosts,
-          searchUrl: cafeResult.searchUrl,
-          executionTime,
-          timestamp: new Date().toISOString(),
-        },
-        message: `네이버 카페 검색 "${query}" 스크래핑이 완료되었습니다.`,
-      };
-
-    } catch (error) {
-      const executionTime = (Date.now() - startTime) / 1000;
-      console.error('❌ 네이버 카페 워크플로우 실행 실패:', error);
-      
-      return {
-        success: false,
-        data: {
-          query,
-          totalPosts: 0,
-          searchUrl: '',
-          executionTime,
-          timestamp: new Date().toISOString(),
-        },
-        message: `네이버 카페 검색 "${query}" 스크래핑 중 오류가 발생했습니다: ${error.message}`,
-      };
-    }
-  }
-
-  /**
-   * 확장된 키워드 분석 워크플로우 (네이버 카페 포함)
-   * 기본 워크플로우 + 네이버 카페 스크래핑
-   */
-  async executeExtendedWorkflow(query: string): Promise<WorkflowResult> {
-    const startTime = Date.now();
-    console.log(`🚀 확장된 워크플로우 시작: ${query}`);
-
-    try {
-      // Step 1: 기본 워크플로우 실행
-      console.log(`📊 Step 1: 기본 워크플로우 실행`);
-      const baseWorkflowResult = await this.executeCompleteWorkflow(query);
-
-      if (!baseWorkflowResult.success) {
-        // 기본 워크플로우가 실패하면 네이버 카페만 실행
-        console.log(`⚠️ 기본 워크플로우 실패, 네이버 카페만 실행`);
-      }
-
-      // Step 2: 네이버 카페 스크래핑 추가 실행
-      console.log(`🔍 Step 2: 네이버 카페 스크래핑 실행`);
-      let naverCafeData = null;
-      try {
-        const cafeResult = await this.scrapingService.scrapeNaverCafe({ query });
-        naverCafeData = cafeResult;
-        console.log(`✅ 네이버 카페 스크래핑 완료: ${cafeResult.totalPosts}개 글`);
-      } catch (error) {
-        console.warn(`⚠️ 네이버 카페 스크래핑 실패 (계속 진행): ${error.message}`);
-      }
-
-      const executionTime = (Date.now() - startTime) / 1000;
-      console.log(`🎉 확장된 워크플로우 완료: ${query} (${executionTime}초)`);
-
-      // 기본 워크플로우 결과에 네이버 카페 데이터 추가
-      return {
-        success: baseWorkflowResult.success || naverCafeData !== null,
-        data: {
-          ...baseWorkflowResult.data,
-          naverCafeData,
-          executionTime,
-          timestamp: new Date().toISOString(),
-        },
-        message: baseWorkflowResult.success 
-          ? `키워드 "${query}" 확장 분석이 완료되었습니다.`
-          : `키워드 "${query}" 부분 분석이 완료되었습니다. (네이버 카페만 성공)`,
-      };
-
-    } catch (error) {
-      const executionTime = (Date.now() - startTime) / 1000;
-      console.error('❌ 확장된 워크플로우 실행 실패:', error);
-      
-      return {
-        success: false,
-        data: {
-          query,
-          scrapingData: null,
-          naverApiData: null,
-          analysisData: null,
-          naverCafeData: null,
-          topKeywords: [],
-          keywordsWithRank: [],
-          executionTime,
-          timestamp: new Date().toISOString(),
-        },
-        message: `키워드 "${query}" 확장 분석 중 오류가 발생했습니다: ${error.message}`,
-      };
-    }
-  }
 
   /**
    * 워크플로우 상태 체크

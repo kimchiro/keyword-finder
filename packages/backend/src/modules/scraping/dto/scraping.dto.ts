@@ -67,25 +67,3 @@ export class GetCollectionLogsResponseDto {
   };
 }
 
-export class ScrapeNaverCafeDto {
-  @ApiProperty({ description: '검색할 키워드', example: '맛집' })
-  @IsString()
-  @IsNotEmpty()
-  query: string;
-}
-
-export class ScrapeNaverCafeResponseDto {
-  @ApiProperty({ description: '성공 여부' })
-  success: boolean;
-
-  @ApiProperty({ description: '메시지' })
-  message: string;
-
-  @ApiProperty({ description: '네이버 카페 검색 결과' })
-  data: {
-    query: string;
-    totalPosts: number;
-    executionTime: number;
-    searchUrl: string;
-  };
-}

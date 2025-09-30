@@ -19,8 +19,6 @@ import {
   ScrapeKeywordsDto,
   ScrapeKeywordsResponseDto,
   GetCollectionLogsResponseDto,
-  ScrapeNaverCafeDto,
-  ScrapeNaverCafeResponseDto,
 } from './dto/scraping.dto';
 
 @ApiTags('scraping')
@@ -198,46 +196,4 @@ export class ScrapingController {
     }
   }
 
-  @Post('naver-cafe')
-  @ApiOperation({ 
-    summary: '네이버 카페 검색 결과 스크래핑',
-    description: '네이버 카페에서 키워드 검색 후 전체글 수를 추출합니다.'
-  })
-  @ApiBody({ type: ScrapeNaverCafeDto })
-  @ApiResponse({
-    status: 200,
-    description: '네이버 카페 스크래핑 성공',
-    type: ScrapeNaverCafeResponseDto,
-  })
-  @ApiResponse({
-    status: 400,
-    description: '잘못된 요청',
-  })
-  @ApiResponse({
-    status: 500,
-    description: '서버 오류',
-  })
-  async scrapeNaverCafe(@Body() scrapeDto: ScrapeNaverCafeDto): Promise<ScrapeNaverCafeResponseDto> {
-    try {
-      console.log(`🔍 네이버 카페 검색 스크래핑 시작: ${scrapeDto.query}`);
-      
-      const result = await this.scrapingService.scrapeNaverCafe(scrapeDto);
-
-      return {
-        success: true,
-        message: '네이버 카페 검색 스크래핑이 완료되었습니다.',
-        data: result,
-      };
-    } catch (error) {
-      console.error('❌ 네이버 카페 검색 스크래핑 실패:', error);
-      throw new HttpException(
-        {
-          success: false,
-          message: '네이버 카페 검색 스크래핑 중 오류가 발생했습니다.',
-          error: error.message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
 }
