@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Keyword } from '../../database/entities/keyword.entity';
 import { KeywordCollectionLogs, CollectionType } from '../../database/entities/keyword-collection-logs.entity';
-import { ScrapeKeywordsDto } from './dto/scraping.dto';
+import { ScrapeKeywordsDto, ScrapeNaverCafeDto } from './dto/scraping.dto';
 import { BrowserPoolService } from '../../common/services/browser-pool.service';
 import { AppConfigService } from '../../config/app.config';
 import { SCRAPING_DEFAULTS, SEARCH_VOLUME } from '../../constants/scraping.constants';
@@ -172,6 +172,95 @@ export class ScrapingService {
    */
   async getBrowserPoolStatus() {
     return this.browserPoolService.getPoolStatus();
+  }
+
+  /**
+   * 네이버 카페 검색 결과 스크래핑
+   */
+  async scrapeNaverCafe(scrapeDto: ScrapeNaverCafeDto) {
+    const startTime = Date.now();
+    console.log(`🔍 네이버 카페 검색 스크래핑 시작: ${scrapeDto.query}`);
+
+    try {
+      const { query } = scrapeDto;
+      
+      // 네이버 카페 검색 스크래핑 수행
+      const scrapingResult = await this.performNaverCafeScraping(query);
+      
+      const executionTime = (Date.now() - startTime) / 1000;
+
+      console.log(`✅ 네이버 카페 검색 스크래핑 완료: 총 ${scrapingResult.totalPosts}개 글, ${executionTime}초`);
+
+      return {
+        query,
+        totalPosts: scrapingResult.totalPosts,
+        executionTime,
+        searchUrl: scrapingResult.searchUrl,
+      };
+    } catch (error) {
+      console.error('❌ ScrapingService.scrapeNaverCafe 오류:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 네이버 카페 검색 스크래핑 수행
+   */
+  private async performNaverCafeScraping(query: string) {
+    let session = null;
+    
+    try {
+      // 브라우저 풀에서 세션 가져오기
+      session = await this.browserPoolService.acquireBrowser();
+      const { page } = session;
+      
+      // 네이버 카페 홈페이지로 이동
+      console.log('🌐 네이버 카페 홈페이지 접속 중...');
+      await page.goto('https://section.cafe.naver.com/ca-fe/home', { 
+        waitUntil: 'networkidle2',
+        timeout: 30000 
+      });
+
+      // 검색창 찾기 및 검색어 입력
+      console.log(`🔍 검색어 입력 중: ${query}`);
+      const searchInput = 'div[role="search"] input[type="text"]';
+      await page.waitForSelector(searchInput, { timeout: 10000 });
+      await page.click(searchInput);
+      await page.fill(searchInput, query);
+
+      // 검색 버튼 클릭
+      const searchButton = 'div[role="search"] button[type="submit"]';
+      await page.click(searchButton);
+
+      // 검색 결과 페이지 로딩 대기
+      console.log('⏳ 검색 결과 페이지 로딩 대기 중...');
+      await page.waitForSelector('.board_head', { timeout: 15000 });
+
+      // 전체글 수 추출
+      console.log('📊 전체글 수 추출 중...');
+      const totalPostsElement = await page.waitForSelector('.board_head .sub_text', { timeout: 10000 });
+      const totalPostsText = await totalPostsElement.textContent();
+      
+      // 숫자만 추출 (쉼표 제거)
+      const totalPosts = parseInt(totalPostsText?.replace(/,/g, '') || '0');
+      
+      const searchUrl = page.url();
+      
+      console.log(`✅ 전체글 수 추출 완료: ${totalPosts}개`);
+
+      return {
+        totalPosts,
+        searchUrl,
+      };
+    } catch (error) {
+      console.error('❌ 네이버 카페 스크래핑 오류:', error);
+      throw new Error(`네이버 카페 스크래핑 실패: ${error.message}`);
+    } finally {
+      if (session) {
+        // 브라우저 세션을 풀에 반환
+        await this.browserPoolService.releaseBrowser(session);
+      }
+    }
   }
 
   /**
