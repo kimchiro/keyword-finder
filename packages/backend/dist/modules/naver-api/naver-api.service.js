@@ -150,21 +150,18 @@ let NaverApiService = class NaverApiService {
             const { startDate, endDate } = this.getDateRange();
             const keywordResults = await Promise.all(request.keywords.map(async (keyword) => {
                 try {
-                    const [datalabResult, blogSearchResult] = await Promise.all([
-                        this.getDatalab({
-                            startDate,
-                            endDate,
-                            timeUnit: 'month',
-                            keywordGroups: [
-                                {
-                                    groupName: keyword,
-                                    keywords: [keyword],
-                                },
-                            ],
-                        }),
-                        this.searchBlogs(keyword, 1, 1),
-                    ]);
-                    const processedData = this.processKeywordData(keyword, datalabResult.data, blogSearchResult.data);
+                    const datalabResult = await this.getDatalab({
+                        startDate,
+                        endDate,
+                        timeUnit: 'month',
+                        keywordGroups: [
+                            {
+                                groupName: keyword,
+                                keywords: [keyword],
+                            },
+                        ],
+                    });
+                    const processedData = this.processKeywordDataWithoutPublications(keyword, datalabResult.data);
                     return processedData;
                 }
                 catch (error) {
@@ -172,7 +169,6 @@ let NaverApiService = class NaverApiService {
                     return {
                         keyword,
                         monthlySearchVolume: 0,
-                        cumulativePublications: 0,
                         error: error.message,
                     };
                 }
@@ -254,6 +250,25 @@ let NaverApiService = class NaverApiService {
         catch (error) {
             console.error('❌ NaverApiService.getContentCountsAndSave 오류:', error);
             throw error;
+        }
+    }
+    processKeywordDataWithoutPublications(keyword, datalabData) {
+        try {
+            const monthlySearchVolume = this.calculateMonthlySearchVolume(datalabData);
+            console.log(`📊 키워드 "${keyword}" 데이터 가공 완료 (발행량 제외):`, {
+                monthlySearchVolume,
+            });
+            return {
+                keyword,
+                monthlySearchVolume,
+            };
+        }
+        catch (error) {
+            console.error(`❌ 키워드 데이터 가공 오류 (${keyword}):`, error);
+            return {
+                keyword,
+                monthlySearchVolume: 0,
+            };
         }
     }
     processKeywordData(keyword, datalabData, blogSearchData) {

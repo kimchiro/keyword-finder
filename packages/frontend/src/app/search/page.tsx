@@ -7,6 +7,7 @@ import { KeywordAnalytics } from '@/components/KeywordAnalytics';
 import { SearchTrendChart } from '@/components/SearchTrendChart';
 import { IntegratedKeywordTable } from '@/components/IntegratedKeywordTable';
 import { useWorkflow } from '@/commons/hooks';
+import { MonthlyVolume } from '@/components/MonthlyVolume';
 import styled from '@emotion/styled';
 import { colors, spacing, borderRadius, shadow, fontStyles, fontSize, fontWeight } from '@/commons/styles';
 import Loading, { EmptyState } from './loading';
@@ -18,7 +19,7 @@ const Container = styled.div`
 `;
 
 const Card = styled.div`
-  background: ${colors.bgCard};
+  background: ${colors.bgPrimary};
   border-radius: ${borderRadius.lg};
   box-shadow: ${shadow.md};
   padding: ${spacing.xl};
@@ -36,7 +37,6 @@ const AnalyticsGrid = styled.div`
     grid-template-columns: 1fr;
   }
 `;
-
 
 const Title = styled.h1`
   ${fontStyles.heading}
@@ -114,74 +114,92 @@ export default function SearchPage() {
         {/* 워크플로우 결과 표시 */}
         {workflowData?.success && workflowData.data && (
           <>
-            {/* 상단 3개 컴포넌트: KeywordAnalytics, SearchTrendChart, MonthlyRatioChart */}
+            {/* 상단 3개 컴포넌트: MonthlyVolume, KeywordAnalytics, SearchTrendChart */}
             <AnalyticsGrid>
+              <MonthlyVolume 
+                analytics={workflowData.data.analysisData?.analytics || null} 
+              />
               <KeywordAnalytics 
                 analytics={workflowData.data.analysisData?.analytics || null}
-                contentCounts={{
-                  blogs: workflowData.data.naverApiData?.blogSearch?.total || 0,
-                  cafes: 0, // 카페 데이터는 현재 응답에 없음
-                  total: workflowData.data.naverApiData?.blogSearch?.total || 0
-                }}
+                contentCounts={(() => {
+                  // contentCountsData 우선 사용, 없으면 naverApiData에서 추출
+                  if (workflowData.data.contentCountsData?.counts) {
+                    return workflowData.data.contentCountsData.counts;
+                  }
+                  // fallback: naverApiData에서 블로그 수만 사용
+                  return {
+                    blogs: workflowData.data.naverApiData?.blogSearch?.total || 0,
+                    cafes: 0, // 카페 데이터는 현재 응답에 없음
+                    total: workflowData.data.naverApiData?.blogSearch?.total || 0
+                  };
+                })()}
               />
-              {workflowData.data.analysisData?.chartData && (
-                <>
-                  <SearchTrendChart searchTrends={workflowData.data.analysisData.chartData.searchTrends} />
-                </>
+              {workflowData.data.analysisData?.chartData?.searchTrends && (
+                <SearchTrendChart 
+                  searchTrends={workflowData.data.analysisData.chartData.searchTrends} 
+                />
               )}
             </AnalyticsGrid>
 
             {/* 통합 키워드 테이블 */}
             {(() => {
-              const smartBlockData = workflowData.data.scrapingData?.keywords?.filter(keyword => keyword.category === 'smartblock') || [];
-              const relatedData = workflowData.data.scrapingData?.keywords?.filter(keyword => keyword.category === 'related_search').map((keyword, index) => ({
-                id: index + 1000,
-                baseKeyword: workflowData.data.query,
-                relatedKeyword: keyword.keyword,
-                monthlySearchVolume: keyword.rank <= 3 ? 5000 : keyword.rank <= 6 ? 3000 : 1500,
-                blogCumulativePosts: keyword.rank <= 3 ? 2500 : keyword.rank <= 6 ? 1500 : 800,
-                similarityScore: (keyword.similarity === 'high' ? '높음' : keyword.similarity === 'medium' ? '보통' : '낮음') as '높음' | '보통' | '낮음',
-                rankPosition: keyword.rank,
-                analysisDate: new Date().toISOString().split('T')[0],
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-              })) || [];
+              // 모든 스크래핑 데이터를 사용 (카테고리 구분 없이 모든 키워드 표시)
+              const allScrapedKeywords = workflowData.data.scrapingData?.keywords || [];
+              
+              // analysisData의 relatedKeywords가 있으면 사용, 없으면 빈 배열
+              const relatedData = workflowData.data.analysisData?.relatedKeywords || [];
 
-              console.log('🚀 SearchPage - 전체 데이터 연결 상태:', {
-                // 스크래핑 데이터
-                scrapingData: {
-                  totalKeywords: workflowData.data.scrapingData?.totalCount || 0,
-                  smartBlockCount: smartBlockData.length,
-                  relatedCount: relatedData.length,
-                  categoryAnalysis: workflowData.data.scrapingData?.categories
+              console.log('🚀 SearchPage - 통합키워드테이블 데이터 연결 상태:', {
+                // 원본 스크래핑 데이터
+                rawScrapingData: {
+                  totalKeywords: allScrapedKeywords.length,
+                  keywordsByCategory: allScrapedKeywords.reduce((acc, keyword) => {
+                    acc[keyword.category] = (acc[keyword.category] || 0) + 1;
+                    return acc;
+                  }, {} as Record<string, number>),
+                  sampleKeywords: allScrapedKeywords.slice(0, 5).map(k => ({ 
+                    keyword: k.keyword, 
+                    category: k.category,
+                    rank: k.rank,
+                    competition: k.competition,
+                    similarity: k.similarity
+                  }))
                 },
-                // 네이버 API 데이터
-                naverApiData: {
-                  blogTotal: workflowData.data.naverApiData?.blogSearch?.total || 0,
-                  blogItems: workflowData.data.naverApiData?.blogSearch?.items?.length || 0,
-                  datalabPeriods: workflowData.data.naverApiData?.datalab?.results?.[0]?.data?.length || 0
-                },
-                // 분석 데이터
+                // 분석 데이터 활용
                 analysisData: {
-                  analytics: workflowData.data.analysisData?.analytics ? 'exists' : 'null',
-                  searchTrends: workflowData.data.analysisData?.chartData?.searchTrends?.length || 0,
-                  monthlyRatios: workflowData.data.analysisData?.chartData?.monthlyRatios?.length || 0
+                  hasAnalytics: !!workflowData.data.analysisData?.analytics,
+                  hasRelatedKeywords: !!workflowData.data.analysisData?.relatedKeywords,
+                  analysisRelatedCount: workflowData.data.analysisData?.relatedKeywords?.length || 0,
+                  hasChartData: !!workflowData.data.analysisData?.chartData
+                },
+                // 최종 테이블 전달 데이터
+                tableData: {
+                  allScrapedKeywords: allScrapedKeywords.length,
+                  relatedKeywords: relatedData.length,
+                  totalForTable: allScrapedKeywords.length + relatedData.length
                 }
+              });
+
+              console.log('📋 IntegratedKeywordTable 최종 전달 데이터:', {
+                smartBlockKeywords: allScrapedKeywords.length,
+                relatedKeywords: relatedData.length,
+                usingAllScrapedData: true
               });
 
               return (
                 <IntegratedKeywordTable 
-                  smartBlockKeywords={smartBlockData}
+                  smartBlockKeywords={allScrapedKeywords}
                   relatedKeywords={relatedData}
                   showFilters={true}
-                  
                 />
               );
             })()}
 
             {/* 네이버 블로그 검색결과 리스트 */}
             {workflowData.data.naverApiData?.blogSearch && (
-              <BlogSearchResults blogSearchData={workflowData.data.naverApiData.blogSearch} />
+              <BlogSearchResults 
+                blogSearchData={workflowData.data.naverApiData.blogSearch} 
+              />
             )}
           </>
         )}

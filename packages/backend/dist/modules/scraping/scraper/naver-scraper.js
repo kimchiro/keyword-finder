@@ -117,24 +117,22 @@ class NaverScraper {
             };
         }
     }
-    async scrapeRelatedSearchKeywords(query, maxResults = scraping_constants_1.SCRAPING_DEFAULTS.MAX_KEYWORDS_PER_TYPE) {
-        console.log(`🔗 연관검색어 수집 시작: ${query} (2페이지에서만)`);
+    async scrapeRelatedSearchKeywords(query) {
+        console.log(`🔗 연관검색어 수집 시작: ${query} (2페이지에서만, 개수 제한 없음)`);
         try {
             console.log('📄 2페이지에서 연관검색어 수집...');
             const page2Results = await this.scrapeRelatedFromPage(query, 2);
             if (page2Results.status === 'success' && page2Results.keywords.length > 0) {
-                const limitedKeywords = page2Results.keywords
-                    .slice(0, maxResults)
-                    .map((keyword, index) => ({
+                const allKeywords = page2Results.keywords.map((keyword, index) => ({
                     ...keyword,
                     rank: index + 1
                 }));
-                console.log(`✅ 연관검색어 ${limitedKeywords.length}개 수집 완료 (2페이지)`);
+                console.log(`✅ 연관검색어 ${allKeywords.length}개 수집 완료 (2페이지, 개수 제한 없음)`);
                 return {
-                    keywords: limitedKeywords,
-                    message: `연관검색어 ${limitedKeywords.length}개 수집 완료 (2페이지)`,
+                    keywords: allKeywords,
+                    message: `연관검색어 ${allKeywords.length}개 수집 완료 (2페이지, 개수 제한 없음)`,
                     status: 'success',
-                    count: limitedKeywords.length,
+                    count: allKeywords.length,
                     pages: [2]
                 };
             }

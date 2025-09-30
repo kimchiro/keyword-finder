@@ -26,11 +26,11 @@ let WorkflowService = class WorkflowService {
         const startTime = Date.now();
         console.log(`🚀 워크플로우 시작: ${query}`);
         try {
-            console.log(`🕷️ Step 1: 스크래핑 실행`);
+            console.log(`🕷️ Step 1: 스크래핑 실행 (개수 제한 없음)`);
             const scrapingResult = await this.scrapingService.scrapeKeywords({
                 query,
                 types: ['smartblock', 'related_search'],
-                maxResults: this.appConfig.scrapingMaxResults,
+                maxResults: 999,
             });
             if (!scrapingResult || !scrapingResult.keywords) {
                 throw new Error('스크래핑 데이터를 가져올 수 없습니다.');
@@ -38,10 +38,21 @@ let WorkflowService = class WorkflowService {
             console.log(`✅ 스크래핑 완료: ${scrapingResult.keywords.length}개 키워드`);
             console.log(`💾 Step 2: 스크래핑 데이터 DB 저장`);
             const savedScrapingData = await this.keywordAnalysisService.saveScrapingData(query, scrapingResult);
-            console.log(`📊 Step 3: 네이버 API 호출 - "${query}"`);
+            console.log(`📊 Step 3: 네이버 API 호출 - "${query}" (블로그 + 데이터랩)`);
             const naverApiResult = await this.naverApiService.getSingleKeywordFullData({ keyword: query });
             console.log(`✅ 네이버 API 호출 완료`);
-            console.log(`📊 Step 4: 키워드 분석 데이터 저장`);
+            console.log(`📊 Step 4: 콘텐츠 발행량 조회 및 저장 - "${query}"`);
+            let contentCountsData = null;
+            try {
+                const contentCountsResult = await this.naverApiService.getContentCountsAndSave(query);
+                contentCountsData = contentCountsResult.data;
+                console.log(`✅ 콘텐츠 발행량 조회 및 저장 완료:`, contentCountsData);
+            }
+            catch (error) {
+                console.error(`❌ 콘텐츠 발행량 조회 실패 (계속 진행):`, error);
+                console.error(`❌ 오류 스택:`, error.stack);
+            }
+            console.log(`📊 Step 5: 키워드 분석 데이터 저장`);
             let analysisData = null;
             try {
                 const analysisResult = await this.keywordAnalysisService.analyzeKeyword(query, undefined, naverApiResult.data);
@@ -53,12 +64,14 @@ let WorkflowService = class WorkflowService {
             }
             const executionTime = (Date.now() - startTime) / 1000;
             console.log(`🎉 워크플로우 완료: ${query} (${executionTime}초)`);
-            return {
+            console.log(`🔍 최종 contentCountsData:`, contentCountsData);
+            const result = {
                 success: true,
                 data: {
                     query,
                     scrapingData: savedScrapingData,
                     naverApiData: naverApiResult.data,
+                    contentCountsData: contentCountsData,
                     analysisData: analysisData,
                     topKeywords: savedScrapingData?.topKeywords || [],
                     keywordsWithRank: savedScrapingData?.keywordsWithRank || [],
@@ -67,6 +80,8 @@ let WorkflowService = class WorkflowService {
                 },
                 message: `키워드 "${query}" 분석이 완료되었습니다.`,
             };
+            console.log(`📤 워크플로우 응답 데이터 키들:`, Object.keys(result.data));
+            return result;
         }
         catch (error) {
             const executionTime = (Date.now() - startTime) / 1000;
@@ -77,6 +92,7 @@ let WorkflowService = class WorkflowService {
                     query,
                     scrapingData: null,
                     naverApiData: null,
+                    contentCountsData: null,
                     analysisData: null,
                     topKeywords: [],
                     keywordsWithRank: [],

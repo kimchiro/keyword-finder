@@ -61,6 +61,7 @@ export const StatLabel = styled.div`
   ${fontStyles.caption}
   margin-bottom: ${spacing.sm};
   font-weight: ${fontWeight.medium};
+  color: ${colors.textSecondary};
 `;
 
 export const StatValue = styled.div`
@@ -72,7 +73,7 @@ export const StatValue = styled.div`
 
 export const StatUnit = styled.div`
   font-size: ${fontSize.xs};
-  color: ${colors.textTertiary};
+  color: ${colors.textSecondary};
   font-weight: ${fontWeight.medium};
 `;
 

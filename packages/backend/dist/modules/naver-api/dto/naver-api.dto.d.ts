@@ -55,7 +55,6 @@ export declare class MultipleKeywordsLimitedDataResponseDto {
         results: Array<{
             keyword: string;
             monthlySearchVolume: number;
-            cumulativePublications: number;
         }>;
         searchPeriod: {
             startDate: string;

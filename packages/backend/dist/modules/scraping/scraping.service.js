@@ -126,8 +126,8 @@ let ScrapingService = class ScrapingService {
         try {
             await scraper.initialize();
             const scrapingResult = await scraper.scrapeAllKeywords(query, types);
-            const limitedKeywords = scrapingResult.keywords.slice(0, maxResults);
-            const formattedKeywords = limitedKeywords.map((keyword) => ({
+            console.log(`📊 스크래핑 완료: 총 ${scrapingResult.keywords.length}개 키워드 (개수 제한 없음)`);
+            const formattedKeywords = scrapingResult.keywords.map((keyword) => ({
                 keyword: keyword.keyword,
                 category: keyword.category,
                 rank: keyword.rank,

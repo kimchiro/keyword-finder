@@ -74,11 +74,13 @@ __decorate([
     (0, swagger_1.ApiOperation)({
         summary: '키워드 분석 워크플로우 실행',
         description: `
-    단순화된 키워드 분석 워크플로우:
-    1. 스크래핑 실행 (smartblock, related_search)
+    확장된 키워드 분석 워크플로우:
+    1. 스크래핑 실행 (smartblock, related_search) - 개수 제한 없음
     2. 스크래핑 데이터 DB 저장 (카테고리 분류, rank 없음)
-    3. 네이버 API 1개 키워드 데이터 수집
-    4. 통합 결과 반환
+    3. 네이버 API 1개 키워드 데이터 수집 (블로그 검색 + 데이터랩)
+    4. 콘텐츠 발행량 조회 및 저장 (별도 API)
+    5. 키워드 분석 데이터 저장
+    6. 통합 결과 반환
     `,
     }),
     (0, swagger_1.ApiParam)({
@@ -97,8 +99,12 @@ __decorate([
                     type: 'object',
                     properties: {
                         query: { type: 'string', example: '맛집' },
-                        scrapingData: { type: 'object', description: '스크래핑 결과 데이터' },
-                        naverApiData: { type: 'object', description: '네이버 API 결과 데이터' },
+                        scrapingData: { type: 'object', description: '스크래핑 결과 데이터 (개수 제한 없음)' },
+                        naverApiData: { type: 'object', description: '네이버 API 결과 데이터 (블로그 + 데이터랩)' },
+                        contentCountsData: { type: 'object', description: '콘텐츠 발행량 데이터 (별도 API)' },
+                        analysisData: { type: 'object', description: '키워드 분석 데이터' },
+                        topKeywords: { type: 'array', description: '상위 키워드 목록' },
+                        keywordsWithRank: { type: 'array', description: '순위 포함 키워드 정보' },
                         executionTime: { type: 'number', example: 5.2 },
                         timestamp: { type: 'string', example: '2025-09-23T12:00:00.000Z' },
                     },

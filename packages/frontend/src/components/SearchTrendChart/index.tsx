@@ -57,19 +57,31 @@ export const SearchTrendChart: React.FC<SearchTrendChartProps> = ({ searchTrends
           label: '검색량',
           data: sortedTrends.map(trend => trend.searchVolume),
           borderColor: '#22c55e',
-          backgroundColor: '#22c55e33',
+          backgroundColor: '#00000033',
           borderWidth: 2,
           fill: true,
           tension: 0.4,
           pointBackgroundColor: '#22c55e',
           pointBorderColor: '#ffffff',
+          pointRadius: 4,
+          color: '#000000',
         },
       ],
     };
   };
 
-  // 차트 옵션 (공통 설정 사용)
-  const chartOptions = createLineChartOptions('#22c55e');
+  // 차트 옵션 (공통 설정 사용 + 커스텀 tooltip 색상)
+  const chartOptions = {
+    ...createLineChartOptions('#22c55e'),
+    plugins: {
+      ...createLineChartOptions('#22c55e').plugins,
+      tooltip: {
+        ...createLineChartOptions('#22c55e').plugins.tooltip,
+        titleColor: '#000000',
+        bodyColor: '#000000',
+      },
+    },
+  };
 
   const chartData = createLineChartData();
 

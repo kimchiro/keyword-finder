@@ -41,11 +41,9 @@ export declare class NaverApiService {
             results: ({
                 keyword: string;
                 monthlySearchVolume: number;
-                cumulativePublications: any;
             } | {
                 keyword: string;
                 monthlySearchVolume: number;
-                cumulativePublications: number;
                 error: any;
             })[];
             searchPeriod: {
@@ -87,6 +85,7 @@ export declare class NaverApiService {
         };
         message: string;
     }>;
+    private processKeywordDataWithoutPublications;
     private processKeywordData;
     private calculateMonthlySearchVolume;
     private getDateRange;

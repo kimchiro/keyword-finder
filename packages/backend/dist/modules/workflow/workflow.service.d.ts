@@ -8,6 +8,7 @@ export interface WorkflowResult {
         query: string;
         scrapingData: any;
         naverApiData: any;
+        contentCountsData: any;
         analysisData: any;
         topKeywords: string[];
         keywordsWithRank: Array<{

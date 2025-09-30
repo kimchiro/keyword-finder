@@ -60,4 +60,5 @@ export interface UseFilteredKeywordsReturn {
   totalCount: number;
   filteredCount: number;
   availableCategories: string[];
+  integratedKeywords: IntegratedKeywordItem[]; // 원본 데이터 추가
 }

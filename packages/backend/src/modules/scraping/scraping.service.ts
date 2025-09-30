@@ -145,11 +145,11 @@ export class ScrapingService {
       // 실제 스크래핑 수행 (개선된 응답 구조)
       const scrapingResult = await scraper.scrapeAllKeywords(query, types);
       
-      // maxResults 제한 적용
-      const limitedKeywords = scrapingResult.keywords.slice(0, maxResults);
+      // 개수 제한 없이 모든 키워드 사용
+      console.log(`📊 스크래핑 완료: 총 ${scrapingResult.keywords.length}개 키워드 (개수 제한 없음)`);
       
       // 데이터베이스 저장 형식으로 변환 (카테고리별 원본 순위 유지)
-      const formattedKeywords = limitedKeywords.map((keyword) => ({
+      const formattedKeywords = scrapingResult.keywords.map((keyword) => ({
         keyword: keyword.keyword,
         category: keyword.category,
         rank: keyword.rank, // 스크래퍼에서 설정한 원본 순위 유지 (카테고리별 독립적)

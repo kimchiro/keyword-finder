@@ -167,12 +167,11 @@ export const TableContainer = styled.div`
 export const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  background: ${colors.bgCard};
   min-width: 800px;
 `;
 
 export const TableHeader = styled.thead`
-  background: ${colors.bgSecondary};
+  width: 100%;
 `;
 
 export const TableBody = styled.tbody``;
@@ -191,18 +190,23 @@ export const TableRow = styled.tr`
 `;
 
 export const TableHeaderCell = styled.th<{ sortable?: boolean }>`
+
+  position: sticky;
+  top: 0;
+  z-index: 10;
   padding: ${spacing.md} ${spacing.lg};
   text-align: left;
   font-size: ${fontSize.sm};
   font-weight: ${fontWeight.semibold};
   color: ${colors.textSecondary};
+  background: ${colors.bgSecondary};
   border-bottom: 2px solid ${colors.borderPrimary};
   white-space: nowrap;
   cursor: ${props => props.sortable ? 'pointer' : 'default'};
-  user-select: none;
+
   
   &:hover {
-    background: ${props => props.sortable ? colors.gray100 : 'transparent'};
+    background: ${props => props.sortable ? colors.gray100 : colors.bgSecondary};
   }
   
   &:first-of-type {

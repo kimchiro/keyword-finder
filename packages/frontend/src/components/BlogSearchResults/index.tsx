@@ -23,7 +23,7 @@ export const BlogSearchResults: React.FC<BlogSearchResultsProps> = ({
 
   return (
     <ResultsContainer>
-      <SectionTitle>📝 네이버 블로그 검색 결과 ({blogSearchData.total.toLocaleString()}건)</SectionTitle>
+      <SectionTitle>📝 네이버 블로그 검색 결과 최근10개</SectionTitle>
       {blogSearchData.items.map((item, index) => (
         <SearchResultItem key={index}>
           <BlogTitle>

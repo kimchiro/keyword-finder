@@ -190,29 +190,23 @@ export class NaverApiService {
       const keywordResults = await Promise.all(
         request.keywords.map(async (keyword) => {
           try {
-            // 트렌드 데이터와 블로그 검색을 병렬로 조회
-            const [datalabResult, blogSearchResult] = await Promise.all([
-              // 트렌드 데이터
-              this.getDatalab({
-                startDate,
-                endDate,
-                timeUnit: 'month',
-                keywordGroups: [
-                  {
-                    groupName: keyword,
-                    keywords: [keyword],
-                  },
-                ],
-              }),
-              // 블로그 검색에서 발행량 추정
-              this.searchBlogs(keyword, 1, 1),
-            ]);
+            // 트렌드 데이터만 조회 (발행량은 별도 API 사용)
+            const datalabResult = await this.getDatalab({
+              startDate,
+              endDate,
+              timeUnit: 'month',
+              keywordGroups: [
+                {
+                  groupName: keyword,
+                  keywords: [keyword],
+                },
+              ],
+            });
 
-            // 데이터 가공하여 필요한 정보만 추출
-            const processedData = this.processKeywordData(
+            // 데이터 가공하여 필요한 정보만 추출 (발행량 제외)
+            const processedData = this.processKeywordDataWithoutPublications(
               keyword,
-              datalabResult.data,
-              blogSearchResult.data
+              datalabResult.data
             );
 
             return processedData;
@@ -221,7 +215,6 @@ export class NaverApiService {
             return {
               keyword,
               monthlySearchVolume: 0,
-              cumulativePublications: 0,
               error: error.message,
             };
           }
@@ -328,7 +321,33 @@ export class NaverApiService {
     }
   }
 
-  // 키워드 데이터 가공
+  // 키워드 데이터 가공 (발행량 제외)
+  private processKeywordDataWithoutPublications(
+    keyword: string, 
+    datalabData: any
+  ) {
+    try {
+      // 월간검색량 계산 (데이터랩 트렌드 데이터에서 추출)
+      const monthlySearchVolume = this.calculateMonthlySearchVolume(datalabData);
+
+      console.log(`📊 키워드 "${keyword}" 데이터 가공 완료 (발행량 제외):`, {
+        monthlySearchVolume,
+      });
+
+      return {
+        keyword,
+        monthlySearchVolume,
+      };
+    } catch (error) {
+      console.error(`❌ 키워드 데이터 가공 오류 (${keyword}):`, error);
+      return {
+        keyword,
+        monthlySearchVolume: 0,
+      };
+    }
+  }
+
+  // 키워드 데이터 가공 (기존 메서드 - 호환성 유지)
   private processKeywordData(
     keyword: string, 
     datalabData: any, 

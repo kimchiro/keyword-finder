@@ -152,7 +152,7 @@ export interface WorkflowResponse {
   data: {
     query: string;
     naverApiData: NaverApiData;
-    contentCounts?: {
+    contentCountsData?: {
       keyword: string;
       searchedAt: string;
       counts: {

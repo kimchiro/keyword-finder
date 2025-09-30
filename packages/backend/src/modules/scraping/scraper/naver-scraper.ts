@@ -162,8 +162,8 @@ export class NaverScraper {
   }
 
   // 네이버 검색 결과 페이지에서 연관검색어 수집 (2페이지에서만)
-  async scrapeRelatedSearchKeywords(query: string, maxResults: number = SCRAPING_DEFAULTS.MAX_KEYWORDS_PER_TYPE): Promise<ScrapingResult> {
-    console.log(`🔗 연관검색어 수집 시작: ${query} (2페이지에서만)`);
+  async scrapeRelatedSearchKeywords(query: string): Promise<ScrapingResult> {
+    console.log(`🔗 연관검색어 수집 시작: ${query} (2페이지에서만, 개수 제한 없음)`);
     
     try {
       // 2페이지에서만 연관검색어 수집 (실제 네이버 URL 형식 사용)
@@ -171,18 +171,17 @@ export class NaverScraper {
       const page2Results = await this.scrapeRelatedFromPage(query, 2);
       
       if (page2Results.status === 'success' && page2Results.keywords.length > 0) {
-        const limitedKeywords = page2Results.keywords
-          .slice(0, maxResults)
-          .map((keyword, index) => ({
-            ...keyword,
-            rank: index + 1 // 제한 후 순위를 1부터 재정렬
-          }));
-        console.log(`✅ 연관검색어 ${limitedKeywords.length}개 수집 완료 (2페이지)`);
+        // 개수 제한 없이 모든 키워드 사용
+        const allKeywords = page2Results.keywords.map((keyword, index) => ({
+          ...keyword,
+          rank: index + 1 // 원본 순위 유지
+        }));
+        console.log(`✅ 연관검색어 ${allKeywords.length}개 수집 완료 (2페이지, 개수 제한 없음)`);
         return {
-          keywords: limitedKeywords,
-          message: `연관검색어 ${limitedKeywords.length}개 수집 완료 (2페이지)`,
+          keywords: allKeywords,
+          message: `연관검색어 ${allKeywords.length}개 수집 완료 (2페이지, 개수 제한 없음)`,
           status: 'success',
-          count: limitedKeywords.length,
+          count: allKeywords.length,
           pages: [2]
         };
       }

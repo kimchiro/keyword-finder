@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { ScrapedKeyword, RelatedKeywordData } from '@/commons/types/workflow';
 import {
   IntegratedKeywordItem,
@@ -8,12 +8,12 @@ import {
 } from '../types';
 
 /**
- * 기본 필터 옵션
+ * 기본 필터 옵션 - 카테고리 필터만 사용
  */
 const DEFAULT_FILTERS: FilterOptions = {
-  competition: ['low', 'medium', 'high'],
-  category: [],
-  source: ['smartblock', 'related'],
+  competition: [], // 사용하지 않음
+  category: [],    // 빈 배열 = 모든 카테고리 허용
+  source: [],      // 사용하지 않음
 };
 
 /**
@@ -27,18 +27,58 @@ const DEFAULT_SORT: SortOptions = {
 /**
  * ScrapedKeyword를 IntegratedKeywordItem으로 변환
  */
-const convertScrapedKeyword = (keyword: ScrapedKeyword, index: number): IntegratedKeywordItem => ({
-  id: `smartblock-${keyword.keyword}-${index}`,
-  keyword: keyword.keyword,
-  rank: keyword.rank,
-  category: keyword.category,
-  competition: keyword.competition,
-  similarity: keyword.similarity,
-  source: 'smartblock',
-  score: keyword.score,
-  url: keyword.url,
-  metadata: keyword.metadata,
-});
+const convertScrapedKeyword = (keyword: ScrapedKeyword, index: number): IntegratedKeywordItem => {
+  // 안전한 기본값 설정
+  const getCompetitionLevel = (comp?: 'low' | 'medium' | 'high'): 'low' | 'medium' | 'high' => {
+    return comp || 'medium';
+  };
+
+  const getSimilarityLevel = (sim?: 'low' | 'medium' | 'high'): 'low' | 'medium' | 'high' => {
+    return sim || 'medium';
+  };
+
+  // 카테고리를 한국어로 변환
+  const getCategoryName = (category: string): string => {
+    switch (category) {
+      case 'smartblock':
+        return '스마트블록';
+      case 'related':
+      case 'related_search':
+        return '연관검색어';
+      case 'autosuggest':
+        return '자동완성';
+      default:
+        return category;
+    }
+  };
+
+  // 소스를 카테고리에 따라 설정
+  const getSourceType = (category: string): 'smartblock' | 'related' => {
+    switch (category) {
+      case 'smartblock':
+        return 'smartblock';
+      case 'related':
+      case 'related_search':
+      case 'autosuggest':
+        return 'related';
+      default:
+        return 'smartblock';
+    }
+  };
+
+  return {
+    id: `scraped-${keyword.keyword}-${index}`,
+    keyword: keyword.keyword,
+    rank: keyword.rank || index + 1,
+    category: getCategoryName(keyword.category),
+    competition: getCompetitionLevel(keyword.competition),
+    similarity: getSimilarityLevel(keyword.similarity),
+    source: getSourceType(keyword.category),
+    score: keyword.score,
+    url: keyword.url,
+    metadata: keyword.metadata,
+  };
+};
 
 /**
  * RelatedKeywordData를 IntegratedKeywordItem으로 변환
@@ -87,9 +127,45 @@ export const useFilteredKeywords = (
   initialFilters?: Partial<FilterOptions>,
   initialSort?: SortOptions
 ): UseFilteredKeywordsReturn => {
+  // 사용 가능한 카테고리 목록을 먼저 계산
+  const availableCategories = useMemo(() => {
+    const categories = new Set<string>();
+    if (smartBlockKeywords) {
+      smartBlockKeywords.forEach((keyword) => {
+        const categoryName = keyword.category === 'smartblock' ? '스마트블록' : 
+                           keyword.category === 'related' || keyword.category === 'related_search' ? '연관검색어' :
+                           keyword.category === 'autosuggest' ? '자동완성' : keyword.category;
+        categories.add(categoryName);
+      });
+    }
+    if (relatedKeywords) {
+      categories.add('연관검색어');
+    }
+    return Array.from(categories).sort();
+  }, [smartBlockKeywords, relatedKeywords]);
+
   const [filters, setFilters] = useState<FilterOptions>({
     ...DEFAULT_FILTERS,
     ...initialFilters,
+  });
+
+  // availableCategories가 변경되면 카테고리 필터를 모든 카테고리로 설정
+  useEffect(() => {
+    if (availableCategories.length > 0 && filters.category.length === 0) {
+      console.log('🔄 카테고리 필터 자동 설정:', availableCategories);
+      setFilters(prev => ({
+        ...prev,
+        category: [...availableCategories]
+      }));
+    }
+  }, [availableCategories, filters.category.length]);
+
+  // 필터 상태 디버깅
+  console.log('🎛️ 현재 필터 상태:', {
+    filters,
+    DEFAULT_FILTERS,
+    initialFilters,
+    availableCategories
   });
 
   const [sortOptions, setSortOptions] = useState<SortOptions>(
@@ -131,42 +207,41 @@ export const useFilteredKeywords = (
       console.log('⚠️ Related 키워드가 없습니다');
     }
 
-    console.log('🎯 통합 키워드 생성 완료:', integrated.length, '개', integrated);
+    console.log('🎯 통합 키워드 생성 완료:', {
+      totalCount: integrated.length,
+      sampleData: integrated.slice(0, 3),
+      allData: integrated
+    });
     return integrated;
   }, [smartBlockKeywords, relatedKeywords]);
 
-  // 사용 가능한 카테고리 목록
-  const availableCategories = useMemo(() => {
-    const categories = new Set<string>();
-    integratedKeywords.forEach((keyword) => {
-      categories.add(keyword.category);
-    });
-    return Array.from(categories).sort();
-  }, [integratedKeywords]);
+  // availableCategories는 이미 위에서 계산됨
 
-  // 필터링된 키워드
+  // 필터링된 키워드 - 카테고리 필터만 적용
   const filteredKeywords = useMemo(() => {
+    console.log('🔍 필터링 시작 (카테고리 필터만):', {
+      totalKeywords: integratedKeywords.length,
+      categoryFilters: filters.category,
+      sampleKeywords: integratedKeywords.slice(0, 3).map(k => ({
+        keyword: k.keyword,
+        category: k.category
+      }))
+    });
+
     let filtered = integratedKeywords;
 
-    // 경쟁도 필터
-    if (filters.competition.length > 0) {
-      filtered = filtered.filter((keyword) =>
-        filters.competition.includes(keyword.competition)
-      );
-    }
-
-    // 카테고리 필터
+    // 카테고리 필터만 적용 - 빈 배열이면 모든 카테고리 허용
     if (filters.category.length > 0) {
+      const beforeCount = filtered.length;
       filtered = filtered.filter((keyword) =>
         filters.category.includes(keyword.category)
       );
-    }
-
-    // 소스 필터
-    if (filters.source.length > 0) {
-      filtered = filtered.filter((keyword) =>
-        filters.source.includes(keyword.source)
-      );
+      console.log(`📂 카테고리 필터 적용: ${beforeCount} → ${filtered.length}개`, {
+        allowedCategories: filters.category,
+        sampleCategories: integratedKeywords.slice(0, 5).map(k => k.category)
+      });
+    } else {
+      console.log(`📂 카테고리 필터 건너뜀 - 모든 카테고리 허용`);
     }
 
     // 정렬
@@ -192,8 +267,18 @@ export const useFilteredKeywords = (
       return 0;
     });
 
+    console.log('✅ 필터링 완료:', {
+      finalCount: filtered.length,
+      sampleFiltered: filtered.slice(0, 3).map(k => ({
+        keyword: k.keyword,
+        category: k.category,
+        competition: k.competition,
+        source: k.source
+      }))
+    });
+
     return filtered;
-  }, [integratedKeywords, filters, sortOptions]);
+  }, [integratedKeywords, filters, sortOptions, integratedKeywords.length]);
 
   // 필터 업데이트
   const updateFilters = useCallback((newFilters: Partial<FilterOptions>) => {
@@ -224,5 +309,6 @@ export const useFilteredKeywords = (
     totalCount: integratedKeywords.length,
     filteredCount: filteredKeywords.length,
     availableCategories,
+    integratedKeywords, // 원본 데이터도 반환
   };
 };

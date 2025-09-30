@@ -23,7 +23,7 @@ export declare class NaverScraper {
     close(): Promise<void>;
     private get page();
     scrapeSmartBlockData(query: string): Promise<ScrapingResult>;
-    scrapeRelatedSearchKeywords(query: string, maxResults?: number): Promise<ScrapingResult>;
+    scrapeRelatedSearchKeywords(query: string): Promise<ScrapingResult>;
     private scrapeRelatedFromPage;
     scrapeAllKeywords(query: string, types?: string[]): Promise<{
         keywords: ScrapedKeyword[];

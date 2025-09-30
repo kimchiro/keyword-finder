@@ -116,19 +116,6 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --color-bg-card: #1f2937;
-    --color-bg-secondary: #111827;
-    --color-bg-tertiary: #1f2937;
-    --color-text-secondary: var(--color-gray-400);
-    --color-text-tertiary: var(--color-gray-500);
-    --color-border-primary: var(--color-gray-700);
-    --color-border-secondary: var(--color-gray-600);
-  }
-}
 
 /* 폰트 스타일 클래스 */
 .font-heading {

@@ -58,6 +58,7 @@ export const IntegratedKeywordTable: React.FC<IntegratedKeywordTableProps> = ({
     totalCount,
     filteredCount,
     availableCategories,
+    integratedKeywords, // 원본 데이터 직접 사용
   } = useFilteredKeywords(smartBlockKeywords, relatedKeywords, initialFilters, initialSort);
 
   // 디버깅: 필터링된 결과 확인
@@ -65,10 +66,11 @@ export const IntegratedKeywordTable: React.FC<IntegratedKeywordTableProps> = ({
     totalCount,
     filteredCount,
     filteredKeywords: filteredKeywords.length,
+    integratedKeywords: integratedKeywords?.length || 0,
     availableCategories
   });
 
-  // 모든 필터링된 키워드 표시 (maxItems 제한 제거)
+  // 정상적으로 필터링된 데이터 사용
   const displayKeywords = filteredKeywords;
 
   // 경쟁도 텍스트 변환
@@ -146,23 +148,6 @@ export const IntegratedKeywordTable: React.FC<IntegratedKeywordTableProps> = ({
         
         {showFilters && (
           <FilterContainer>
-
-            <FilterGroup>
-              <FilterLabel>경쟁도</FilterLabel>
-              <FilterCheckboxGroup>
-                {(['low', 'medium', 'high'] as const).map(competition => (
-                  <FilterCheckbox key={competition}>
-                    <input
-                      type="checkbox"
-                      checked={filters.competition.includes(competition)}
-                      onChange={(e) => handleFilterChange('competition', competition, e.target.checked)}
-                    />
-                    {getCompetitionText(competition)}
-                  </FilterCheckbox>
-                ))}
-              </FilterCheckboxGroup>
-            </FilterGroup>
-
             <FilterGroup>
               <FilterLabel>카테고리</FilterLabel>
               <FilterCheckboxGroup>

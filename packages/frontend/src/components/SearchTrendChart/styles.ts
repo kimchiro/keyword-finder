@@ -7,6 +7,7 @@ export const Container = styled.div`
   padding: ${spacing.xl};
   box-shadow: ${shadow.md};
   margin-bottom: ${spacing.xl};
+  color: ${colors.textPrimary};
   border: 1px solid ${colors.borderPrimary};
 `;
 
@@ -47,5 +48,5 @@ export const EmptyState = styled.div`
   background: ${colors.bgSecondary};
   border-radius: ${borderRadius.md};
   border: 1px dashed ${colors.borderSecondary};
-  color: ${colors.textTertiary};
+  color: ${colors.textPrimary};
 `;
