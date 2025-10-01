@@ -1,27 +1,76 @@
+# Dependencies
 node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-coverage
+lerna-debug.log*
+
+# Environment variables
+.env*
+!.env.example
+
+# Build outputs
+dist/
+build/
+out/
+coverage/
 .nyc_output
+
+# Logs
 *.log
+logs/
+
+# OS generated files
 .DS_Store
-.vscode
-.idea
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor directories and files
+.vscode/
+.idea/
 *.swp
 *.swo
 *~
-.git
+
+# Git
+.git/
+.gitignore
+
+# Documentation and scripts (not needed in production)
 README.md
+CHANGELOG.md
+LICENSE
 scripts/
+docs/
+
+# Test files
+test/
+tests/
+**/*.test.*
+**/*.spec.*
+jest.config.*
+.nyc_output
+
+# Development configs
+.eslintrc*
+.prettierrc*
+tsconfig.json
+nodemon.json
+
+# Frontend files (not needed for backend build)
+app/frontend/
+
+# Backup files
+*.backup
+*.bak
 package.json.root-backup
 package-lock.json.root-backup
 
-# 중요: package.json은 포함해야 함
-!app/backend/package.json
-!app/backend/package-lock.json
+# Include necessary backend files
+!app/backend/
+!app/backend/**
+!nixpacks.toml
