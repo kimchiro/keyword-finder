@@ -19,7 +19,7 @@ RUN echo "Backend directory contents:" && ls -la .
 
 # package.json 복원 (숨겨진 파일에서)
 RUN echo "Looking for package files..."
-COPY packages/backend/package.json.backup ./package.json
+COPY packages/backend/package.json ./package.json
 COPY packages/backend/package-lock.json ./package-lock.json
 
 # 복사 후 확인
