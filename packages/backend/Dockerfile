@@ -1,25 +1,25 @@
-# 강제 Docker 빌드 - Node.js 자동 감지 방지
+# 강제 Docker 빌드 - Node.js 자동 감지 완전 방지
 FROM node:18-alpine
 
 # 작업 디렉토리 설정
 WORKDIR /app
 
-# 커스텀 Dockerfile 실행 확인
-RUN echo "=== CUSTOM DOCKERFILE IS RUNNING ===" && echo "Current working directory:" && pwd && echo "Root directory contents:" && ls -la /
-
-# 빌드 컨텍스트 확인
+# 커스텀 Dockerfile 실행 확인 (이 메시지가 보이면 성공!)
+RUN echo "========================================="
+RUN echo "=== CUSTOM DOCKERFILE IS RUNNING!!! ==="
+RUN echo "========================================="
+RUN echo "Current working directory:" && pwd
+RUN echo "Root directory contents:" && ls -la /
 RUN echo "Build context contents:" && ls -la .
 
-# package.json 존재 확인 및 복사
-RUN echo "Looking for package files..." && find . -name "package*.json" -o -name "yarn.lock" -o -name "pnpm-lock.yaml" | head -10
-
-# package files 복사 (존재하는 것만)
-COPY package*.json ./
-COPY yarn.lock* ./
-COPY pnpm-lock.yaml* ./
+# package.json 복원 (숨겨진 파일에서)
+RUN echo "Looking for package files..."
+COPY package.json.backup ./package.json
+COPY package-lock.json ./package-lock.json
 
 # 복사 후 확인
-RUN echo "After COPY - directory contents:" && ls -la .
+RUN echo "After package.json restore:" && ls -la .
+RUN echo "package.json contents:" && head -10 package.json
 
 # 의존성 설치
 RUN npm ci
