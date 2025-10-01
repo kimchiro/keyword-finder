@@ -5,14 +5,11 @@ RUN apk add --no-cache python3 make g++
 
 WORKDIR /app
 
-# package.json과 package-lock.json 복사
-COPY package*.json ./
+# 현재 디렉토리의 모든 파일 복사 (package.json 포함)
+COPY . .
 
 # 의존성 설치
 RUN npm install
-
-# 소스 코드 복사
-COPY . .
 
 # TypeScript 빌드
 RUN npm run build
