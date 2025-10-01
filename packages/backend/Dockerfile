@@ -1,14 +1,25 @@
-# 클라우드 시스템 호환성을 위한 단일 스테이지 빌드
+# 강제 Docker 빌드 - Node.js 자동 감지 방지
 FROM node:18-alpine
 
 # 작업 디렉토리 설정
 WORKDIR /app
 
-# 파일 존재 확인을 위한 디버그
-RUN echo "=== CUSTOM DOCKERFILE RUNNING ===" && pwd && ls -la /
+# 커스텀 Dockerfile 실행 확인
+RUN echo "=== CUSTOM DOCKERFILE IS RUNNING ===" && echo "Current working directory:" && pwd && echo "Root directory contents:" && ls -la /
 
-# package files 복사 (클라우드 시스템 호환)
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+# 빌드 컨텍스트 확인
+RUN echo "Build context contents:" && ls -la .
+
+# package.json 존재 확인 및 복사
+RUN echo "Looking for package files..." && find . -name "package*.json" -o -name "yarn.lock" -o -name "pnpm-lock.yaml" | head -10
+
+# package files 복사 (존재하는 것만)
+COPY package*.json ./
+COPY yarn.lock* ./
+COPY pnpm-lock.yaml* ./
+
+# 복사 후 확인
+RUN echo "After COPY - directory contents:" && ls -la .
 
 # 의존성 설치
 RUN npm ci
