@@ -1,3 +1,32 @@
+# 🚀 Railway 배포용 백엔드
+
+Railway에서 이 디렉토리를 직접 배포하세요.
+
+## 📋 배포 설정
+
+- **Nixpacks 설정**: `nixpacks.toml`
+- **Railway 설정**: `railway.json` 
+- **포트**: 3001
+- **헬스체크**: `/health`
+
+## 🔧 Railway 배포 방법
+
+1. Railway에서 **Root Directory**를 `app/backend`로 설정
+2. 환경 변수 설정:
+   ```
+   NODE_ENV=production
+   PORT=3001
+   DATABASE_URL=your_database_url
+   NAVER_CLIENT_ID=your_naver_client_id
+   NAVER_CLIENT_SECRET=your_naver_client_secret
+   ```
+
+## ✅ 배포 확인
+
+배포 후 헬스체크: `https://your-app.railway.app/health`
+
+---
+
 # 키워드 파인더 백엔드 v2.0
 
 네이버 검색 키워드 수집 및 분석을 위한 백엔드 API 서버입니다.
