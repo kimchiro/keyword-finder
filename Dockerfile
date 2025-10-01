@@ -12,25 +12,25 @@ RUN echo "Current working directory:" && pwd
 RUN echo "Build context contents:" && ls -la .
 
 # 백엔드 디렉토리로 이동
-WORKDIR /app/packages/backend
+WORKDIR /app
 
 # 백엔드 디렉토리 내용 확인
-RUN echo "Backend directory contents:" && ls -la .
+RUN echo "Root directory contents:" && ls -la .
+RUN echo "Backend directory contents:" && ls -la packages/backend/
 
-# package.json 복원 (숨겨진 파일에서)
+# package.json 복원 (올바른 경로에서)
 RUN echo "Looking for package files..."
-COPY packages/backend/package.json ./package.json
-COPY packages/backend/package-lock.json ./package-lock.json
+COPY packages/backend/package.json packages/backend/package-lock.json ./
 
 # 복사 후 확인
-RUN echo "After package.json restore:" && ls -la .
+RUN echo "After package.json copy:" && ls -la .
 RUN echo "package.json contents:" && head -10 package.json
 
 # 의존성 설치
 RUN npm ci
 
 # 소스 코드 복사
-COPY packages/backend/ .
+COPY packages/backend/ ./
 
 # TypeScript 빌드
 RUN npm run build
