@@ -4,6 +4,10 @@ FROM node:18-alpine
 # 작업 디렉토리 설정
 WORKDIR /app
 
+# 강력한 캐시 무효화 - 매번 다른 값 생성
+ARG CACHEBUST=1
+RUN echo "=== CACHE BUSTER: $CACHEBUST ===" && date && echo "Random: $RANDOM"
+
 # 커스텀 Dockerfile 실행 확인 (이 메시지가 보이면 드디어 성공!)
 RUN echo "========================================="
 RUN echo "=== ROOT DOCKERFILE IS RUNNING!!! ==="
