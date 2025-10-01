@@ -1,14 +1,22 @@
+# Nixpacks 설정 - 모노레포 백엔드 배포
+[providers]
+node = "app/backend"
+
 [phases.setup]
 nixPkgs = ["nodejs-18_x", "npm-9_x"]
 
 [phases.install]
+dependsOn = ["setup"]
 cmds = [
-  "cd app/backend && npm ci --only=production"
+  "cd app/backend",
+  "npm ci --only=production"
 ]
 
 [phases.build]
+dependsOn = ["install"] 
 cmds = [
-  "cd app/backend && npm run build"
+  "cd app/backend",
+  "npm run build"
 ]
 
 [start]
@@ -16,3 +24,4 @@ cmd = "cd app/backend && node dist/main.js"
 
 [variables]
 NODE_ENV = "production"
+PORT = "3001"
