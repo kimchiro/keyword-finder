@@ -14,9 +14,11 @@ RUN echo "Build context contents:" && ls -la .
 # 백엔드 디렉토리로 이동
 WORKDIR /app
 
-# 백엔드 디렉토리 내용 확인
+# 백엔드 디렉토리 내용 확인 (캐시 무효화)
+RUN echo "=== DEBUGGING BUILD CONTEXT ===" && date
 RUN echo "Root directory contents:" && ls -la .
-RUN echo "Backend directory contents:" && ls -la packages/backend/
+RUN echo "Backend directory exists?" && ls -la packages/ || echo "packages directory not found"
+RUN echo "Backend directory contents:" && ls -la packages/backend/ || echo "packages/backend not found"
 
 # package.json 복원 (올바른 경로에서)
 RUN echo "Looking for package files..."
