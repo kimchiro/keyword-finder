@@ -23,5 +23,5 @@ package.json.root-backup
 package-lock.json.root-backup
 
 # 중요: package.json은 포함해야 함
-!packages/backend/package.json
-!packages/backend/package-lock.json
+!app/backend/package.json
+!app/backend/package-lock.json

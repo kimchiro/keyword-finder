@@ -7,8 +7,6 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
-dist
-build
 coverage
 .nyc_output
 *.log
@@ -18,3 +16,7 @@ coverage
 *.swp
 *.swo
 *~
+.git
+dist
+scripts/
+server.log

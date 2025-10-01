@@ -14,7 +14,7 @@
 
 ### 🚀 새로운 백엔드 아키텍처
 ```
-packages/backend/src/
+app/backend/src/
 ├── main.ts                     # NestJS 애플리케이션 엔트리포인트
 ├── app.module.ts               # 루트 모듈
 ├── config/                     # 설정 파일
@@ -109,7 +109,7 @@ intent_analysis (정보성/상업성 - 도넛차트)
 
 ### 🚀 프론트엔드 구조
 ```
-packages/frontend/src/
+app/frontend/src/
 ├── app/                    # Next.js App Router 페이지
 ├── commons/                # 전역 공통 리소스
 │   ├── apis/              # API 통신 함수들
@@ -131,7 +131,7 @@ packages/frontend/src/
 
 ```
 keyword-finder/
-├── packages/
+├── app/
 │   ├── backend/          # NestJS 백엔드 v4.0 (완전 리뉴얼)
 │   │   ├── src/
 │   │   │   ├── main.ts           # NestJS 엔트리포인트
@@ -187,7 +187,7 @@ NODE_ENV=development
 
 ### 3. 데이터베이스 마이그레이션
 ```bash
-cd packages/backend
+cd app/backend
 npm run migration:run
 ```
 
@@ -200,11 +200,11 @@ npm run dev
 개별 실행:
 ```bash
 # 백엔드 NestJS 서버만
-cd packages/backend
+cd app/backend
 npm run start:dev
 
 # 프론트엔드만
-cd packages/frontend
+cd app/frontend
 npm run dev
 ```
 
@@ -255,7 +255,7 @@ curl -X GET "http://localhost:3001/api/scraping/logs?query=맛집"
 
 ### 백엔드 (NestJS)
 ```bash
-cd packages/backend
+cd app/backend
 
 # 개발 서버 (Hot Reload)
 npm run start:dev
@@ -279,7 +279,7 @@ npm run migration:revert
 
 ### 프론트엔드 (Next.js)
 ```bash
-cd packages/frontend
+cd app/frontend
 
 # 개발 서버
 npm run dev

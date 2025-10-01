@@ -1,5 +1,8 @@
 # 루트에서 백엔드 서브패스 빌드용 Dockerfile
-FROM node:18-alpine
+FROM node:20-alpine
+
+# 빌드 도구 설치
+RUN apk add --no-cache python3 make g++
 
 # 작업 디렉토리 설정
 WORKDIR /app
@@ -21,13 +24,13 @@ WORKDIR /app
 # 전체 프로젝트 복사 후 백엔드만 추출
 COPY . .
 RUN echo "After full copy:" && ls -la .
-RUN echo "Packages directory:" && ls -la packages/ || echo "packages not found"
-RUN echo "Backend directory:" && ls -la packages/backend/ || echo "backend not found"
+RUN echo "App directory:" && ls -la app/ || echo "app not found"
+RUN echo "Backend directory:" && ls -la app/backend/ || echo "backend not found"
 
 # 백엔드 파일들을 루트로 이동
-RUN if [ -d "packages/backend" ]; then \
+RUN if [ -d "app/backend" ]; then \
     echo "Moving backend files to root..." && \
-    cp packages/backend/package*.json ./ && \
+    cp app/backend/package*.json ./ && \
     ls -la package*.json; \
     else echo "Backend directory not found!"; fi
 
@@ -36,13 +39,13 @@ RUN echo "After moving files:" && ls -la .
 RUN echo "package.json contents:" && head -10 package.json || echo "package.json not found"
 
 # 의존성 설치
-RUN npm ci
+RUN npm install
 
 # 백엔드 소스 코드를 현재 디렉토리로 복사
-RUN if [ -d "packages/backend/src" ]; then \
+RUN if [ -d "app/backend/src" ]; then \
     echo "Copying backend source code..." && \
-    cp -r packages/backend/src ./ && \
-    cp packages/backend/tsconfig.json ./ && \
+    cp -r app/backend/src ./ && \
+    cp app/backend/tsconfig.json ./ && \
     ls -la src/; \
     else echo "Backend src directory not found!"; fi
 
@@ -50,7 +53,7 @@ RUN if [ -d "packages/backend/src" ]; then \
 RUN npm run build
 
 # 프로덕션 의존성만 설치
-RUN npm ci --only=production && npm cache clean --force
+RUN npm prune --production && npm cache clean --force
 
 # 포트 노출
 EXPOSE 3001
