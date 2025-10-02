@@ -116,9 +116,9 @@ export default function SearchPage() {
           <>
             {/* 상단 3개 컴포넌트: MonthlyVolume, KeywordAnalytics, SearchTrendChart */}
             <AnalyticsGrid>
-              <MonthlyVolume 
+              {/* <MonthlyVolume 
                 analytics={workflowData.data.analysisData?.analytics || null} 
-              />
+              /> */}
               <KeywordAnalytics 
                 analytics={workflowData.data.analysisData?.analytics || null}
                 contentCounts={(() => {
@@ -134,11 +134,28 @@ export default function SearchPage() {
                   };
                 })()}
               />
-              {workflowData.data.analysisData?.chartData?.searchTrends && (
-                <SearchTrendChart 
-                  searchTrends={workflowData.data.analysisData.chartData.searchTrends} 
-                />
-              )}
+              {(() => {
+                // analysisData.chartData.searchTrends 우선 사용, 없으면 naverApiData.datalab 변환
+                const chartSearchTrends = workflowData.data.analysisData?.chartData?.searchTrends;
+                const datalabData = workflowData.data.naverApiData?.datalab;
+                
+                let searchTrends = chartSearchTrends;
+                
+                // chartSearchTrends가 비어있고 datalab 데이터가 있으면 변환
+                if ((!chartSearchTrends || chartSearchTrends.length === 0) && datalabData?.results?.[0]?.data) {
+                  searchTrends = datalabData.results[0].data.map((item: { period: string; ratio: number }) => ({
+                    keyword: datalabData.results[0].title,
+                    periodType: (datalabData.timeUnit === 'month' ? 'monthly' : 
+                                datalabData.timeUnit === 'week' ? 'weekly' : 'daily') as 'daily' | 'weekly' | 'monthly',
+                    periodValue: item.period,
+                    searchVolume: item.ratio,
+                  }));
+                }
+                
+                return searchTrends && searchTrends.length > 0 ? (
+                  <SearchTrendChart searchTrends={searchTrends} />
+                ) : null;
+              })()}
             </AnalyticsGrid>
 
             {/* 통합 키워드 테이블 */}

@@ -93,9 +93,9 @@ export interface SearchTrendData {
   periodType: 'daily' | 'weekly' | 'monthly';
   periodValue: string;
   searchVolume: number;
-  searchRatio: number;
-  id: number;
-  createdAt: string;
+  searchRatio?: number;
+  id?: number;
+  createdAt?: string;
 }
 
 /**

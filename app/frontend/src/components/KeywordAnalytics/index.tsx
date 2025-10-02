@@ -63,36 +63,6 @@ export const KeywordAnalytics: React.FC<KeywordAnalyticsProps> = ({
           </StatsGrid>
         </Section>
       )}
-
-      {/* 콘텐츠 포화지수 섹션 - analytics 데이터가 있을 때만 표시 */}
-      {analytics && (
-        <Section>
-          <SectionTitle>콘텐츠 포화지수</SectionTitle>
-          <StatsGrid>
-            <StatCard>
-              <StatLabel>블로그 포화지수</StatLabel>
-              <ProgressBar>
-                <ProgressFill width={analytics.saturationIndexBlog} />
-                <ProgressLabel>{formatPercentage(analytics.saturationIndexBlog)}</ProgressLabel>
-              </ProgressBar>
-            </StatCard>
-            <StatCard>
-              <StatLabel>카페 포화지수</StatLabel>
-              <ProgressBar>
-                <ProgressFill width={analytics.saturationIndexCafe} />
-                <ProgressLabel>{formatPercentage(analytics.saturationIndexCafe)}</ProgressLabel>
-              </ProgressBar>
-            </StatCard>
-            <StatCard>
-              <StatLabel>전체 포화지수</StatLabel>
-              <ProgressBar>
-                <ProgressFill width={analytics.saturationIndexAll} />
-                <ProgressLabel>{formatPercentage(analytics.saturationIndexAll)}</ProgressLabel>
-              </ProgressBar>
-            </StatCard>
-          </StatsGrid>
-        </Section>
-      )}
     </Container>
   );
 };

@@ -56,33 +56,6 @@ export const MonthlyVolume: React.FC<MonthlyVolumeProps> = ({ analytics }) => {
           <StatValue>{formatNumber(analytics.monthlyContentAll * 12)}</StatValue>
           <StatUnit>개/년</StatUnit>
         </StatCard>
-        <StatCard>
-          <StatLabel>블로그 경쟁도</StatLabel>
-          <StatValue style={{ color: getCompetitionLevel(analytics.saturationIndexBlog).color }}>
-            {formatPercentage(analytics.saturationIndexBlog)}
-          </StatValue>
-          <StatUnit style={{ color: getCompetitionLevel(analytics.saturationIndexBlog).color }}>
-            {getCompetitionLevel(analytics.saturationIndexBlog).level}
-          </StatUnit>
-        </StatCard>
-        <StatCard>
-          <StatLabel>카페 경쟁도</StatLabel>
-          <StatValue style={{ color: getCompetitionLevel(analytics.saturationIndexCafe).color }}>
-            {formatPercentage(analytics.saturationIndexCafe)}
-          </StatValue>
-          <StatUnit style={{ color: getCompetitionLevel(analytics.saturationIndexCafe).color }}>
-            {getCompetitionLevel(analytics.saturationIndexCafe).level}
-          </StatUnit>
-        </StatCard>
-        <StatCard>
-          <StatLabel>전체 경쟁도</StatLabel>
-          <StatValue style={{ color: getCompetitionLevel(analytics.saturationIndexAll).color }}>
-            {formatPercentage(analytics.saturationIndexAll)}
-          </StatValue>
-          <StatUnit style={{ color: getCompetitionLevel(analytics.saturationIndexAll).color }}>
-            {getCompetitionLevel(analytics.saturationIndexAll).level}
-          </StatUnit>
-        </StatCard>
       </StatsGrid>
     </Container>
   );
