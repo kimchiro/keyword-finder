@@ -55,7 +55,14 @@ export const SearchTrendChart: React.FC<SearchTrendChartProps> = ({ searchTrends
       datasets: [
         {
           label: '검색량',
-          data: sortedTrends.map(trend => trend.searchVolume),
+          data: sortedTrends.map(trend => {
+            // searchVolume을 안전하게 숫자로 변환
+            const volume = typeof trend.searchVolume === 'string' 
+              ? parseFloat(trend.searchVolume) 
+              : trend.searchVolume;
+            // NaN이거나 유효하지 않은 숫자면 0 반환
+            return isNaN(volume) || !isFinite(volume) ? 0 : volume;
+          }),
           borderColor: '#22c55e',
           backgroundColor: '#00000033',
           borderWidth: 2,
