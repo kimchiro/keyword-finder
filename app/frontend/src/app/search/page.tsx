@@ -132,10 +132,22 @@ export default function SearchPage() {
                 const chartSearchTrends = workflowData.data.analysisData?.chartData?.searchTrends;
                 const datalabData = workflowData.data.naverApiData?.datalab;
                 
+                console.log('📊 SearchTrendChart 데이터 확인:', {
+                  hasChartSearchTrends: !!chartSearchTrends,
+                  chartSearchTrendsLength: chartSearchTrends?.length || 0,
+                  hasDatalabData: !!datalabData,
+                  datalabResultsLength: datalabData?.results?.length || 0,
+                  datalabFirstResultDataLength: datalabData?.results?.[0]?.data?.length || 0,
+                  datalabTimeUnit: datalabData?.timeUnit,
+                  datalabTitle: datalabData?.results?.[0]?.title,
+                });
+                
                 let searchTrends = chartSearchTrends;
+                let dataSource = 'chartData';
                 
                 // chartSearchTrends가 비어있고 datalab 데이터가 있으면 변환
                 if ((!chartSearchTrends || chartSearchTrends.length === 0) && datalabData?.results?.[0]?.data) {
+                  console.log('🔄 chartSearchTrends가 비어있어서 datalab 데이터를 변환합니다');
                   searchTrends = datalabData.results[0].data.map((item: { period: string; ratio: number }) => ({
                     keyword: datalabData.results[0].title,
                     periodType: (datalabData.timeUnit === 'month' ? 'monthly' : 
@@ -143,11 +155,24 @@ export default function SearchPage() {
                     periodValue: item.period,
                     searchVolume: item.ratio,
                   }));
+                  dataSource = 'datalabFallback';
+                  console.log('✅ datalab 데이터 변환 완료:', searchTrends?.length, '개');
                 }
                 
-                return searchTrends && searchTrends.length > 0 ? (
-                  <SearchTrendChart searchTrends={searchTrends} />
-                ) : null;
+                if (searchTrends && searchTrends.length > 0) {
+                  console.log('✅ SearchTrendChart 표시:', { 
+                    count: searchTrends.length, 
+                    dataSource,
+                    sampleData: searchTrends.slice(0, 2)
+                  });
+                  return <SearchTrendChart searchTrends={searchTrends} />;
+                } else {
+                  console.warn('⚠️ SearchTrendChart 숨김: 데이터 없음', {
+                    chartSearchTrendsAvailable: !!chartSearchTrends && chartSearchTrends.length > 0,
+                    datalabDataAvailable: !!datalabData?.results?.[0]?.data,
+                  });
+                  return null;
+                }
               })()}
             </AnalyticsGrid>
 
