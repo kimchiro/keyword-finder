@@ -128,6 +128,10 @@ export const createBarChartOptions = (color: string) => ({
       callbacks: {
         label: function(context: { dataset: { label?: string }; parsed: { y: number | string } }) {
           const yValue = typeof context.parsed.y === 'string' ? parseFloat(context.parsed.y) : context.parsed.y;
+          // NaN 체크 추가
+          if (isNaN(yValue) || !isFinite(yValue)) {
+            return `${context.dataset.label || '검색 비율'}: 0.0%`;
+          }
           return `${context.dataset.label || '검색 비율'}: ${yValue.toFixed(1)}%`;
         },
       },
