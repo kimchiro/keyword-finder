@@ -69,7 +69,7 @@ const convertScrapedKeyword = (keyword: ScrapedKeyword, index: number): Integrat
   return {
     id: `scraped-${keyword.keyword}-${index}`,
     keyword: keyword.keyword,
-    rank: keyword.rank || index + 1,
+    rank: keyword.rank || keyword.rankPosition || index + 1,  // rank와 rankPosition 모두 지원
     category: getCategoryName(keyword.category),
     competition: getCompetitionLevel(keyword.competition),
     similarity: getSimilarityLevel(keyword.similarity),

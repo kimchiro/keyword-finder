@@ -83,27 +83,30 @@ export const RelatedKeywords: React.FC<RelatedKeywordsProps> = ({ keywords }) =>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {keywords.map((keyword, index) => (
-              <TableRow key={`${keyword.keyword}-${index}`}>
-                <TableCell>
-                  <RankBadge rank={keyword.rank}>#{keyword.rank}</RankBadge>
-                </TableCell>
-                <TableCell>
-                  <KeywordText>{keyword.keyword}</KeywordText>
-                </TableCell>
-                <TableCell>
-                  {keyword.category === 'related_search' ? '연관검색어' : keyword.category}
-                </TableCell>
-                <TableCell>
-                  {getCompetitionText(keyword.competition)}
-                </TableCell>
-                <TableCell>
-                  <SimilarityBadge color={getSimilarityColor(keyword.similarity)}>
-                    {getSimilarityText(keyword.similarity)}
-                  </SimilarityBadge>
-                </TableCell>
-              </TableRow>
-            ))}
+            {keywords.map((keyword, index) => {
+              const displayRank = keyword.rank ?? keyword.rankPosition ?? index + 1;
+              return (
+                <TableRow key={`${keyword.keyword}-${index}`}>
+                  <TableCell>
+                    <RankBadge rank={displayRank}>#{displayRank}</RankBadge>
+                  </TableCell>
+                  <TableCell>
+                    <KeywordText>{keyword.keyword}</KeywordText>
+                  </TableCell>
+                  <TableCell>
+                    {keyword.category === 'related_search' ? '연관검색어' : keyword.category}
+                  </TableCell>
+                  <TableCell>
+                    {getCompetitionText(keyword.competition || 'medium')}
+                  </TableCell>
+                  <TableCell>
+                    <SimilarityBadge color={getSimilarityColor(keyword.similarity || 'medium')}>
+                      {getSimilarityText(keyword.similarity || 'medium')}
+                    </SimilarityBadge>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>

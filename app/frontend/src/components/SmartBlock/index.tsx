@@ -90,27 +90,30 @@ export const SmartBlock: React.FC<SmartBlockProps> = ({ keywords }) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {smartBlockKeywords.map((keyword, index) => (
-              <TableRow key={`smartblock-${keyword.keyword}-${index}`}>
-                <TableCell>
-                  <RankBadge rank={keyword.rank}>#{keyword.rank}</RankBadge>
-                </TableCell>
-                <TableCell>
-                  <KeywordText>{keyword.keyword}</KeywordText>
-                </TableCell>
-                <TableCell>
-                  스마트블록
-                </TableCell>
-                <TableCell>
-                  {getCompetitionText(keyword.competition)}
-                </TableCell>
-                <TableCell>
-                  <SimilarityBadge color={getSimilarityColor(keyword.similarity)}>
-                    {getSimilarityText(keyword.similarity)}
-                  </SimilarityBadge>
-                </TableCell>
-              </TableRow>
-            ))}
+            {smartBlockKeywords.map((keyword, index) => {
+              const displayRank = keyword.rank ?? keyword.rankPosition ?? index + 1;
+              return (
+                <TableRow key={`smartblock-${keyword.keyword}-${index}`}>
+                  <TableCell>
+                    <RankBadge rank={displayRank}>#{displayRank}</RankBadge>
+                  </TableCell>
+                  <TableCell>
+                    <KeywordText>{keyword.keyword}</KeywordText>
+                  </TableCell>
+                  <TableCell>
+                    스마트블록
+                  </TableCell>
+                  <TableCell>
+                    {getCompetitionText(keyword.competition || 'medium')}
+                  </TableCell>
+                  <TableCell>
+                    <SimilarityBadge color={getSimilarityColor(keyword.similarity || 'medium')}>
+                      {getSimilarityText(keyword.similarity || 'medium')}
+                    </SimilarityBadge>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>

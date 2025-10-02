@@ -1,14 +1,17 @@
 import { NaverBlogSearchResult, NaverDatalabResult } from './naver';
 
 /**
- * 스크래핑된 키워드 데이터
+ * 스크래핑된 키워드 데이터 (백엔드 응답 구조)
  */
 export interface ScrapedKeyword {
+  keywordId?: number;          // 백엔드에서 추가된 필드
   keyword: string;
   category: string;
-  rank: number;
-  competition: 'low' | 'medium' | 'high';
-  similarity: 'low' | 'medium' | 'high';
+  rank?: number;               // 선택적 필드 (이전 호환성)
+  rankPosition?: number;       // 백엔드 필드명
+  collectedAt?: string;        // 백엔드에서 추가된 필드
+  competition?: 'low' | 'medium' | 'high';  // 선택적 (실시간 계산)
+  similarity?: 'low' | 'medium' | 'high';   // 선택적 (실시간 계산)
   score?: number;
   url?: string;
   metadata?: Record<string, unknown>;
