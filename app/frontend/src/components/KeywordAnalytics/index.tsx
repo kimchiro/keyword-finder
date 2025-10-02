@@ -12,9 +12,6 @@ import {
   StatUnit,
   Section,
   SectionTitle,
-  ProgressBar,
-  ProgressFill,
-  ProgressLabel,
 } from './styles';
 
 export const KeywordAnalytics: React.FC<KeywordAnalyticsProps> = ({ 
@@ -29,11 +26,6 @@ export const KeywordAnalytics: React.FC<KeywordAnalyticsProps> = ({
   const formatNumber = (num: number | string) => {
     const numValue = typeof num === 'string' ? parseFloat(num) : num;
     return new Intl.NumberFormat('ko-KR').format(numValue);
-  };
-
-  const formatPercentage = (num: number | string) => {
-    const numValue = typeof num === 'string' ? parseFloat(num) : num;
-    return `${numValue.toFixed(1)}%`;
   };
 
   return (

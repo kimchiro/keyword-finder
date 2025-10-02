@@ -7,7 +7,6 @@ import { KeywordAnalytics } from '@/components/KeywordAnalytics';
 import { SearchTrendChart } from '@/components/SearchTrendChart';
 import { IntegratedKeywordTable } from '@/components/IntegratedKeywordTable';
 import { useWorkflow } from '@/commons/hooks';
-import { MonthlyVolume } from '@/components/MonthlyVolume';
 import styled from '@emotion/styled';
 import { colors, spacing, borderRadius, shadow, fontStyles, fontSize, fontWeight } from '@/commons/styles';
 import Loading, { EmptyState } from './loading';
@@ -114,19 +113,13 @@ export default function SearchPage() {
         {/* 워크플로우 결과 표시 */}
         {workflowData?.success && workflowData.data && (
           <>
-            {/* 상단 3개 컴포넌트: MonthlyVolume, KeywordAnalytics, SearchTrendChart */}
             <AnalyticsGrid>
-              {/* <MonthlyVolume 
-                analytics={workflowData.data.analysisData?.analytics || null} 
-              /> */}
               <KeywordAnalytics 
                 analytics={workflowData.data.analysisData?.analytics || null}
                 contentCounts={(() => {
-                  // contentCountsData 우선 사용, 없으면 naverApiData에서 추출
                   if (workflowData.data.contentCountsData?.counts) {
                     return workflowData.data.contentCountsData.counts;
                   }
-                  // fallback: naverApiData에서 블로그 수만 사용
                   return {
                     blogs: workflowData.data.naverApiData?.blogSearch?.total || 0,
                     cafes: 0, // 카페 데이터는 현재 응답에 없음
