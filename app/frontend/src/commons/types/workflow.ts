@@ -51,10 +51,23 @@ export interface NaverApiData {
 }
 
 /**
+ * 키워드 엔티티 (조인 결과)
+ */
+export interface KeywordEntity {
+  id: number;
+  keyword: string;
+  status: 'active' | 'inactive' | 'archived';
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
  * 키워드 분석 데이터 (백엔드에서 생성)
  */
 export interface KeywordAnalyticsData {
-  keyword: string;
+  id: number;
+  keywordId: number;                   // 백엔드에서 반환하는 외래키
+  keyword?: string;                     // 선택적 (이전 호환성)
   monthlySearchPc: number | string;
   monthlySearchMobile: number | string;
   monthlySearchTotal: number | string;
@@ -67,9 +80,9 @@ export interface KeywordAnalyticsData {
   saturationIndexCafe: number | string;
   saturationIndexAll: number | string;
   analysisDate: string;
-  id: number;
   createdAt: string;
   updatedAt: string;
+  keywordEntity?: KeywordEntity;        // 백엔드 조인 결과
 }
 
 /**
@@ -163,9 +176,17 @@ export interface WorkflowResponse {
         cafes: number;
         total: number;
       };
+      savedToDatabase?: {
+        id: number;
+        analysisDate: string;
+        monthlyContentBlog: number;
+        monthlyContentCafe: number;
+        monthlyContentAll: number;
+      };
     };
     scrapingData: ScrapingData;
     analysisData: AnalysisData | null;
+    chartData?: ChartData;              // 백엔드가 최상위 레벨에도 반환
     topKeywords: string[];
     keywordsWithRank: Array<{
       keyword: string;
