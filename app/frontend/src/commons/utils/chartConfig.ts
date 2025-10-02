@@ -126,8 +126,9 @@ export const createBarChartOptions = (color: string) => ({
     tooltip: {
       ...createTooltipConfig(color, color),
       callbacks: {
-        label: function(context: { dataset: { label?: string }; parsed: { y: number } }) {
-          return `${context.dataset.label || '검색 비율'}: ${context.parsed.y.toFixed(1)}%`;
+        label: function(context: { dataset: { label?: string }; parsed: { y: number | string } }) {
+          const yValue = typeof context.parsed.y === 'string' ? parseFloat(context.parsed.y) : context.parsed.y;
+          return `${context.dataset.label || '검색 비율'}: ${yValue.toFixed(1)}%`;
         },
       },
     },
