@@ -18,19 +18,22 @@ export const MonthlyVolume: React.FC<MonthlyVolumeProps> = ({ analytics }) => {
     return null;
   }
 
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('ko-KR').format(num);
+  const formatNumber = (num: number | string) => {
+    const numValue = typeof num === 'string' ? parseFloat(num) : num;
+    return new Intl.NumberFormat('ko-KR').format(numValue);
   };
 
-  const formatPercentage = (num: number) => {
-    return `${num.toFixed(1)}%`;
+  const formatPercentage = (num: number | string) => {
+    const numValue = typeof num === 'string' ? parseFloat(num) : num;
+    return `${numValue.toFixed(1)}%`;
   };
 
-  const getCompetitionLevel = (index: number) => {
-    if (index >= 80) return { level: '매우 높음', color: colors.danger };
-    if (index >= 60) return { level: '높음', color: colors.warning };
-    if (index >= 40) return { level: '보통', color: colors.accent };
-    if (index >= 20) return { level: '낮음', color: colors.primary };
+  const getCompetitionLevel = (index: number | string) => {
+    const indexValue = typeof index === 'string' ? parseFloat(index) : index;
+    if (indexValue >= 80) return { level: '매우 높음', color: colors.danger };
+    if (indexValue >= 60) return { level: '높음', color: colors.warning };
+    if (indexValue >= 40) return { level: '보통', color: colors.accent };
+    if (indexValue >= 20) return { level: '낮음', color: colors.primary };
     return { level: '매우 낮음', color: colors.success };
   };
 

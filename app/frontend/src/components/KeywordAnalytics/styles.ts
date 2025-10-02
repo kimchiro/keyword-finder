@@ -87,12 +87,15 @@ export const ProgressBar = styled.div`
   margin-top: ${spacing.sm};
 `;
 
-export const ProgressFill = styled.div<{ width: number }>`
+export const ProgressFill = styled.div<{ width: number | string }>`
   position: absolute;
   top: 0;
   left: 0;
   height: 100%;
-  width: ${props => Math.min(props.width, 100)}%;
+  width: ${props => {
+    const widthValue = typeof props.width === 'string' ? parseFloat(props.width) : props.width;
+    return Math.min(widthValue, 100);
+  }}%;
   background: linear-gradient(90deg, ${colors.success} 0%, ${colors.successDark} 100%);
   border-radius: ${borderRadius.lg};
   transition: width 0.3s ease;

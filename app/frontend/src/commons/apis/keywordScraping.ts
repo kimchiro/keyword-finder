@@ -16,7 +16,8 @@ export const scrapeKeywords = async (
   }
 
   try {
-    const response = await axios.post('http://localhost:3001/api/scraping/scrape', {
+    const API_BASE_URL = '/api';
+    const response = await axios.post(`${API_BASE_URL}/scraping/scrape`, {
       query,
       options: {
         headless: options.headless ?? true,

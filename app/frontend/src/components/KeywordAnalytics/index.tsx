@@ -26,12 +26,14 @@ export const KeywordAnalytics: React.FC<KeywordAnalyticsProps> = ({
     return null;
   }
 
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('ko-KR').format(num);
+  const formatNumber = (num: number | string) => {
+    const numValue = typeof num === 'string' ? parseFloat(num) : num;
+    return new Intl.NumberFormat('ko-KR').format(numValue);
   };
 
-  const formatPercentage = (num: number) => {
-    return `${num.toFixed(1)}%`;
+  const formatPercentage = (num: number | string) => {
+    const numValue = typeof num === 'string' ? parseFloat(num) : num;
+    return `${numValue.toFixed(1)}%`;
   };
 
   return (

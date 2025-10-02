@@ -278,7 +278,7 @@ export const useFilteredKeywords = (
     });
 
     return filtered;
-  }, [integratedKeywords, filters, sortOptions, integratedKeywords.length]);
+  }, [integratedKeywords, filters, sortOptions]);
 
   // 필터 업데이트
   const updateFilters = useCallback((newFilters: Partial<FilterOptions>) => {

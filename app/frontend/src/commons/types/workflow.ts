@@ -52,17 +52,17 @@ export interface NaverApiData {
  */
 export interface KeywordAnalyticsData {
   keyword: string;
-  monthlySearchPc: number;
-  monthlySearchMobile: number;
-  monthlySearchTotal: number;
+  monthlySearchPc: number | string;
+  monthlySearchMobile: number | string;
+  monthlySearchTotal: number | string;
   monthlyContentBlog: number;
   monthlyContentCafe: number;
   monthlyContentAll: number;
-  estimatedSearchYesterday: number;
-  estimatedSearchEndMonth: number;
-  saturationIndexBlog: number;
-  saturationIndexCafe: number;
-  saturationIndexAll: number;
+  estimatedSearchYesterday: number | string;
+  estimatedSearchEndMonth: number | string;
+  saturationIndexBlog: number | string;
+  saturationIndexCafe: number | string;
+  saturationIndexAll: number | string;
   analysisDate: string;
   id: number;
   createdAt: string;
